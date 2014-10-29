@@ -46,9 +46,9 @@ struct fragmentation_JEC
    return (1/correction)*jetpt;
   }
   
-  bool passes_PF_selection(double PF_pt, double PF_eta, double PF_phi, double jet_eta, double jet_phi)
+  bool passes_PF_selection(double PF_pt, double PF_eta, double PF_phi, int PF_id, double jet_eta, double jet_phi)
   { 
-   if(PF_pt<PF_pt_cut || fabs(PF_eta)>PF_eta_cut) return false;
+   if(PF_pt<PF_pt_cut || fabs(PF_eta)>PF_eta_cut || PF_id!=1) return false;
    
    double r=sqrt(pow(jet_eta-PF_eta,2)+pow(acos(cos(jet_phi-PF_phi)),2));
    
@@ -59,7 +59,7 @@ struct fragmentation_JEC
   void set_correction()
   {
     algo_corr=Form("ak%dCalo",radius);
-    correction_file = new TFile(Form("corrections/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+    correction_file = new TFile(Form("corrections_id1/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
     correction_matrix=(TH2D*)correction_file->Get("pNtrk_pt");
   }
 };
