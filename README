@@ -1,6 +1,6 @@
 // before the event loop do
  
- fragmentation_JEC *FF_JEC=new fragmentation_JEC(RADIUS, PFptcut);
+ fragmentation_JEC *FF_JEC=new fragmentation_JEC(RADIUS);
  FF_JEC->set_correction();
  
 // In the event loop for each jet count the number of PF candidates
@@ -16,4 +16,4 @@
 
 //Then get the corrected pt for each jet before dijet selection by doing
 
-    double corrected_pt=FF_JEC->get_corrected_pt(fjet->jtpt[ijet],ntrk);
+    double corrected_pt=FF_JEC->get_corrected_pt(fjet->jtpt[ijet], ntrk, hiBin);
