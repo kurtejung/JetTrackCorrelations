@@ -10,8 +10,10 @@ struct fragmentation_JEC
 {
  private:
   static const int ncent=4;
+  static const int nstepmax=4;
   int radius;
   int ntrkmax;
+  int nstep;
   int cent_max[ncent];
   int cent_min[ncent];
   double PF_pt_cut;
@@ -21,9 +23,9 @@ struct fragmentation_JEC
   bool do_residual_correction;
   TString algo_corr; 
   TH2D* correction_matrix[ncent];
-  TF1* residual_correction_function[ncent];
+  TF1* residual_correction_function[ncent][nstepmax];
   TFile* correction_file;
-  TFile* residual_correction_file;
+  TFile* residual_correction_file[nstepmax];
  public:
   void reset()
   { 
@@ -32,6 +34,7 @@ struct fragmentation_JEC
    }
    correction_file=NULL;
    ntrkmax=21;
+   nstep=1;
    PF_eta_cut=2.4;
    cent_min[0]=0;
    cent_max[0]=cent_min[1]=20;
@@ -42,7 +45,7 @@ struct fragmentation_JEC
   
   
   
-  fragmentation_JEC(int radius=3, bool do_PbPb=1, bool do_pp_tracking=0, bool do_residual_correction=1, double PF_pt_cut=2)
+  fragmentation_JEC(int radius=3, bool do_PbPb=1, bool do_pp_tracking=0, bool do_residual_correction=1, int nstep=1, double PF_pt_cut=2)
   {
    reset();
    if(do_PbPb==1){
@@ -56,6 +59,7 @@ struct fragmentation_JEC
    if(PF_pt_cut==3) ntrkmax=26;
    else if(PF_pt_cut==2) ntrkmax=31;
    else if(PF_pt_cut==1) ntrkmax=41;
+   this->nstep=nstep;
   }
   
   
@@ -83,7 +87,7 @@ struct fragmentation_JEC
     
   double get_residual_corrected_pt(double corrected_jetpt, int cent=0)
   {
-   //residual correction to correct for the effects of jet resolution in fragmentation jec with a simple centrality binned fit function
+   // residual correction to correct for the effects of jet resolution in fragmentation jec with a simple centrality binned fit function
    double residual_correction=1;
    
    int cent_bin=0;
@@ -93,12 +97,15 @@ struct fragmentation_JEC
     }
    }
    
-   residual_correction=residual_correction_function[cent_bin]->Eval(corrected_jetpt);
    if(corrected_jetpt<20 || corrected_jetpt>300) return corrected_jetpt;
-   else return (1/(residual_correction))*corrected_jetpt;
+
+   for(int istep=0;istep<nstep;istep++){
+    residual_correction=residual_correction*residual_correction_function[cent_bin][istep]->Eval((1/(residual_correction))*corrected_jetpt);
+   }
+   return (1/(residual_correction))*corrected_jetpt;
+   
   }
-  
-  
+ 
   
   bool passes_PF_selection(double PF_pt, double PF_eta, double PF_phi, int PF_id, double jet_eta, double jet_phi)
   { 
@@ -123,9 +130,11 @@ struct fragmentation_JEC
     } 
     
     if(do_residual_correction){
-     residual_correction_file = new TFile(Form("corrections_2014_11_26_PbPb/residualcorr_%s.root",algo_corr.Data()));
-     for(int icent=0;icent<ncent;icent++){
-      residual_correction_function[icent] = (TF1*)residual_correction_file->Get(Form("fit%d",icent));
+     for(int istep=0;istep<nstep;istep++){
+      residual_correction_file[istep] = new TFile(Form("corrections_2014_11_26_PbPb/residualcorr%d_%s.root",istep,algo_corr.Data()));
+      for(int icent=0;icent<ncent;icent++){
+       residual_correction_function[icent][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",icent));
+      }
      }
     }
    }else{
@@ -135,8 +144,8 @@ struct fragmentation_JEC
      correction_matrix[0]=(TH2D*)correction_file->Get("pNtrk_pt");    
      
      if(do_residual_correction){
-      residual_correction_file = new TFile(Form("corrections_2014_11_26_pp/residualcorr_%s.root",algo_corr.Data()));
-      residual_correction_function[0] = (TF1*)residual_correction_file->Get(Form("fit%d",0));
+      residual_correction_file[0] = new TFile(Form("corrections_2014_11_26_pp/residualcorr_%s.root",algo_corr.Data()));
+      residual_correction_function[0][0] = (TF1*)residual_correction_file[0]->Get(Form("fit%d",0));
      }
     }else{//! correction for all R values are not available for HI tracking for the moment
      correction_file = new TFile(Form("corrections_id1/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));

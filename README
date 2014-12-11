@@ -3,7 +3,7 @@
 
 // before the event loop do
  
- fragmentation_JEC *FF_JEC=new fragmentation_JEC(radius, do_PbPb, do_pp_tracking,do_residual_correction); //3rd variable is only for when do_PbPb is false
+ fragmentation_JEC *FF_JEC=new fragmentation_JEC(radius, do_PbPb, do_pp_tracking,do_residual_correction,nstep_residual); //3rd variable is only for when do_PbPb is false
  FF_JEC->set_correction();
  
 // In the event loop for each jet count the number of PF candidates
