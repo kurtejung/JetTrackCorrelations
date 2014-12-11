@@ -124,14 +124,14 @@ struct fragmentation_JEC
    cout<<"setting correction"<<endl;
    if(do_PbPb){
     algo_corr=Form("akVs%dCalo",radius);
-    correction_file = new TFile(Form("corrections_2014_11_26_PbPb/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+    correction_file = new TFile(Form("corrections_2014_12_11_PbPb/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
     for(int icent=0;icent<ncent;icent++){
 	   correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
     } 
     
     if(do_residual_correction){
      for(int istep=0;istep<nstep;istep++){
-      residual_correction_file[istep] = new TFile(Form("corrections_2014_11_26_PbPb/residualcorr%d_%s.root",istep,algo_corr.Data()));
+      residual_correction_file[istep] = new TFile(Form("corrections_2014_12_11_PbPb/residualcorr%d_%s.root",istep,algo_corr.Data()));
       for(int icent=0;icent<ncent;icent++){
        residual_correction_function[icent][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",icent));
       }
