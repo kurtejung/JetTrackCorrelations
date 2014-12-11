@@ -11,6 +11,8 @@ struct fragmentation_JEC
  private:
   static const int ncent=4;
   static const int nstepmax=4;
+  static const double lower_pt_cut=25;
+  static const double higher_pt_cut=300;
   int radius;
   int ntrkmax;
   int nstep;
@@ -79,7 +81,7 @@ struct fragmentation_JEC
    if(ntrk<ntrkmax) correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrk),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt));
    else correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrkmax),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt));
      
-   if(jetpt<20 || jetpt>300) return jetpt; //! correction goes down to 15 GeV in the histogram but it's suggested to use it for reco jet pt above 20 GeV
+   if(jetpt<lower_pt_cut || jetpt>higher_pt_cut) return jetpt; //! correction goes down to 15 GeV in the histogram but it's suggested to use it for reco jet pt above 20 GeV
    else return (1/correction)*jetpt;
   }
     
@@ -97,7 +99,7 @@ struct fragmentation_JEC
     }
    }
    
-   if(corrected_jetpt<20 || corrected_jetpt>300) return corrected_jetpt;
+   if(corrected_jetpt<lower_pt_cut || corrected_jetpt>higher_pt_cut) return corrected_jetpt;
 
    for(int istep=0;istep<nstep;istep++){
     residual_correction=residual_correction*residual_correction_function[cent_bin][istep]->Eval((1/(residual_correction))*corrected_jetpt);
