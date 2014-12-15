@@ -10,9 +10,9 @@ struct fragmentation_JEC
 {
  private:
   static const int ncent=4;
-  static const int nstepmax=4;
-  static const double lower_pt_cut=25;
-  static const double higher_pt_cut=300;
+  static const int nstepmax=10;
+  static const double lower_pt_cut=15;
+  static const double higher_pt_cut=700;
   int radius;
   int ntrkmax;
   int nstep;
@@ -78,11 +78,16 @@ struct fragmentation_JEC
     }
    }
    
-   if(ntrk<ntrkmax) correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrk),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt));
-   else correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrkmax),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt));
+   if(jetpt<lower_pt_cut) return jetpt; 
+   
+   double jetpt_for_correction=jetpt;
+   if(jetpt<25) jetpt_for_correction=25;
+   if(jetpt>700) jetpt_for_correction=700;
+   
+   if(ntrk<ntrkmax) correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrk),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt_for_correction));
+   else correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrkmax),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt_for_correction));
      
-   if(jetpt<lower_pt_cut || jetpt>higher_pt_cut) return jetpt; //! correction goes down to 15 GeV in the histogram but it's suggested to use it for reco jet pt above 20 GeV
-   else return (1/correction)*jetpt;
+   return (1/correction)*jetpt;
   }
     
     
@@ -99,15 +104,43 @@ struct fragmentation_JEC
     }
    }
    
-   if(corrected_jetpt<lower_pt_cut || corrected_jetpt>higher_pt_cut) return corrected_jetpt;
+   if(corrected_jetpt<lower_pt_cut) return corrected_jetpt;
+   
+   double jetpt_for_correction=corrected_jetpt;
+   if(corrected_jetpt<25) jetpt_for_correction=25;
+   if(corrected_jetpt>700) jetpt_for_correction=700;
 
    for(int istep=0;istep<nstep;istep++){
-    residual_correction=residual_correction*residual_correction_function[cent_bin][istep]->Eval((1/(residual_correction))*corrected_jetpt);
+    residual_correction=residual_correction*residual_correction_function[cent_bin][istep]->Eval((1/(residual_correction))*jetpt_for_correction);
    }
    return (1/(residual_correction))*corrected_jetpt;
    
   }
- 
+  
+  double get_residual_corrected_pt_single_step(double corrected_jetpt, int cent=0)
+  {
+   // residual correction to correct for the effects of jet resolution in fragmentation jec with a simple centrality binned fit function
+   double residual_correction=1;
+   
+   int cent_bin=0;
+   if(do_PbPb){
+    for(int icent=0;icent<ncent;icent++){
+     if(cent<cent_max[icent] && cent>=cent_min[icent]) cent_bin=icent;
+    }
+   }
+   
+   double jetpt_for_correction=corrected_jetpt;
+   if(corrected_jetpt<lower_pt_cut) return corrected_jetpt;
+
+   if(corrected_jetpt<25) jetpt_for_correction=25;
+   if(corrected_jetpt>700) jetpt_for_correction=700;
+
+   residual_correction=residual_correction*residual_correction_function[cent_bin][0]->Eval(jetpt_for_correction);
+	
+   return (1/(residual_correction))*corrected_jetpt;
+  }
+  
+  
   
   bool passes_PF_selection(double PF_pt, double PF_eta, double PF_phi, int PF_id, double jet_eta, double jet_phi)
   { 
@@ -126,14 +159,15 @@ struct fragmentation_JEC
    cout<<"setting correction"<<endl;
    if(do_PbPb){
     algo_corr=Form("akVs%dCalo",radius);
-    correction_file = new TFile(Form("corrections_2014_12_11_PbPb/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+    // correction_file = new TFile(Form("corrections_2014_11_26_PbPb/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+    correction_file = new TFile(Form("corrections_2014_12_12_PbPb/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
     for(int icent=0;icent<ncent;icent++){
 	   correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
     } 
     
     if(do_residual_correction){
      for(int istep=0;istep<nstep;istep++){
-      residual_correction_file[istep] = new TFile(Form("corrections_2014_12_11_PbPb/residualcorr%d_%s.root",istep,algo_corr.Data()));
+      residual_correction_file[istep] = new TFile(Form("corrections_2014_12_12_PbPb/residualcorr%d_%s.root",istep,algo_corr.Data()));
       for(int icent=0;icent<ncent;icent++){
        residual_correction_function[icent][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",icent));
       }
