@@ -82,10 +82,10 @@ struct fragmentation_JEC
    
    double jetpt_for_correction=jetpt;
    if(jetpt<25) jetpt_for_correction=25;
-   if(jetpt>700) jetpt_for_correction=700;
+   if(jetpt>=700) jetpt_for_correction=699;
    
    if(ntrk<ntrkmax) correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrk),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt_for_correction));
-   else correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrkmax),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt_for_correction));
+   else correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrkmax-1),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt_for_correction));
      
    return (1/correction)*jetpt;
   }
@@ -108,7 +108,7 @@ struct fragmentation_JEC
    
    double jetpt_for_correction=corrected_jetpt;
    if(corrected_jetpt<25) jetpt_for_correction=25;
-   if(corrected_jetpt>700) jetpt_for_correction=700;
+   if(corrected_jetpt>=700) jetpt_for_correction=699;
 
    for(int istep=0;istep<nstep;istep++){
     residual_correction=residual_correction*residual_correction_function[cent_bin][istep]->Eval((1/(residual_correction))*jetpt_for_correction);
