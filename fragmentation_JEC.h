@@ -178,9 +178,11 @@ struct fragmentation_JEC
      correction_file = new TFile(Form("corrections_2014_12_20_pp/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
      correction_matrix[0]=(TH2D*)correction_file->Get("pNtrk_pt");    
      
-     if(do_residual_correction){
-      residual_correction_file[0] = new TFile(Form("corrections_2014_12_20_pp/residualcorr_%s.root",algo_corr.Data()));
-      residual_correction_function[0][0] = (TF1*)residual_correction_file[0]->Get(Form("fit%d",0));
+     if(do_residual_correction){      
+      for(int istep=0;istep<nstep;istep++){
+       residual_correction_file[istep] = new TFile(Form("corrections_2014_12_20_pp/residualcorr%d_%s.root",istep,algo_corr.Data()));
+       residual_correction_function[0][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",0));
+	    }
      }
     }else{//! correction for all R values are not available for HI tracking for the moment
      correction_file = new TFile(Form("corrections_id1/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
