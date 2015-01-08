@@ -159,7 +159,6 @@ struct fragmentation_JEC
    cout<<"setting correction"<<endl;
    if(do_PbPb){
     algo_corr=Form("akVs%dCalo",radius);
-    // correction_file = new TFile(Form("corrections_2014_11_26_PbPb/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
     correction_file = new TFile(Form("corrections_2014_12_12_PbPb/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
     for(int icent=0;icent<ncent;icent++){
 	   correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
@@ -176,11 +175,11 @@ struct fragmentation_JEC
    }else{
   	algo_corr=Form("ak%dCalo",radius);
     if(do_pp_tracking){
-     correction_file = new TFile(Form("corrections_2014_11_26_pp/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+     correction_file = new TFile(Form("corrections_2014_12_20_pp/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
      correction_matrix[0]=(TH2D*)correction_file->Get("pNtrk_pt");    
      
      if(do_residual_correction){
-      residual_correction_file[0] = new TFile(Form("corrections_2014_11_26_pp/residualcorr_%s.root",algo_corr.Data()));
+      residual_correction_file[0] = new TFile(Form("corrections_2014_12_20_pp/residualcorr_%s.root",algo_corr.Data()));
       residual_correction_function[0][0] = (TF1*)residual_correction_file[0]->Get(Form("fit%d",0));
      }
     }else{//! correction for all R values are not available for HI tracking for the moment
