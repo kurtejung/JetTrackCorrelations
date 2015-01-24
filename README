@@ -1,14 +1,23 @@
 //include the header
 #include "fragmentation_JEC.h"
 
-// before the event loop do
+// Initialize the corrections
  
  fragmentation_JEC *FF_JEC=new fragmentation_JEC(radius, do_PbPb, do_pp_tracking,do_residual_correction,nstep_residual); //3rd variable is only for when do_PbPb is false
  FF_JEC->set_correction();
- 
-// In the event loop for each jet count the number of PF candidates
 
-    int npf=0;
+// For each event
+// Calculate efficiency
+
+	double eff = 1;
+	
+	if(do_effcorrection && do_PbPb){
+	 eff=FF_JEC->get_efficiency(fjet->jtpt[ijet],fjet->jteta[ijet],cent);
+	}
+	
+// Calculate the number of PF candidates
+
+    double npf=0;
     for(int ipf=0;ipf<fpf->nPFpart;ipf++){
      if(doPP){
       if(FF_JEC->passes_PF_selection(fpf->pfPt[ipf], fpf->pfEta[ipf], fpf->pfPhi[ipf], fpf->pfId[ipf], fjet->jteta[ijet], fjet->jtphi[ijet])) npf++;
@@ -16,6 +25,7 @@
       if(FF_JEC->passes_PF_selection(fpf->pfVsPt[ipf], fpf->pfEta[ipf], fpf->pfPhi[ipf], fpf->pfId[ipf], fjet->jteta[ijet], fjet->jtphi[ijet])) npf++;
      }
     }
+	npf/=eff;
 
 //Then get the corrected pt for each jet before dijet selection by doing
 
