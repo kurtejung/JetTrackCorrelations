@@ -22,6 +22,7 @@ struct fragmentation_JEC
   int cent_min[ncent];
   double PF_pt_cut;
   double PF_eta_cut;
+  int jetType;
   bool do_PbPb;
   bool do_pp_tracking;
   bool do_residual_correction;
@@ -53,9 +54,12 @@ struct fragmentation_JEC
   
   
   
-  fragmentation_JEC(int radius=3, bool do_PbPb=1, bool do_pp_tracking=0, bool do_residual_correction=1, int nstep=1, double PF_pt_cut=2)
+  fragmentation_JEC(int radius=3, bool do_PbPb=1, bool do_pp_tracking=0, bool do_residual_correction=1,
+  int nstep=1, double PF_pt_cut=2, int type=0)
   {
    reset();
+   jetType=type;
+   cout <<"JetType = "<<jetType<<endl;
    if(do_PbPb==1){
     do_pp_tracking=0;
    }
@@ -68,7 +72,13 @@ struct fragmentation_JEC
    else if(PF_pt_cut==2) ntrkmax=31;
    else if(PF_pt_cut==1) ntrkmax=41;
    this->nstep=nstep;
-   algo_corr=Form("akVs%dCalo",radius);
+   if (jetType==0) {
+    algo_corr=Form("akVs%dCalo",radius);
+   } else if (jetType==1) {
+    algo_corr=Form("akVs%dPF",radius);
+   } else if (jetType==2) {
+    algo_corr=Form("akPu%dCalo",radius);
+   }    
   }
 
   
@@ -76,20 +86,50 @@ struct fragmentation_JEC
   {
    cout<<"setting correction"<<endl;
    if(do_PbPb){
-    correction_file = new TFile(Form("corrections_2014_12_12_PbPb/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
-    for(int icent=0;icent<ncent;icent++){
-	 correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
-    } 
-    
-    if(do_residual_correction){
-     for(int istep=0;istep<nstep;istep++){
-      residual_correction_file[istep] = new TFile(Form("corrections_2014_12_12_PbPb/residualcorr%d_%s.root",istep,algo_corr.Data()));
-      for(int icent=0;icent<ncent;icent++){
-       residual_correction_function[icent][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",icent));
+    if(jetType==0) {
+     correction_file = new TFile(Form("corrections_2014_12_12_PbPb/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+     for(int icent=0;icent<ncent;icent++){
+ 	 correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
+     } 
+     
+     if(do_residual_correction){
+      for(int istep=0;istep<nstep;istep++){
+       residual_correction_file[istep] = new TFile(Form("corrections_2014_12_12_PbPb/residualcorr%d_%s.root",istep,algo_corr.Data()));
+       for(int icent=0;icent<ncent;icent++){
+        residual_correction_function[icent][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",icent));
+       }
       }
-     }
-    }
-	
+     } 
+    } else if (jetType==1) {
+     correction_file = new TFile(Form("corrections_2015_02_09_PbPb_PF/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+     for(int icent=0;icent<ncent;icent++){
+ 	 correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
+     } 
+     
+     if(do_residual_correction){
+      for(int istep=0;istep<nstep;istep++){
+       residual_correction_file[istep] = new TFile(Form("corrections_2015_02_09_PbPb_PF/residualcorr%d_%s.root",istep,algo_corr.Data()));
+       for(int icent=0;icent<ncent;icent++){
+        residual_correction_function[icent][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",icent));
+       }
+      }
+     } 
+    } else if (jetType==2) {
+     correction_file = new TFile(Form("corrections_2015_02_09_PbPb_Pu/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+     for(int icent=0;icent<ncent;icent++){
+ 	 correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
+     } 
+     
+     if(do_residual_correction){
+      for(int istep=0;istep<nstep;istep++){
+       residual_correction_file[istep] = new TFile(Form("corrections_2015_02_09_PbPb_Pu/residualcorr%d_%s.root",istep,algo_corr.Data()));
+       for(int icent=0;icent<ncent;icent++){
+        residual_correction_function[icent][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",icent));
+       }
+      }
+     } 
+        
+    }	
    }else{
   	algo_corr=Form("ak%dCalo",radius);
     if(do_pp_tracking){
@@ -113,6 +153,7 @@ struct fragmentation_JEC
      }
     }
    }
+   cout <<correction_file<<endl;
   }
   
   
