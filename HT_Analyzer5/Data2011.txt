@@ -1,0 +1,13 @@
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p0.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p1.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p2.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p3.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p4.root 
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p5.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p6.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p7.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p8.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p9.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p10.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p11.root
+/afs/cern.ch/work/p/pkurt/public/FullOfficialReco_PbPbData_mini_ntuple_v1_p12.root
