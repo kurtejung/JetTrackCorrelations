@@ -15,8 +15,8 @@ struct fragmentation_JEC
   static const int nstepmax=10;
   static const double lower_pt_cut=15;
   static const double higher_pt_cut=700;
+  static const int ntrkmax=14;
   int radius;
-  int ntrkmax;
   int nstep;
   int cent_max[ncent];
   int cent_min[ncent];
@@ -27,7 +27,7 @@ struct fragmentation_JEC
   bool do_pp_tracking;
   bool do_residual_correction;
   TString algo_corr; 
-  TH2D *correction_matrix[ncent];
+  TF1 *correction_matrix[ntrkmax][ncent];
   TF1 *residual_correction_function[ncent][nstepmax];
   TH1D *hist_eff_pt[ncent];
   TH1D *hist_eff_eta[ncent];
@@ -38,11 +38,12 @@ struct fragmentation_JEC
   public:
   void reset()
   { 
-   for(int icent=0;icent<ncent;icent++){
-    correction_matrix[icent]=NULL;
+   for(int iNpf = 0; iNpf < ntrkmax ;iNpf++){
+    for(int icent=0;icent<ncent;icent++){
+     correction_matrix[icent]=NULL;
+    }
    }
    correction_file=NULL;
-   ntrkmax=21;
    nstep=1;
    PF_eta_cut=2.4;
    cent_min[0]=0;
@@ -68,9 +69,9 @@ struct fragmentation_JEC
    this->PF_pt_cut=PF_pt_cut;
    this->do_pp_tracking=do_pp_tracking;
    this->do_residual_correction=do_residual_correction;
-   if(PF_pt_cut==3) ntrkmax=26;
-   else if(PF_pt_cut==2) ntrkmax=31;
-   else if(PF_pt_cut==1) ntrkmax=41;
+   // if(PF_pt_cut==3) ntrkmax=26;
+   // else if(PF_pt_cut==2) ntrkmax=31;
+   // else if(PF_pt_cut==1) ntrkmax=41;
    this->nstep=nstep;
    if (jetType==0) {
     algo_corr=Form("akVs%dCalo",radius);
@@ -87,11 +88,13 @@ struct fragmentation_JEC
    cout<<"setting correction"<<endl;
    if(do_PbPb){
     if(jetType==0) {
-     correction_file = new TFile(Form("corrections_2014_12_12_PbPb/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
-     for(int icent=0;icent<ncent;icent++){
- 	 correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
-     } 
-     
+   if(do_PbPb){
+    correction_file = new TFile(Form("corrections_2015_06_09/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+    for(int icent=0;icent<ncent;icent++){
+     for(int iNpf=0; iNpf<ntrkmax;iNpf++){	  
+	  correction_matrix[iNpf][icent]=(TF1*)correction_file->Get(Form("fit_total_NPF_%d_cent_%d_%d",iNpf,(int)(cent_min[icent]*0.5),(int)(cent_max[icent]*0.5)));
+	 }
+    } 
      if(do_residual_correction){
       for(int istep=0;istep<nstep;istep++){
        residual_correction_file[istep] = new TFile(Form("corrections_2014_12_12_PbPb/residualcorr%d_%s.root",istep,algo_corr.Data()));
@@ -100,25 +103,26 @@ struct fragmentation_JEC
        }
       }
      } 
-    } else if (jetType==1) {
-     correction_file = new TFile(Form("corrections_2015_02_09_PbPb_PF/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
-     for(int icent=0;icent<ncent;icent++){
- 	 correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
-     } 
+    } 
+	// else if (jetType==1) {
+     // correction_file = new TFile(Form("corrections_2015_02_09_PbPb_PF/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+     // for(int icent=0;icent<ncent;icent++){
+ 	 // correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
+     // } 
      
-     if(do_residual_correction){
-      for(int istep=0;istep<nstep;istep++){
-       residual_correction_file[istep] = new TFile(Form("corrections_2015_02_09_PbPb_PF/residualcorr%d_%s.root",istep,algo_corr.Data()));
-       for(int icent=0;icent<ncent;icent++){
-        residual_correction_function[icent][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",icent));
-       }
-      }
-     } 
-    } else if (jetType==2) {
-     correction_file = new TFile(Form("corrections_2015_02_09_PbPb_Pu/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
-     for(int icent=0;icent<ncent;icent++){
- 	 correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
-     } 
+     // if(do_residual_correction){
+      // for(int istep=0;istep<nstep;istep++){
+       // residual_correction_file[istep] = new TFile(Form("corrections_2015_02_09_PbPb_PF/residualcorr%d_%s.root",istep,algo_corr.Data()));
+       // for(int icent=0;icent<ncent;icent++){
+        // residual_correction_function[icent][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",icent));
+       // }
+      // }
+     // } 
+    // } else if (jetType==2) {
+     // correction_file = new TFile(Form("corrections_2015_02_09_PbPb_Pu/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+     // for(int icent=0;icent<ncent;icent++){
+ 	 // correction_matrix[icent]=(TH2D*)correction_file->Get(Form("pNtrk_pt%d",icent));
+     // } 
      
      if(do_residual_correction){
       for(int istep=0;istep<nstep;istep++){
@@ -130,30 +134,30 @@ struct fragmentation_JEC
      } 
         
     }	
-   }else{
-  	algo_corr=Form("ak%dCalo",radius);
-    if(do_pp_tracking){
-     correction_file = new TFile(Form("corrections_2014_12_20_pp/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
-     correction_matrix[0]=(TH2D*)correction_file->Get("pNtrk_pt");    
-     
-     if(do_residual_correction){
-      for(int istep=0;istep<nstep;istep++){
-       residual_correction_file[istep] = new TFile(Form("corrections_2014_12_20_pp/residualcorr%d_%s.root",istep,algo_corr.Data()));
-       residual_correction_function[0][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",0));
-	  }
-     }
-    }else{// correction for all R values are not available for HI tracking for the moment     
-     correction_file = new TFile(Form("corrections_2015_02_02_pp_HI_tracking/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
-     correction_matrix[0]=(TH2D*)correction_file->Get("pNtrk_pt");
-     if(do_residual_correction){
-      for(int istep=0;istep<nstep;istep++){
-       residual_correction_file[istep] = new TFile(Form("corrections_2015_02_02_pp_HI_tracking/residualcorr%d_%s.root",istep,algo_corr.Data()));
-       residual_correction_function[0][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",0));
-	    }
-     }
-    }
    }
-   cout <<correction_file<<endl;
+   // else{
+  	// algo_corr=Form("ak%dCalo",radius);
+    // if(do_pp_tracking){
+     // correction_file = new TFile(Form("corrections_2014_12_20_pp/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+     // correction_matrix[0][0]=(TF1*)correction_file->Get("pNtrk_pt");    
+     
+     // if(do_residual_correction){
+      // for(int istep=0;istep<nstep;istep++){
+       // residual_correction_file[istep] = new TFile(Form("corrections_2014_12_20_pp/residualcorr%d_%s.root",istep,algo_corr.Data()));
+       // residual_correction_function[0][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",0));
+	  // }
+     // }
+    // }else{// correction for all R values are not available for HI tracking for the moment     
+     // correction_file = new TFile(Form("corrections_2015_02_02_pp_HI_tracking/FFJEC_correction_PF_%s_pt%d.root",algo_corr.Data(),(int)PF_pt_cut));
+     // correction_matrix[0][0]=(TF1*)correction_file->Get("pNtrk_pt");
+     // if(do_residual_correction){
+      // for(int istep=0;istep<nstep;istep++){
+       // residual_correction_file[istep] = new TFile(Form("corrections_2015_02_02_pp_HI_tracking/residualcorr%d_%s.root",istep,algo_corr.Data()));
+       // residual_correction_function[0][istep] = (TF1*)residual_correction_file[istep]->Get(Form("fit%d",0));
+	    // }
+     // }
+    // }
+   // }
   }
   
   
@@ -185,9 +189,9 @@ struct fragmentation_JEC
    if(jetpt<25) jetpt_for_correction=25;
    if(jetpt>=700) jetpt_for_correction=699;
    
-   if(ntrk<ntrkmax) correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrk),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt_for_correction));
-   else correction=correction_matrix[cent_bin]->GetBinContent(correction_matrix[cent_bin]->GetXaxis()->FindBin(ntrkmax-1),correction_matrix[cent_bin]->GetYaxis()->FindBin(jetpt_for_correction));
-     
+   if(ntrk>14) ntrk = 14;
+   correction=correction_matrix[ntrk][cent_bin]->Eval(jetpt_for_correction);
+   
    return (1/correction)*jetpt;
   }
     
