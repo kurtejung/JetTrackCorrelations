@@ -1,0 +1,13 @@
+export wdir=/home/htrauger/HIN14016/HT_make_ntuples5
+
+cd $wdir
+
+rm tmp*
+
+echo "cd $wdir; ./HT_make_ntuples.out 14 0" | qsub -o $wdir/tmp140.log -e $wdir/tmp140.err
+echo "cd $wdir; ./HT_make_ntuples.out 15 0" | qsub -o $wdir/tmp150.log -e $wdir/tmp150.err
+echo "cd $wdir; ./HT_make_ntuples.out 16 0" | qsub -o $wdir/tmp160.log -e $wdir/tmp160.err
+echo "cd $wdir; ./HT_make_ntuples.out 17 0" | qsub -o $wdir/tmp170.log -e $wdir/tmp170.err
+
+
+
