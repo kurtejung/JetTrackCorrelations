@@ -1,14 +1,14 @@
-#define mixing_tree_cxx
-#include "mixing_tree.h"
+#define Skim_cxx
+#include "Skim.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 
-void mixing_tree::Loop()
+void Skim::Loop()
 {
 //   In a ROOT session, you can do:
-//      Root > .L mixing_tree.C
-//      Root > mixing_tree t
+//      Root > .L Skim.C
+//      Root > Skim t
 //      Root > t.GetEntry(12); // Fill t data members with entry number 12
 //      Root > t.Show();       // Show values of entry 12
 //      Root > t.Show(16);     // Read and show values of entry 16
