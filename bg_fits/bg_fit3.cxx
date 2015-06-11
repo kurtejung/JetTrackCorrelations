@@ -546,9 +546,9 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	//-------------------------------------
 
 
-	//	cfit[g][l]->cd(4*i+j+1);
-		
+	cout<<"hm...how do i add this?"<<endl;
 
+	
 	bglevel= in_hist[g][i][j][l]->GetBinContent(in_hist[g][i][j][l]->FindBin(TMath::Pi()/2));
 	A_AS =in_hist[g][i][j][l]->GetMaximum();
 	gen_gaus->SetParameter(0,bglevel);
