@@ -1,2 +1,2 @@
-/data/htrauger/PythiaHydjet_March28/PythiaHydjet_pthat370_p0.root
+/data/htrauger/OfficialHydjet_6_10/HydJet370_p0.root
 

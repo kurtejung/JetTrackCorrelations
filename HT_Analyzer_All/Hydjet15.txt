@@ -1,4 +1,4 @@
-/data/htrauger/PythiaHydjet_March28/PythiaHydjet_pthat15_p0.root
-/data/htrauger/PythiaHydjet_March28/PythiaHydjet_pthat15_p1.root
-/data/htrauger/PythiaHydjet_March28/PythiaHydjet_pthat15_p2.root
-/data/htrauger/PythiaHydjet_March28/PythiaHydjet_pthat15_p3.root
+/data/htrauger/OfficialHydjet_6_10/HydJet15_p0.root
+/data/htrauger/OfficialHydjet_6_10/HydJet15_p1.root
+/data/htrauger/OfficialHydjet_6_10/HydJet15_p2.root
+/data/htrauger/OfficialHydjet_6_10/HydJet15_p3.root
