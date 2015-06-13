@@ -110,9 +110,10 @@ int main(int argc, char *argv[])
  
   if(is_data&&!do_PbPb){
     in_file_name = "/data/mzakaria/pp_HIForest_20150518/PPHighPtData_ForestTag_PYTHIA_localdb_ppJEC_merged_forest_0.root";
-    
-  }else if(dataset_type_code > 10){
-    in_file_name = "/data/htrauger/HiForest_PYTHIA_pthat";
+  }else if(is_data&&do_PbPb){
+    in_file_name = "/data/mzakaria/PbPbForest_MatchEqR_Calo_HIHighPt_HIRun2011-14Mar2014-v4.root";
+   }else if(dataset_type_code > 10){
+    in_file_name = "/data/htrauger/Pythia_HiForest/HiForest_PYTHIA_pthat";
     in_file_name+=dataset_pthats[dataset_type_code];
     in_file_name+= ".root";
   }else if(dataset_type_code > 1&&dataset_type_code <11){
@@ -177,7 +178,9 @@ int main(int argc, char *argv[])
     }else if(dataset_type_code > 1 &&dataset_type_code < 11){
       output_file_base= "/data/htrauger/OfficialHydjet_6_10/";
     }else if(dataset_type_code > 10){
-      output_file_base= "/data/htrauger/OfficialPythia_5_13/";
+      output_file_base= "/data/htrauger/OfficialPythia_6_13/";
+    }else if(is_data&&do_PbPb){
+      output_file_base= "/data/htrauger/PbPb_6_12/";
     }else{
       cerr<<"nope, we can't handle that data set"<<endl;
       return -1;
@@ -185,9 +188,9 @@ int main(int argc, char *argv[])
 
     output_file_base +=dataset_type_strs[dataset_type_code];
 
-  TString output_file_extension = "_p";   output_file_extension += output_file_num;   output_file_extension += ".root";
-  TFile *output_file = new TFile((TString) (output_file_base + output_file_extension), "RECREATE");
-  output_file->cd();
+    TString output_file_extension = "_p";   output_file_extension += output_file_num;   output_file_extension += ".root";
+    TFile *output_file = new TFile((TString) (output_file_base + output_file_extension), "RECREATE");
+    output_file->cd();
   TTree *mixing_tree = new TTree("mixing_tree", "");
 
   Int_t mult = -999;
@@ -307,7 +310,7 @@ int main(int argc, char *argv[])
   output_file->cd();
 
   int ev_min = output_file_num*100000;
-  int ev_max = ev_min + 99999;
+  int ev_max = ev_min +100000;
      
   cout << "ev_min: " << ev_min << ", Entries: " << n_evt << std::endl;
 
@@ -388,7 +391,7 @@ int main(int argc, char *argv[])
 	if(!do_PbPb&&r<((double)(radius)*0.1)&& pfPt_temp > Pf_pt_cut && pfEta_temp <2.4 && pfId_temp==1) npf++; 
       }
 	  
-      //	cout<<"Ready to get corrected pt: "<<reco_pt<<" "<<npf<<" "<<hiBin<<endl;
+      cout<<"Ready to get corrected pt: "<<reco_pt<<" "<<npf<<" "<<hiBin<<endl;
 	
       if(do_PbPb){ 
 	corrected_pt= FF_JEC->get_corrected_pt(reco_pt, npf, hiBin);
@@ -396,9 +399,9 @@ int main(int argc, char *argv[])
 	corrected_pt= FF_JEC->get_corrected_pt(reco_pt, npf);
       }
 
+     
       if(do_residual_correction){ 
 	residual_corrected_pt=FF_JEC->get_residual_corrected_pt(corrected_pt,hiBin);
-
       }
 
       if( my_ct->jtpt[j4i] < 25 && residual_corrected_pt < 25) continue;
@@ -575,10 +578,15 @@ int main(int argc, char *argv[])
   
   //mixing_tree->Write();
   output_file->Write();
+
+  
+ 
   output_file->Close();
   
   cout<<"done"<<endl;
 
+  
+  
 }
 
 
