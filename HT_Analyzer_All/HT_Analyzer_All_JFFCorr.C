@@ -192,83 +192,20 @@ int main(int argc, char *argv[]){
   double wvz = 1.;
   double wcen = 1.;
  
+  TF1 *fit_cen, *fit_vz;
+
   //////////###### PTHAT SAMPLES ###########///////////////
-  TFile * wtfile_vtx_mc;
 
-  TH1F* hWeight_vtx;
-  TH1F* hWeight_MC_vtx;
+  if(!is_data){
+  TFile *f_vertex_cent = new TFile("VertexCentReweightingFits.root","READ");
 
-  TH1F* hWeight_cent;
-  TH1F* hWeight_MC_cent;
+  fit_cen = (TF1*)f_vertex_cent->Get((TString)("Fit_Vz_"+dataset_type_strs[dataset_type_code]))->Clone((TString)("Fit_Cent_"+dataset_type_strs[dataset_type_code]));
 
-  int pthat =0;
-  int pthatmax =0;
-  
-
-  TF1 *fit_vz = new TF1("fit_vz","[0]+[1]*x+[2]*x*x+[3]*x*x*x+[4]*x*x*x*x",-15.,15.);
-  TF1 *fit_cen = new TF1("fit_cen","[0]+[1]*TMath::Exp([2]*x)",0.,200.);
-  TFile * wtfile_vtx;
-  
-  if(!is_data) {
-
-    cout<<"about to try reweighting"<<endl;  
-
-    pthat = dataset_pthats[dataset_type_code];
-    pthatmax=dataset_pthats[dataset_type_code+1];
-    TString vertex_cent_name = "VertexCentJetInfo_"; 
-    vertex_cent_name += dataset_type_strs[dataset_type_code]; 
-    if(!is_pp){  vertex_cent_name+="_Merged"; }
-    vertex_cent_name+=".root"; 
-    wtfile_vtx_mc = TFile::Open(vertex_cent_name,"READ");
-
-    if(is_pp){
-
-      wtfile_vtx = TFile::Open("VertexCentJetInfo_Data_pp.root", "readonly");
-    }else{
-      wtfile_vtx = TFile::Open("VertexCentJetInfo_Data2011_Merged.root", "readonly");
-    }
-
-    hWeight_MC_vtx = (TH1F*) ((TH1F*)wtfile_vtx_mc->Get("VertexDist"))->Clone("VertexDistMCNormalized");
-    hWeight_MC_vtx->Scale(1./hWeight_MC_vtx->Integral());
-
-  
-    hWeight_vtx = (TH1F*) ((TH1F*)wtfile_vtx->Get("VertexDist"))->Clone("VertexDistNormalized");
-
-    hWeight_vtx->Scale(1./hWeight_vtx->Integral());
-    hWeight_vtx->Divide(hWeight_MC_vtx);
+  fit_vz = (TF1*)f_vertex_cent->Get((TString)("Fit_Vz_"+dataset_type_strs[dataset_type_code]))->Clone((TString)("Fit_Vz_"+dataset_type_strs[dataset_type_code]));
  
-    TCanvas *vz_canvas = new TCanvas("vz_canvas");
-    hWeight_vtx->Draw();
-    
-    hWeight_vtx->Fit("fit_vz","","",-15.,15.);
-   
-   
-    TString vz_canvas_name = "TestVzFit_"; vz_canvas_name+= dataset_type_strs[dataset_type_code]; vz_canvas_name+=".png";
-    vz_canvas->SaveAs(vz_canvas_name);
-  
-    if(!is_pp){
-
-      hWeight_MC_cent = (TH1F*) ((TH1F*)wtfile_vtx_mc->Get("CentDist"))->Clone("CentDistMCNormalized");
-      hWeight_MC_cent->Scale(1./hWeight_MC_cent->Integral());
-
-   
-      hWeight_cent = (TH1F*) ((TH1F*)wtfile_vtx->Get("CentDist"))->Clone("CentDistNormalized");
-      hWeight_cent->Divide(hWeight_MC_cent);
-
-      hWeight_cent->Scale(1./hWeight_cent->Integral());
-    
-   
-      hWeight_cent->Fit("fit_cen","","",0.,200.);
-
-      TString cent_canvas_name = vz_canvas_name; cent_canvas_name.ReplaceAll("Vz","Cent");
-      TCanvas *cent_canvas = new TCanvas("cent_canvas");
-      hWeight_cent->Draw();
-      cent_canvas->SaveAs(cent_canvas_name);
-
-    }
   }
 
- 
+
   //----------------------------------------------------------------
   //    Get histograms for efficiency calculation
   //-------------------------------------------------------------
