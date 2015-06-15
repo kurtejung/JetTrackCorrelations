@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
   TString output_file_base;
 
     if(is_data && !do_PbPb){
-      output_file_base= "/data/htrauger/pp_skim_May18/";
+      output_file_base= "/data/htrauger/pp_6_14/";
     }else if(dataset_type_code > 1 &&dataset_type_code < 11){
       output_file_base= "/data/htrauger/OfficialHydjet_6_10/";
     }else if(dataset_type_code > 10){
@@ -390,8 +390,6 @@ int main(int argc, char *argv[])
 
 	if(!do_PbPb&&r<((double)(radius)*0.1)&& pfPt_temp > Pf_pt_cut && pfEta_temp <2.4 && pfId_temp==1) npf++; 
       }
-	  
-      cout<<"Ready to get corrected pt: "<<reco_pt<<" "<<npf<<" "<<hiBin<<endl;
 	
       if(do_PbPb){ 
 	corrected_pt= FF_JEC->get_corrected_pt(reco_pt, npf, hiBin);
