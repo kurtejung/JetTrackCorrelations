@@ -454,7 +454,7 @@ int main(int argc, char *argv[]){
 	}
 
 	if(!is_pp){
-	  if (my_primary->HLT_HIJet80_v7==0){ continue;}  //in Mohammed's ntuples HLT_HIJet80_v7 is saved as HLT_HIJet80_v1
+	  if (my_primary->HLT_HIJet80_v7==0){ continue;}  
 	}
 	
 	double evt_pthat = my_primary->pthat;
@@ -589,40 +589,6 @@ int main(int argc, char *argv[]){
 	  }else{
 	    founddijet_gen = kTRUE;
 	  }
-
-
-  
-	  //------- Begin RightJets for dijets--------
-
-	  /*
-	    for(int j4i = 0; j4i< (int) my_primary->corrpt->size(); j4i++){
-	
-	    reco_eta = my_primary->jteta->at(j4i);
-	    reco_phi = my_primary->jtphi->at(j4i);
-
-	    closest_dr = 999.;
-	    closest_j4i = -1;
-
-	    for(int j4i_gen = 0; j4i_gen < (int) my_primary->genpt->size(); j4i_gen++) {
-
-	    gen_phi = my_primary->genphi->at(j4i_gen);
-	    gen_eta = my_primary->geneta->at(j4i_gen);
-	  
-	    dr = TMath::Sqrt((reco_eta-gen_eta)*(reco_eta-gen_eta)+(reco_phi-gen_phi)*(reco_phi-gen_phi));
-	      
-	    if(dr<closest_dr){
-	    closest_j4i = j4i_gen;
-	    closest_dr = dr;
-	    }
-	    }// j4i_gen;
-	
-	    if((closest_dr > 0.3)||((j4i==highest_idx)&&(closest_j4i!=highest_idx_gen))||((j4i==second_highest_idx)&&(closest_j4i!= second_highest_idx_gen))){
-	    second_highest_idx = -1; 
-	    highest_idx = -1;
-	    }
-	    }// j4i (we've reset highest_idx and second_highest_idx if they don't match gen...)
-	  */
-	  //------------End RightJets for dijets
 
 	} //is_data
       //----------------------------------------------------------------------------
@@ -763,14 +729,16 @@ int main(int argc, char *argv[]){
 	    if(!is_pp){
 	      secondary = 0.;
 	      pt_weight = 1.;
+	      pt_weight_lead = 1.;
+	      pt_weight_sub = 1.;
 	      multrec = 0.;
 	    }  //just in case 
 	  
 	    trkweight = pt_weight*(1-fake)*(1-secondary)/eff/(1+multrec);
 
-	    trkweight_lead = pt_weight*(1-fake)*(1-secondary)/eff/(1+multrec);
+	    trkweight_lead = pt_weight_lead*(1-fake)*(1-secondary)/eff/(1+multrec);
 	    
-	    trkweight_sub = pt_weight*(1-fake)*(1-secondary)/eff/(1+multrec);
+	    trkweight_sub = pt_weight_sub*(1-fake)*(1-secondary)/eff/(1+multrec);
 	    //---------------------------
 	    // Now we are ready to fill!
 	    //---------------------------
@@ -1056,6 +1024,8 @@ int main(int argc, char *argv[]){
 		  if(!is_pp){
 		    secondary = 0.;
 		    pt_weight = 1.;
+		    pt_weight_lead = 1.;
+		    pt_weight_sub = 1.;
 		    multrec = 0;
 		  }  //just in case 
 
@@ -1275,10 +1245,14 @@ int main(int argc, char *argv[]){
 	    if(!is_pp){
 	      secondary = 0.;
 	      pt_weight = 1.;
+	      pt_weightsub = 1.;
+	      pt_weight_lead = 1.;
 	      multrec = 0.;
 	    }  //just in case 
 	  
 	    trkweight = pt_weight*(1-fake)*(1-secondary)/eff/(1+multrec);
+	    trkweight_sub = pt_weight_sub*(1-fake)*(1-secondary)/eff/(1+multrec);
+	    trkweight_lead = pt_weight_lead*(1-fake)*(1-secondary)/eff/(1+multrec);
 	
  	
 	    //---------------------------
@@ -1319,7 +1293,7 @@ int main(int argc, char *argv[]){
 	      while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
 	      while(dphi< (-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 	    
-	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
+	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_lead*wvz*wcen);
 	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 
 
@@ -1331,7 +1305,7 @@ int main(int argc, char *argv[]){
 	      while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
 	      while(dphi<(-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 	    
-	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
+	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_sub*wvz*wcen);
 	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 	    }
 	    
