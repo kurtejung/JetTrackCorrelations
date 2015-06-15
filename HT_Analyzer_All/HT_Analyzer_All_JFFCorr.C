@@ -134,7 +134,7 @@ int main(int argc, char *argv[]){
   }
     
 
-  bool do_mixing = kFALSE;
+  bool do_mixing = kTRUE;
 
   std::cout<<"dataset_type_code is " <<dataset_type_code<<" "<<dataset_type_strs[dataset_type_code]<<endl;
   std::cout << "Running with trkPtCut " << trkPtCut << std::endl;
@@ -164,7 +164,7 @@ int main(int argc, char *argv[]){
   cout<<"made hist classes"<<endl;
   bool is_pp = kFALSE;
     
-  if(dataset_type_code == e_Data_pp||dataset_type_code>11){is_pp = kTRUE;}
+  if(dataset_type_code == e_Data_pp||dataset_type_code>10){is_pp = kTRUE;}
 
   
   //****************************************
@@ -207,7 +207,7 @@ int main(int argc, char *argv[]){
 
 
   //----------------------------------------------------------------
-  //    Get histograms for efficiency calculation
+  //    Get histograms for tracking efficiency calculation
   //-------------------------------------------------------------
 
   if(is_pp){
@@ -257,7 +257,7 @@ int main(int argc, char *argv[]){
     }
   }
   cout<<"Made it through getting tracking efficiency histos for "<<dataset_type_strs[dataset_type_code]<<endl;
-
+  
  
   //----------------------------------------------------------------
   //    Obtain reference PbPb Jet Spectra
@@ -266,7 +266,7 @@ int main(int argc, char *argv[]){
   double pbpb_pt, pp_pt, pt_weight,  pt_weight_lead,  pt_weight_sub; 
  
   TFile *f_ref_pbpb_spectra = new TFile("./PbPb_JetSpectra_JFFCorr.root","READ");
-  TFile *f_ref_pp_spectra = new TFile("./pp_JFFCorr_JetSpectra.root","READ");
+  TFile *f_ref_pp_spectra = new TFile("./pp_JetSpectra_JFFCorr.root","READ");
 
 
   TH1D *pbpb_spectrum_inc[nCBins];
@@ -277,32 +277,34 @@ int main(int argc, char *argv[]){
   TH1D *pp_spectrum_lead[nCBins];
   TH1D *pp_spectrum_sub[nCBins];
 
+ 
   if(is_pp&&is_data){
 
     for(int ibin = 0; ibin<4; ibin++){
     
-      pbpb_spectrum_inc[ibin] = (TH1D*)f_ref_pbpb_spectra->Get((TString)("pp_all_jets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
+      pbpb_spectrum_inc[ibin] = (TH1D*)f_ref_pbpb_spectra->Get((TString)("PbPb_all_jets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
       pbpb_spectrum_inc[ibin]->SetName((TString)("PbPb_jet_specrum_inc_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]));
 
-      pbpb_spectrum_lead[ibin] = (TH1D*)f_ref_pbpb_spectra->Get((TString)("pp_all_jets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
+      pbpb_spectrum_lead[ibin] = (TH1D*)f_ref_pbpb_spectra->Get((TString)("PbPb_only_leadingjets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
       pbpb_spectrum_lead[ibin]->SetName((TString)("PbPb_jet_specrum_lead_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]));
 
-      pbpb_spectrum_sub[ibin] = (TH1D*)f_ref_pbpb_spectra->Get((TString)("pp_all_jets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
+      pbpb_spectrum_sub[ibin] = (TH1D*)f_ref_pbpb_spectra->Get((TString)("PbPb_only_subleadingjets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
       pbpb_spectrum_sub[ibin]->SetName((TString)("PbPb_jet_specrum_sub_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]));
 
 
       pp_spectrum_inc[ibin] = (TH1D*)f_ref_pp_spectra->Get((TString)("pp_all_jets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
       pp_spectrum_inc[ibin]->SetName((TString)("pp_jet_specrum_inc_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]));
 
-      pp_spectrum_lead[ibin] = (TH1D*)f_ref_pp_spectra->Get((TString)("pp_all_jets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
+      pp_spectrum_lead[ibin] = (TH1D*)f_ref_pp_spectra->Get((TString)("pp_only_leadingjets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
       pp_spectrum_lead[ibin]->SetName((TString)("pp_jet_specrum_lead_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]));
 
-      pp_spectrum_sub[ibin] =(TH1D*) f_ref_pp_spectra->Get((TString)("pp_all_jets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
+      pp_spectrum_sub[ibin] =(TH1D*) f_ref_pp_spectra->Get((TString)("pp_only_subleadingjets_corrpT_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+"_Pt100_Pt300"));
       pp_spectrum_sub[ibin]->SetName((TString)("pp_jet_specrum_sub_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]));
 
     }
   }
-
+ 
+  cout<<
   //--------------------------------
 
   //-----------------------------------------------------------------------
@@ -695,7 +697,9 @@ int main(int argc, char *argv[]){
 	  }
 
 	  pt_weight = 1.;
-	 
+	  pt_weight_sub = 1.;
+	  pt_weight_lead = 1.;
+	  
 	  //------------------------------------
 	  // Calculate pt_weight for all tracks
 	
@@ -722,7 +726,6 @@ int main(int argc, char *argv[]){
 	    }
 	  }
 	  //-----------------------------------
-        
 	  if(!is_pp) {cent = my_primary->hiBin; }
 
 	  if(!is_data){data_mc_type_code = 1; }
@@ -768,12 +771,10 @@ int main(int argc, char *argv[]){
 	    trkweight_lead = pt_weight*(1-fake)*(1-secondary)/eff/(1+multrec);
 	    
 	    trkweight_sub = pt_weight*(1-fake)*(1-secondary)/eff/(1+multrec);
-	
- 	
 	    //---------------------------
 	    // Now we are ready to fill!
 	    //---------------------------
-	    
+	
 	   
 
 	    my_hists[data_mc_type_code]->TrkPt[ibin][ibin2][ibin3]->Fill(my_primary->trkPt->at(tracks),wvz*wcen);
