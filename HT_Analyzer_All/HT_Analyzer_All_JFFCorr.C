@@ -1245,7 +1245,7 @@ int main(int argc, char *argv[]){
 	    if(!is_pp){
 	      secondary = 0.;
 	      pt_weight = 1.;
-	      pt_weightsub = 1.;
+	      pt_weight_sub = 1.;
 	      pt_weight_lead = 1.;
 	      multrec = 0.;
 	    }  //just in case 
@@ -1258,9 +1258,6 @@ int main(int argc, char *argv[]){
 	    //---------------------------
 	    // Now we are ready to fill!
 	    //---------------------------
-	  
-
-	
 	
 	    my_hists[data_mc_type_code]->TrkPt[ibin][ibin2][ibin3]->Fill(my_primary->trkPt->at(tracks),wvz*wcen);
 	    my_hists[data_mc_type_code]->TrkEta[ibin][ibin2][ibin3]->Fill(my_primary->trkEta->at(tracks),wvz*wcen);
