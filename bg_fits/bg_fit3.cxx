@@ -195,6 +195,7 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	
   float yleft[12][5][4][2];
   float yright[12][5][4][2];
+  float y_both[12][5][4][2];
 	
 
   int bin;
@@ -204,22 +205,22 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
   //-------------------------------------------
 
   //Inclusive
-  v2_jet[0][0][0] = 0.054; 
-  v2_jet[0][1][0] = 0.054;
-  v2_jet[0][2][0] = 0.061;
-  v2_jet[0][3][0] = 0.084;
+  v2_jet[0][0][0] = 0.052; 
+  v2_jet[0][1][0] = 0.058;
+  v2_jet[0][2][0] = 0.052;
+  v2_jet[0][3][0] = 0.050;
  
   //SubLeading
-  v2_jet[2][0][0] = 0.054;
-  v2_jet[2][1][0] = 0.054;
-  v2_jet[2][2][0] = 0.037;
-  v2_jet[2][3][0] = 0.022;
+  v2_jet[2][0][0] = 0.052;
+  v2_jet[2][1][0] = 0.058;
+  v2_jet[2][2][0] = 0.052;
+  v2_jet[2][3][0] = 0.050;
 
   //Leading
-  v2_jet[4][0][0] = 0.054;
-  v2_jet[4][1][0] = 0.054;
-  v2_jet[4][2][0] = 0.061;
-  v2_jet[4][3][0] = 0.084;
+  v2_jet[4][0][0] = 0.052;
+  v2_jet[4][1][0] = 0.058;
+  v2_jet[4][2][0] = 0.052;
+  v2_jet[4][3][0] = 0.050;
 
 
 
@@ -227,22 +228,22 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
  
 
   //Inclusive
-  v2_jet_err[0][0][0] = 0.025; 
-  v2_jet_err[0][1][0] = 0.025;
-  v2_jet_err[0][2][0] = 0.03;
-  v2_jet_err[0][3][0] = 0.035;
+  v2_jet_err[0][0][0] = 0.027; 
+  v2_jet_err[0][1][0] = 0.027;
+  v2_jet_err[0][2][0] = 0.027;
+  v2_jet_err[0][3][0] = 0.027;
  
   //SubLeading
-  v2_jet_err[2][0][0] = 0.025;
-  v2_jet_err[2][1][0] = 0.025;
-  v2_jet_err[2][2][0] = 0.03;
-  v2_jet_err[2][3][0] = 0.035;
+  v2_jet_err[2][0][0] = 0.027;
+  v2_jet_err[2][1][0] = 0.027;
+  v2_jet_err[2][2][0] = 0.027;
+  v2_jet_err[2][3][0] = 0.027;
 
   //Leading
-  v2_jet_err[4][0][0] = 0.025;
-  v2_jet_err[4][1][0] = 0.025;
-  v2_jet_err[4][2][0] = 0.03;
-  v2_jet_err[4][3][0] = 0.035;
+  v2_jet_err[4][0][0] = 0.027;
+  v2_jet_err[4][1][0] = 0.027;
+  v2_jet_err[4][2][0] = 0.031;
+  v2_jet_err[4][3][0] = 0.027;
  
 
 
@@ -545,12 +546,9 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	//      PbPb Fits
 	//-------------------------------------
 
-
-	cout<<"hm...how do i add this?"<<endl;
-
 	
 	bglevel= in_hist[g][i][j][l]->GetBinContent(in_hist[g][i][j][l]->FindBin(TMath::Pi()/2));
-	A_AS =in_hist[g][i][j][l]->GetMaximum();
+	A_AS =in_hist[g][i][j][l]->GetMaximum()-bglevel;
 	gen_gaus->SetParameter(0,bglevel);
 	gen_gaus->SetParLimits(0,0.,1.0);
 
@@ -565,51 +563,52 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 
 	V_3= 0.;
 	gen_gaus->FixParameter(3,0.);
+	gen_gaus->FixParameter(1,0.);
 
 	if(g==0||g==2||g==4){
-
+	/*
 	  switch(j){
 	    case 0:
+	      gen_gaus->FixParameter(1,-0.003);
+	      break;
+	    case 1:
+	      gen_gaus->FixParameter(1,-0.003);
+	      break;
+	    case 2:
 	      gen_gaus->FixParameter(1,-0.002);
 	      break;
-	    case 1:
-	      gen_gaus->FixParameter(1,-0.004);
-	      break;
-	    case 2:
-	      gen_gaus->FixParameter(1,-0.005);
-	      break;
 	    case 3:
-	      gen_gaus->FixParameter(1,-0.005);
+	      gen_gaus->FixParameter(1,-0.0015);
 	      break;
 	    }  
-	  
+	*/ 
 	  gen_gaus->FixParameter(2,V_2);
-	  gen_gaus->FixParameter(3,0.);
+	  gen_gaus->SetParLimits(4,0.,5.*A_AS);
 	  gen_gaus->SetParameter(5,0.4);
-	  gen_gaus->SetParLimits(5,0.2,0.8);
+	  gen_gaus->SetParLimits(5,0.2,1.1);
+	  if(i>1)gen_gaus->SetParLimits(5,0.2,0.8);
 	  gen_gaus->SetParameter(6,1.7);
-	  gen_gaus->SetParLimits(6,1.1,2.);
-	
+	  gen_gaus->SetParLimits(6,1.1,1.9);
+	  /*
 	  if(g==2){
-	    gen_gaus->SetParLimits(5,0.2,0.6);
-  
 	    switch(j){
 	    case 0:
-	      gen_gaus->FixParameter(1,0.002);
+	      gen_gaus->FixParameter(1,0.003);
 	      break;
 	    case 1:
-	      gen_gaus->FixParameter(1,0.004);
+	      gen_gaus->FixParameter(1,0.003);
 	      break;
 	    case 2:
-	      gen_gaus->FixParameter(1,0.005);
+	      gen_gaus->FixParameter(1,0.002);
 	      break;
 	    case 3:
-	      gen_gaus->FixParameter(1,0.005);
+	      gen_gaus->FixParameter(1,0.0015);
 	      break;
 	    }  
 
 	   
-	  }
+	    }
+	  */
 
 	 
 	 
@@ -618,7 +617,7 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	if(g==0||g==2||g==4){
 
 	
-	  in_hist[g][i][j][l]->Fit("gen_gaus","","",1.51,4.);
+	  in_hist[g][i][j][l]->Fit("gen_gaus","","",-1.5,4.5);
 
 	  
 	  A_AS = gen_gaus->GetParameter(4);
@@ -638,13 +637,14 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	  bglevel = gen_gaus->GetParameter(0);
 	  V_1     = gen_gaus->GetParameter(1);
 	  V_2     = gen_gaus->GetParameter(2);
+	  V_3     = gen_gaus->GetParameter(3);
+
+	  V_3_err     = gen_gaus->GetParError(3);
 
 	  bglevel_err = gen_gaus->GetParError(0);
 	  V_1_err = gen_gaus->GetParError(1);
 	 
 	  V_2_err = v2_jet_err[g][j][l]*v2_assoc[g][i][j][l];
-
-	  //	  V_2_err = gen_gaus->GetParError(2);
 	  
 	  v2_jet_test[g][i][j][l] = V_2/v2_assoc[g][i][j][l];
 
@@ -792,8 +792,8 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	V_2max = V_2 + V_2_err;
 	V_2min = V_2 - V_2_err;
 
-	V_3max =0.;
-	V_3min = 0.;
+	V_3max =V_3+V_3_err;
+	V_3min = V_3- V_3_err;
 	
 	//----------------------------------------------------
 	//This whole section is just about drawing fit curves
@@ -1430,18 +1430,30 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 
 	  //	test_diff5[g][i][j][l]->Draw();
 
+	 
 	  sideband_hist[g][i][j][l] = (TH1D*)Rebin_dEta3(test_diff5[g][i][j][l]);
+
+	  cout<<"I will fit the sideband hist"<<endl;
+
+	  sideband_hist[g][i][j][l]->Fit("fit0","","",-2.99,2.99);
+
+	  cout<<"I have fit the sideband hist"<<endl;
+	  
+	  y_both[g][i][j][l] = fit0->GetParError(0);
+
+	  cout<<"Source D is: "<<y_both[g][i][j][l]<<endl;
+
 
 	  sideband_hist[g][i][j][l]->Fit("fit0","","q0",-2.99,-1.51);
 
 	  yleft[g][i][j][l] = fit0->GetParameter(0);
-	
-	  sideband_hist[g][i][j][l]->Fit("fit0","","q0",1.51,2.99);
+
+       	  sideband_hist[g][i][j][l]->Fit("fit0","","q0",1.51,2.99);
 
 	  yright[g][i][j][l] = fit0->GetParameter(0);
 
 
-
+	
 
 
 	  sideband_hist[g][i][j][l]->SetMarkerColor(kBlack);
@@ -1494,7 +1506,6 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	  lineEta->Draw("same");
 
 
-
 	}//j
       
       }//i
@@ -1525,19 +1536,16 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
     fout[g]->Close();  
     cout<<"done file "<<g<<endl;
   } //Closes the [g] (files) loop
-
-  /*
-
-    for(int g = 0; g<6; g++){
+ 
+  for(int g = 0; g<6; g++){
     for(int i = 0; i<4; i++){
-    for(int j = 0; j<4; j++){
+      for(int j = 0; j<4; j++){
 
-    cout<<g<<" "<<i<<" "<<j<<" "<<yleft[g][i][j][0]<<" "<<yright[g][i][j][0]<<endl;
+	cout<<g<<" "<<i<<" "<<j<<" "<<yleft[g][i][j][0]<<" "<<yright[g][i][j][0]<<" "<<y_both[g][i][j][0]<<endl;
+      }
     }
-    }
-    }
-  */
-
+  }
+ 
   return 0;
 }
 
