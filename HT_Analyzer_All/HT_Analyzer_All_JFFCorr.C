@@ -134,7 +134,7 @@ int main(int argc, char *argv[]){
   }
     
 
-  bool do_mixing = kTRUE;
+  bool do_mixing = kFALSE;
 
   std::cout<<"dataset_type_code is " <<dataset_type_code<<" "<<dataset_type_strs[dataset_type_code]<<endl;
   std::cout << "Running with trkPtCut " << trkPtCut << std::endl;
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]){
   if(!is_data){
   TFile *f_vertex_cent = new TFile("VertexCentReweightingFits.root","READ");
 
-  fit_cen = (TF1*)f_vertex_cent->Get((TString)("Fit_Vz_"+dataset_type_strs[dataset_type_code]))->Clone((TString)("Fit_Cent_"+dataset_type_strs[dataset_type_code]));
+  fit_cen = (TF1*)f_vertex_cent->Get((TString)("Fit_Cent_"+dataset_type_strs[dataset_type_code]))->Clone((TString)("Fit_Cent_"+dataset_type_strs[dataset_type_code]));
 
   fit_vz = (TF1*)f_vertex_cent->Get((TString)("Fit_Vz_"+dataset_type_strs[dataset_type_code]))->Clone((TString)("Fit_Vz_"+dataset_type_strs[dataset_type_code]));
  
@@ -332,12 +332,10 @@ int main(int argc, char *argv[]){
 
 
     TString me_file_name;
-    if(is_data){
+    if(is_data&&!is_pp){
       me_file_name = "/data/htrauger/FullOfficialReco_PbPbData/MB_data_total_final_50GeV.root";
-      if(is_pp){me_file_name = "/data/htrauger/ppData_ak3CaloJets_mini_ntuple_v1_p0.root";}
     }else{
-         
-      if(!is_pp && parti< (int) file_names.size()-1){
+      if( parti< (int) file_names.size()-1){
 	me_file_name = file_names.at(parti+1);
       }else{
 	me_file_name = file_names.at(0);
@@ -423,7 +421,7 @@ int main(int argc, char *argv[]){
 	my_hists[data_mc_type_code]->Vz_new->Fill(vz,wvz);
 	
 	if(!is_pp){
-	  wcen = fit_cen->Eval(hiBin);
+	  wcen = fit_cen->Eval(1.*hiBin);
 	  my_hists[data_mc_type_code]->Centrality_new->Fill(hiBin, wcen);
 	}		       
       }
