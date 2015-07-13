@@ -133,7 +133,12 @@ int main(int argc, char *argv[])
     std::cout << "Is zombie" << std::endl;
   }    
 
-  inp_tree = (TTree*)  my_file->Get("akVs3CaloJetAnalyzer/t");
+  if(do_PbPb){
+    inp_tree = (TTree*)  my_file->Get("akVs3CaloJetAnalyzer/t");
+  }else{
+    inp_tree = (TTree*)  my_file->Get("ak3CaloJetAnalyzer/t");
+  }
+
   JetAna *my_ct = new JetAna(inp_tree);
 
   inp_tree2 = (TTree*)  my_file->Get("pfcandAnalyzer/pfTree");
@@ -174,11 +179,11 @@ int main(int argc, char *argv[])
   TString output_file_base;
 
     if(is_data && !do_PbPb){
-      output_file_base= "/data/htrauger/pp_6_14/";
+      output_file_base= "/data/htrauger/pp_6_23/";
     }else if(dataset_type_code > 1 &&dataset_type_code < 11){
       output_file_base= "/data/htrauger/OfficialHydjet_6_10/";
     }else if(dataset_type_code > 10){
-      output_file_base= "/data/htrauger/OfficialPythia_6_13/";
+      output_file_base= "/data/htrauger/OfficialPythia_6_24/";
     }else if(is_data&&do_PbPb){
       output_file_base= "/data/htrauger/PbPb_6_12/";
     }else{
