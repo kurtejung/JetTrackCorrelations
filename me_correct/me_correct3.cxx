@@ -40,7 +40,7 @@ Int_t me_correct3(float etacut = 1.6, bool is_pp = kFALSE){
   TString desc = "Data";
   
   if( fabs(etacut-1.6)<1e-4&& is_pp){
-    fin = new TFile("../Data_Raw_Correlations/Data_pp_May27.root","READ");
+    fin = new TFile("../Data_Raw_Correlations/Data_pp_June24.root","READ");
     fout_inc = new TFile("pp_Inclusive_Correlations.root","RECREATE");
     fout_lead = new TFile("pp_Leading_Correlations.root","RECREATE");
     fout_sub = new TFile("pp_SubLeading_Correlations.root","RECREATE");
@@ -51,7 +51,7 @@ Int_t me_correct3(float etacut = 1.6, bool is_pp = kFALSE){
     eta_ymax = 0.5;
     
   }else if( fabs(etacut-1.6)<1e-4&& !is_pp){
-    fin = new TFile("../Data_Raw_Correlations/Data2011_PbPb_May17.root","READ");
+    fin = new TFile("../Data_Raw_Correlations/Data2011_PbPb_June15.root","READ");
     fout_inc = new TFile("PbPb_Inclusive_Correlations.root","RECREATE");
     fout_lead = new TFile("PbPb_Leading_Correlations.root","RECREATE");
     fout_sub = new TFile("PbPb_SubLeading_Correlations.root","RECREATE");
@@ -101,7 +101,7 @@ Int_t me_correct3(float etacut = 1.6, bool is_pp = kFALSE){
   const int nPtBins = 1;
   const int nTrkPtBins = 5;
 
-  float me00;
+  float me00,me00_lead,me00_sub;
   int me00binl, me00binr, n_me00bins;
 
   float PtBins[nPtBins+1] = {100, 300};
@@ -223,34 +223,6 @@ Int_t me_correct3(float etacut = 1.6, bool is_pp = kFALSE){
 
 	hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3] = (TH2D*)fin->Get((TString) (desc + "_hJetTrackSignalBackgroundNonLeading"+  CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Raw_Yield_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
 
-
-	/*
-	hJetTrackSignalBackground_pTweighted[ibin][ibin2][ibin3] = (TH2D*) fin->Get((TString)(desc + "_hJetTrackSignalBackground_pTweighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Raw_Yield_pTweighted_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
-
-	hJetTrackSignalBackgroundLeading_pTweighted[ibin][ibin2][ibin3] = (TH2D*)fin->Get((TString) (desc + "_hJetTrackSignalBackgroundLeading_pTweighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Raw_Yield_pTweighted_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
-
-	hJetTrackSignalBackgroundSubLeading_pTweighted[ibin][ibin2][ibin3] = (TH2D*)fin->Get((TString) (desc + "_hJetTrackSignalBackgroundSubLeading_pTweighted"+  CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Raw_Yield_pTweighted_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
-
-	hJetTrackSignalBackgroundNonLeading_pTweighted[ibin][ibin2][ibin3] = (TH2D*)fin->Get((TString) (desc + "_hJetTrackSignalBackgroundNonLeading_pTweighted"+  CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Raw_Yield_pTweighted_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
-
-
-
-
-	hJetTrackSignalBackground_pTcos[ibin][ibin2][ibin3] = (TH2D*) fin->Get((TString)(desc + "_hJetTrackSignalBackground_pTcos"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Raw_Yield_pTcos_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
-
-	hJetTrackSignalBackgroundLeading_pTcos[ibin][ibin2][ibin3] = (TH2D*)fin->Get((TString) (desc + "_hJetTrackSignalBackgroundLeading_pTcos"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Raw_Yield_pTcos_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
-
-	hJetTrackSignalBackgroundSubLeading_pTcos[ibin][ibin2][ibin3] = (TH2D*)fin->Get((TString) (desc + "_hJetTrackSignalBackgroundSubLeading_pTcos"+  CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Raw_Yield_pTcos_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
-
-	hJetTrackSignalBackgroundNonLeading_pTcos[ibin][ibin2][ibin3] = (TH2D*)fin->Get((TString) (desc + "_hJetTrackSignalBackgroundNonLeading_pTcos"+  CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Raw_Yield_pTcos_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
-
-
-
-
-
-
-	*/
-
 	hJetTrackME[ibin][ibin2][ibin3] = (TH2D*) fin->Get((TString)(desc + "_hJetTrackME"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Mixed_Event_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
 	
 	hJetTrackMELeading[ibin][ibin2][ibin3] = (TH2D*)fin->Get((TString) (desc + "_hJetTrackMELeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]))->Clone((TString) ("Mixed_Event_"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_" +TrkPtBin_strs[ibin3+1]));
@@ -280,26 +252,18 @@ Int_t me_correct3(float etacut = 1.6, bool is_pp = kFALSE){
 
 	norm_temp = all_jets_corrpT[ibin][ibin2]->GetEntries();
 	hJetTrackSignalBackground[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
-	//	hJetTrackSignalBackground_pTweighted[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
-	//hJetTrackSignalBackground_pTcos[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
 	hJetTrackME[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y/50.);
    
 	norm_temp = only_leadingjets_corrpT[ibin][ibin2]->GetEntries();
 	hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
-	//	hJetTrackSignalBackgroundLeading_pTweighted[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
-	//hJetTrackSignalBackgroundLeading_pTcos[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
 	hJetTrackMELeading[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y/50.);
    
 	norm_temp = only_subleadingjets_corrpT[ibin][ibin2]->GetEntries();
 	hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
-	//hJetTrackSignalBackgroundSubLeading_pTweighted[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
-	//	hJetTrackSignalBackgroundSubLeading_pTcos[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
 	hJetTrackMESubLeading[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y/50.);
 
 	norm_temp = only_nonleadingjets_corrpT[ibin][ibin2]->GetEntries();
 	hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
-	//	hJetTrackSignalBackgroundNonLeading_pTweighted[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
-	//hJetTrackSignalBackgroundNonLeading_pTcos[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y);
 	hJetTrackMENonLeading[ibin][ibin2][ibin3]->Scale(1/norm_temp/width_temp_x/width_temp_y/50.);
 	
 	//     INCLUSIVE
@@ -309,11 +273,7 @@ Int_t me_correct3(float etacut = 1.6, bool is_pp = kFALSE){
 
 	yield_inc[ibin][ibin2][ibin3] =  (TH2D*) hJetTrackSignalBackground[ibin][ibin2][ibin3]->Clone((TString)("Yield_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
 
-	//	yield_inc_pTweighted[ibin][ibin2][ibin3] =  (TH2D*) hJetTrackSignalBackground[ibin][ibin2][ibin3]->Clone((TString)("Yield_pTweighted_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
-
-	//yield_inc_pTcos[ibin][ibin2][ibin3] =  (TH2D*) hJetTrackSignalBackground[ibin][ibin2][ibin3]->Clone((TString)("Yield_pTcos_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
-
-	me_proj[ibin][ibin2][ibin3] = hJetTrackME[ibin][ibin2][ibin3]->ProjectionX(Form("me_proj_temp_%d%d%d",ibin,ibin2,ibin3),1,200);
+	me_proj[ibin][ibin2][ibin3] = hJetTrackME[ibin][ibin2][ibin3]->ProjectionX(Form("me_proj_temp_%d%d%d",ibin,ibin2,ibin3),1,100);
 
 	me_proj[ibin][ibin2][ibin3]->Scale (1./100);
 	me_proj[ibin][ibin2][ibin3] -> Fit("pol0","","",-.2,.2);
@@ -349,23 +309,11 @@ Int_t me_correct3(float etacut = 1.6, bool is_pp = kFALSE){
 	  pttex->Draw();
 	}
 
-	yield_inc[ibin][ibin2][ibin3]->Divide(hJetTrackME[ibin][ibin2][ibin3]);
-	//yield_inc[ibin][ibin2][ibin3]->Scale(me00/(me00binr-me00binl+1)/200);
-
-	//	yield_inc_pTweighted[ibin][ibin2][ibin3]->Divide(hJetTrackME[ibin][ibin2][ibin3]);
-	//yield_inc_pTweighted[ibin][ibin2][ibin3]->Scale(me00/(me00binr-me00binl+1));
-
-	//yield_inc_pTcos[ibin][ibin2][ibin3]->Divide(hJetTrackME[ibin][ibin2][ibin3]);
-	//yield_inc_pTcos[ibin][ibin2][ibin3]->Scale(me00/(me00binr-me00binl+1));
-
-
+	if(ibin==3&&ibin3==3)	yield_inc[ibin][ibin2][ibin3]->Divide(hJetTrackME[ibin-1][ibin2][ibin3]);
+	else	yield_inc[ibin][ibin2][ibin3]->Divide(hJetTrackME[ibin][ibin2][ibin3]);
 
 	hJetTrackSignalBackground[ibin][ibin2][ibin3]->Write();
 	yield_inc[ibin][ibin2][ibin3]->Write();
-	//hJetTrackSignalBackground_pTweighted[ibin][ibin2][ibin3]->Write();
-	//yield_inc_pTweighted[ibin][ibin2][ibin3]->Write();
-	//hJetTrackSignalBackground_pTcos[ibin][ibin2][ibin3]->Write();
-	//yield_inc_pTcos[ibin][ibin2][ibin3]->Write();
 	hJetTrackME[ibin][ibin2][ibin3]->Write();
 
 
@@ -378,16 +326,72 @@ Int_t me_correct3(float etacut = 1.6, bool is_pp = kFALSE){
 
 	yield_lead[ibin][ibin2][ibin3] =  (TH2D*) hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Clone((TString)("Yield_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
 
-	//	yield_lead_pTweighted[ibin][ibin2][ibin3] =  (TH2D*) hJetTrackSignalBackgroundLeading_pTweighted[ibin][ibin2][ibin3]->Clone((TString)("Yield_pTweighted_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
-
-	//yield_lead_pTcos[ibin][ibin2][ibin3] =  (TH2D*) hJetTrackSignalBackgroundLeading_pTweighted[ibin][ibin2][ibin3]->Clone((TString)("Yield_pTcos_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
-
-	me_proj_lead[ibin][ibin2][ibin3] = hJetTrackMELeading[ibin][ibin2][ibin3]->ProjectionX(Form("me_proj_lead_temp_%d%d%d",ibin,ibin2,ibin3),1,200);
+	me_proj_lead[ibin][ibin2][ibin3] = hJetTrackMELeading[ibin][ibin2][ibin3]->ProjectionX(Form("me_proj_lead_temp_%d%d%d",ibin,ibin2,ibin3),1,100);
 
 	me_proj_lead[ibin][ibin2][ibin3]->Scale (1./100);
 	me_proj_lead[ibin][ibin2][ibin3] -> Fit("pol0","","",-.2,.2);
 
-	me00 = 	me_proj_lead[ibin][ibin2][ibin3]->GetFunction("pol0")->GetParameter(0);
+	me00_lead = 	me_proj_lead[ibin][ibin2][ibin3]->GetFunction("pol0")->GetParameter(0);
+
+
+	//   SUBLEADING
+
+	fout_sub->cd();
+	me_proj_sub_canvas->cd(4*(ibin3+1)-ibin);
+
+	yield_sub[ibin][ibin2][ibin3] = (TH2D*) hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Clone((TString)("Yield_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
+
+	//	yield_sub_pTweighted[ibin][ibin2][ibin3] = (TH2D*) hJetTrackSignalBackgroundSubLeading_pTweighted[ibin][ibin2][ibin3]->Clone((TString)("Yield_pTweighted_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
+
+	//	yield_sub_pTcos[ibin][ibin2][ibin3] = (TH2D*) hJetTrackSignalBackgroundSubLeading_pTcos[ibin][ibin2][ibin3]->Clone((TString)("Yield_pTcos_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
+
+
+	
+	me_proj_sub[ibin][ibin2][ibin3] = hJetTrackMESubLeading[ibin][ibin2][ibin3]->ProjectionX(Form("me_proj_sub_%d%d%d",ibin,ibin2,ibin3),1,100);
+
+	me_proj_sub[ibin][ibin2][ibin3]->Scale (1./100);
+	me_proj_sub[ibin][ibin2][ibin3] -> Fit("pol0","","",-.2,.2);
+
+	me00_sub = me_proj_sub[ibin][ibin2][ibin3]->GetFunction("pol0")->GetParameter(0);
+
+	me00  = (me00_sub+me00_lead)/2.;
+
+
+	hJetTrackMESubLeading[ibin][ibin2][ibin3]->Scale(1./me00);
+
+	me_proj_sub[ibin][ibin2][ibin3]->SetAxisRange(-.299,.299);
+	me_proj_sub[ibin][ibin2][ibin3]->Draw();
+
+
+	if(ibin<3){
+	  TLatex *centtex = new TLatex(0.05,0.9,CBin_labels[ibin]);
+	  centtex->SetNDC();
+	  centtex->Draw();
+	  TLatex *pttex = new TLatex(0.05,0.85,TrkPtBin_labels[ibin3]);
+	  pttex->SetNDC();
+	  pttex->Draw();
+	}
+	if(ibin==3){
+	  TLatex *centtex = new TLatex(0.15,0.9,CBin_labels[ibin]);
+	  centtex->SetNDC();
+	  centtex->Draw();
+	  TLatex *pttex = new TLatex(0.15,0.85,TrkPtBin_labels[ibin3]);
+	  pttex->SetNDC();
+	  pttex->Draw();
+	}
+
+
+	yield_sub[ibin][ibin2][ibin3]->Divide(hJetTrackMESubLeading[ibin][ibin2][ibin3]);
+
+	hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Write();
+	yield_sub[ibin][ibin2][ibin3]->Write();
+	hJetTrackMESubLeading[ibin][ibin2][ibin3]->Write();
+	
+	fout_lead->cd();
+	me_proj_leading_canvas->cd(4*(ibin3+1)-ibin);
+
+
+
 
 	hJetTrackMELeading[ibin][ibin2][ibin3]->Scale(1./me00);
 
@@ -416,88 +420,16 @@ Int_t me_correct3(float etacut = 1.6, bool is_pp = kFALSE){
 	  pttex->Draw();
 	}
 
-
-
 	yield_lead[ibin][ibin2][ibin3]->Divide(hJetTrackMELeading[ibin][ibin2][ibin3]);
-	//	yield_lead_pTweighted[ibin][ibin2][ibin3]->Divide(hJetTrackMELeading[ibin][ibin2][ibin3]);
-	//yield_lead_pTcos[ibin][ibin2][ibin3]->Divide(hJetTrackMELeading[ibin][ibin2][ibin3]);
 
 	hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Write();
 	yield_lead[ibin][ibin2][ibin3] ->Write();
-
-	//	hJetTrackSignalBackgroundLeading_pTweighted[ibin][ibin2][ibin3]->Write();
-	//yield_lead_pTweighted[ibin][ibin2][ibin3] ->Write();
-
-	//hJetTrackSignalBackgroundLeading_pTcos[ibin][ibin2][ibin3]->Write();
-	//yield_lead_pTcos[ibin][ibin2][ibin3] ->Write();
-
-
 	hJetTrackMELeading[ibin][ibin2][ibin3]->Write();
 
 
-	//   SUBLEADING
-
-	fout_sub->cd();
-	me_proj_sub_canvas->cd(4*(ibin3+1)-ibin);
-
-	yield_sub[ibin][ibin2][ibin3] = (TH2D*) hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Clone((TString)("Yield_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
-
-	//	yield_sub_pTweighted[ibin][ibin2][ibin3] = (TH2D*) hJetTrackSignalBackgroundSubLeading_pTweighted[ibin][ibin2][ibin3]->Clone((TString)("Yield_pTweighted_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
-
-	//	yield_sub_pTcos[ibin][ibin2][ibin3] = (TH2D*) hJetTrackSignalBackgroundSubLeading_pTcos[ibin][ibin2][ibin3]->Clone((TString)("Yield_pTcos_"+datalabel+"_"+CBin_strs[ibin]+"_"+CBin_strs[ibin+1]+ "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+"_"+TrkPtBin_strs[ibin3]+"_"+TrkPtBin_strs[ibin3+1]));
-
-
-	
-	me_proj_sub[ibin][ibin2][ibin3] = hJetTrackMESubLeading[ibin][ibin2][ibin3]->ProjectionX(Form("me_proj_sub_%d%d%d",ibin,ibin2,ibin3),1,200);
-
-	me_proj_sub[ibin][ibin2][ibin3]->Scale (1./100);
-	me_proj_sub[ibin][ibin2][ibin3] -> Fit("pol0","","",-.2,.2);
-
-	me00 = 	me_proj_sub[ibin][ibin2][ibin3]->GetFunction("pol0")->GetParameter(0);
-
-	hJetTrackMESubLeading[ibin][ibin2][ibin3]->Scale(1./me00);
-
-	//	me_proj_sub[ibin][ibin2][ibin3]->Scale(1./me00);
-	me_proj_sub[ibin][ibin2][ibin3]->SetAxisRange(-.299,.299);
-	//	me_proj_sub[ibin][ibin2][ibin3]->SetMinimum(-.1);
-	//me_proj_sub[ibin][ibin2][ibin3]->SetMaximum(1.2);
-
-
-	me_proj_sub[ibin][ibin2][ibin3]->Draw();
-
-
-	if(ibin<3){
-	  TLatex *centtex = new TLatex(0.05,0.9,CBin_labels[ibin]);
-	  centtex->SetNDC();
-	  centtex->Draw();
-	  TLatex *pttex = new TLatex(0.05,0.85,TrkPtBin_labels[ibin3]);
-	  pttex->SetNDC();
-	  pttex->Draw();
-	}
-	if(ibin==3){
-	  TLatex *centtex = new TLatex(0.15,0.9,CBin_labels[ibin]);
-	  centtex->SetNDC();
-	  centtex->Draw();
-	  TLatex *pttex = new TLatex(0.15,0.85,TrkPtBin_labels[ibin3]);
-	  pttex->SetNDC();
-	  pttex->Draw();
-	}
 
 
 
-
-	yield_sub[ibin][ibin2][ibin3]->Divide(hJetTrackMESubLeading[ibin][ibin2][ibin3]);
-	//	yield_sub_pTweighted[ibin][ibin2][ibin3]->Divide(hJetTrackMESubLeading[ibin][ibin2][ibin3]);
-	//yield_sub_pTcos[ibin][ibin2][ibin3]->Divide(hJetTrackMESubLeading[ibin][ibin2][ibin3]);
-	
-	hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Write();
-	yield_sub[ibin][ibin2][ibin3]->Write();
-	//	hJetTrackSignalBackgroundSubLeading_pTweighted[ibin][ibin2][ibin3]->Write();
-	//yield_sub_pTweighted[ibin][ibin2][ibin3]->Write();
-	//	hJetTrackSignalBackgroundSubLeading_pTcos[ibin][ibin2][ibin3]->Write();
-	//yield_sub_pTcos[ibin][ibin2][ibin3]->Write();
-	hJetTrackMESubLeading[ibin][ibin2][ibin3]->Write();
-	
       }//ibin3;
       
     } // ibin2

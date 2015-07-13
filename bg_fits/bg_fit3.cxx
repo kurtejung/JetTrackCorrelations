@@ -66,7 +66,7 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
   Float_t v2_assoc[12][5][4][2];
   Float_t v2_jet[12][4][2];
   Float_t v2_jet_test[12][5][4][2];
-  Float_t v2_jet_err[12][4][2];
+  Float_t V2_err[12][4][2];
 
   TH1D *raw_eta[12][5][4][2];
 
@@ -205,47 +205,31 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
   //-------------------------------------------
 
   //Inclusive
-  v2_jet[0][0][0] = 0.052; 
-  v2_jet[0][1][0] = 0.058;
-  v2_jet[0][2][0] = 0.052;
-  v2_jet[0][3][0] = 0.050;
+  v2_jet[0][0][0] = 0.046; 
+  v2_jet[0][1][0] = 0.054;
+  v2_jet[0][2][0] = 0.053;
+  v2_jet[0][3][0] = 0.049;
  
   //SubLeading
-  v2_jet[2][0][0] = 0.052;
-  v2_jet[2][1][0] = 0.058;
-  v2_jet[2][2][0] = 0.052;
-  v2_jet[2][3][0] = 0.050;
+  v2_jet[2][0][0] = 0.046;
+  v2_jet[2][1][0] = 0.054;
+  v2_jet[2][2][0] = 0.053;
+  v2_jet[2][3][0] = 0.047;
 
   //Leading
-  v2_jet[4][0][0] = 0.052;
-  v2_jet[4][1][0] = 0.058;
-  v2_jet[4][2][0] = 0.052;
-  v2_jet[4][3][0] = 0.050;
+  v2_jet[4][0][0] = 0.046;
+  v2_jet[4][1][0] = 0.055;
+  v2_jet[4][2][0] = 0.053;
+  v2_jet[4][3][0] = 0.047;
 
 
 
-  // v2_jet_error
+  // V2_error
+  V2_err[0][0][0] = 0.001; 
+  V2_err[0][1][0] = 0.002;
+  V2_err[0][2][0] = 0.004;
+  V2_err[0][3][0] = 0.007;
  
-
-  //Inclusive
-  v2_jet_err[0][0][0] = 0.027; 
-  v2_jet_err[0][1][0] = 0.027;
-  v2_jet_err[0][2][0] = 0.027;
-  v2_jet_err[0][3][0] = 0.027;
- 
-  //SubLeading
-  v2_jet_err[2][0][0] = 0.027;
-  v2_jet_err[2][1][0] = 0.027;
-  v2_jet_err[2][2][0] = 0.027;
-  v2_jet_err[2][3][0] = 0.027;
-
-  //Leading
-  v2_jet_err[4][0][0] = 0.027;
-  v2_jet_err[4][1][0] = 0.027;
-  v2_jet_err[4][2][0] = 0.031;
-  v2_jet_err[4][3][0] = 0.027;
- 
-
 
   for(int j = 0; j<4; j++){
     v2_jet[6][j][0] = v2_jet[0][j][0];
@@ -430,7 +414,8 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	  projmax = 2.5;
 	  projmin = 1.5;
 
-	  
+	  if(g==2&&i<2&&j>1) projmax = 2.;
+
 	  etamin1_val = -projmax+0.001;
 	  etamax1_val = -projmin-0.001;
 	  etamin2_val =  projmin+0.001;
@@ -461,11 +446,11 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	
 	yield[g][i][j][l] = (TH2D*)fdata[g]->Get(in_name)->Clone(in_name);
 
-	if((g==2||g==4)&&i==3&&j==0){
+	if((g==2||g==4)&&i>1&&j==0){
 	  TString Temp_name = in_name;
 	  Temp_name.ReplaceAll("Yield_PbPb","Raw_Yield");
 	  
-	  yield[g][i][j][l] = (TH2D*)fdata[g]->Get(Temp_name)->Clone(in_name);
+	  yield[g][i][j][l]= (TH2D*)fdata[g]->Get(Temp_name)->Clone(in_name);
 	  
 	  Temp_name.ReplaceAll("Raw_Yield","Mixed_Event");
 	  Temp_name.ReplaceAll("Cent50_Cent100","Cent30_Cent50");
@@ -532,7 +517,7 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	    temp_err = in_hist[g][i][j][l]->GetBinError(k-1);
 	   
 	 
-	    if(in_hist[g][i][j][l]->GetBinContent(k)<0.2*temp_bc&&in_hist[g][i][j][l]->GetBinError(k)<0.5*temp_err){
+	    if((in_hist[g][i][j][l]->GetBinContent(k)<0.2*temp_bc&&in_hist[g][i][j][l]->GetBinError(k)<0.5*temp_err)||((g%2==0)&&i==2&&j==0&&in_hist[g][i][j][l]->GetBinContent(k)<0.0001)){
 	      cout<<"******Replacing bin content**********"<<endl;
 	      cout<<in_hist[g][i][j][l]->GetBinContent(k)<<" "<<temp_bc<<" "<<in_hist[g][i][j][l]->GetBinError(k)<<" "<<temp_err<<endl;
 	      in_hist[g][i][j][l]->SetBinContent(k,temp_bc);
@@ -566,22 +551,25 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	gen_gaus->FixParameter(1,0.);
 
 	if(g==0||g==2||g==4){
-	/*
+
 	  switch(j){
 	    case 0:
-	      gen_gaus->FixParameter(1,-0.003);
+	      gen_gaus->FixParameter(1,-0.008);
 	      break;
 	    case 1:
-	      gen_gaus->FixParameter(1,-0.003);
+	      gen_gaus->FixParameter(1,-0.005);
+	      gen_gaus->FixParameter(3,0.002);
 	      break;
 	    case 2:
-	      gen_gaus->FixParameter(1,-0.002);
+	      gen_gaus->FixParameter(1,-0.006);
+	      gen_gaus->FixParameter(3,0.002);
 	      break;
 	    case 3:
-	      gen_gaus->FixParameter(1,-0.0015);
+	      gen_gaus->FixParameter(1,-0.003);
+	      gen_gaus->FixParameter(3,0.002);
 	      break;
 	    }  
-	*/ 
+
 	  gen_gaus->FixParameter(2,V_2);
 	  gen_gaus->SetParLimits(4,0.,5.*A_AS);
 	  gen_gaus->SetParameter(5,0.4);
@@ -589,26 +577,28 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	  if(i>1)gen_gaus->SetParLimits(5,0.2,0.8);
 	  gen_gaus->SetParameter(6,1.7);
 	  gen_gaus->SetParLimits(6,1.1,1.9);
-	  /*
+
 	  if(g==2){
 	    switch(j){
 	    case 0:
-	      gen_gaus->FixParameter(1,0.003);
+	      gen_gaus->FixParameter(1,0.008);
 	      break;
 	    case 1:
-	      gen_gaus->FixParameter(1,0.003);
+	      gen_gaus->FixParameter(1,0.005);
+	      gen_gaus->FixParameter(3,-0.002); 
 	      break;
 	    case 2:
-	      gen_gaus->FixParameter(1,0.002);
+	      gen_gaus->FixParameter(1,0.006);
+	      gen_gaus->FixParameter(3,-0.002); 
 	      break;
 	    case 3:
-	      gen_gaus->FixParameter(1,0.0015);
+	      gen_gaus->FixParameter(1,0.003); 
+	      gen_gaus->FixParameter(3,-0.002); 
 	      break;
 	    }  
 
 	   
 	    }
-	  */
 
 	 
 	 
@@ -644,7 +634,7 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	  bglevel_err = gen_gaus->GetParError(0);
 	  V_1_err = gen_gaus->GetParError(1);
 	 
-	  V_2_err = v2_jet_err[g][j][l]*v2_assoc[g][i][j][l];
+	  V_2_err = V2_err[0][i][0];
 	  
 	  v2_jet_test[g][i][j][l] = V_2/v2_assoc[g][i][j][l];
 
@@ -1383,8 +1373,18 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	
 	  test_diff2[g][i][j][l]->SetAxisRange(-1.5,1.5,"x");
 
+
+	  test_diff2[g][i][j][l]->Rebin(2);
+	  test_diff2[g][i][j][l]->Scale(1./2);
+
 	  test_diff2[g][i][j][l]->SetMinimum(-0.5);
 	  test_diff2[g][i][j][l]->SetMaximum(0.5);
+
+	  test_diff2[g][i][j][l]->SetMarkerColor(kRed);
+	  test_diff2[g][i][j][l]->SetMarkerStyle(20);
+	  test_diff2[g][i][j][l]->SetMarkerSize(1.);
+	  test_diff2[g][i][j][l]->SetLineColor(kRed);
+
 
 	  test_diff2[g][i][j][l]->Draw();
 
@@ -1398,10 +1398,28 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	
 	  test_diff4[g][i][j][l]->Scale(1./dx_phi/dx_eta);
 
+	  test_diff4[g][i][j][l]->Rebin(2);
+	  test_diff4[g][i][j][l]->Scale(1./2);
+	  
+
+	  test_diff4[g][i][j][l]->SetMarkerColor(kBlue);
+	  test_diff4[g][i][j][l]->SetLineColor(kBlue);
+	  
+
 	  test_diff4[g][i][j][l]->Fit("fit0","","",-1.5,1.5);
+
+	  test_diff4[g][i][j][l]->GetFunction("fit0")->SetLineColor(kBlue);
+	
 	
 	  test_diff2[g][i][j][l]->Draw();
 	
+	  if(j==0&&i==0){
+	    TLegend *legend = new TLegend(0.2,0.8,0.9,0.9);
+	    legend->AddEntry(test_diff2[g][i][j][l],"Sideband Projection of Result");
+	    legend->AddEntry(test_diff4[g][i][j][l],"1D Bkg Subtraction Result");
+	    legend->SetTextSize(0.05);
+	    legend->Draw();
+	  }
 
 
 	  TLine *linePhi = new TLine(-1.5,0.,1.5,0.);
@@ -1433,22 +1451,20 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 	 
 	  sideband_hist[g][i][j][l] = (TH1D*)Rebin_dEta3(test_diff5[g][i][j][l]);
 
-	  cout<<"I will fit the sideband hist"<<endl;
 
 	  sideband_hist[g][i][j][l]->Fit("fit0","","",-2.99,2.99);
 
-	  cout<<"I have fit the sideband hist"<<endl;
 	  
 	  y_both[g][i][j][l] = fit0->GetParError(0);
 
 	  cout<<"Source D is: "<<y_both[g][i][j][l]<<endl;
 
 
-	  sideband_hist[g][i][j][l]->Fit("fit0","","q0",-2.99,-1.51);
+	  sideband_hist[g][i][j][l]->Fit("fit0","","q0",-2.49,-1.51);
 
 	  yleft[g][i][j][l] = fit0->GetParameter(0);
 
-       	  sideband_hist[g][i][j][l]->Fit("fit0","","q0",1.51,2.99);
+       	  sideband_hist[g][i][j][l]->Fit("fit0","","q0",1.51,2.49);
 
 	  yright[g][i][j][l] = fit0->GetParameter(0);
 
@@ -1489,12 +1505,12 @@ Int_t bg_fit3(int gstart = 0, int gend = 6,bool skip_pp = kTRUE, bool Is_NonLead
 
 	  sideband_hist[g][i][j][l]->Draw();
 	
-	  TLine *lineleft = new TLine(-3.0,yleft[g][i][j][l],-1.5,yleft[g][i][j][l]);
+	  TLine *lineleft = new TLine(-2.5,yleft[g][i][j][l],-1.5,yleft[g][i][j][l]);
 	  lineleft->SetLineColor(kRed);
 	  lineleft->SetLineWidth(3);
 	  lineleft->Draw();
 	
-	  TLine *lineright = new TLine(1.5,yright[g][i][j][l],3.0,yright[g][i][j][l]);
+	  TLine *lineright = new TLine(1.5,yright[g][i][j][l],2.5,yright[g][i][j][l]);
 	  lineright->SetLineColor(kViolet);
 	  lineright->SetLineWidth(3);
 	  lineright->Draw();

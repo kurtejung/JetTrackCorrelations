@@ -28,7 +28,7 @@
 
 using namespace std;
 
-Int_t PAS_plots8(){
+Int_t PAS_plots8(bool draw_ref = kFALSE){
 
 #include "../HIN_14_016_universals.h"
 
@@ -48,9 +48,14 @@ Int_t PAS_plots8(){
   TFile *fin_ref[12];
   TFile *fin2[12];
 
-  TFile *fbkgfit = new TFile("../bg_fits/PbPb_Inclusive_Yield_and_Bkg.root","READ");
-  TFile *fbkgsummed = new TFile("../me_correct/PbPb_Inclusive_Correlations.root","READ");
+  TFile *fbkgfit = new TFile("../bg_fits/PbPb_Leading_Yield_and_Bkg.root","READ");
+  TFile *fbkgsummed = new TFile("../me_correct/PbPb_Leading_Correlations.root","READ");
  
+  TFile *fbkgfit_sub = new TFile("../bg_fits/PbPb_SubLeading_Yield_and_Bkg.root","READ");
+  TFile *fbkgsummed_sub = new TFile("../me_correct/PbPb_SubLeading_Correlations.root","READ");
+  
+
+
   Double_t xAxis[5] = {-100,-50,-30,-10,0}; 
   TH1D* int_cent[12][4];
   TH1D* blank[4];
@@ -93,16 +98,6 @@ Int_t PAS_plots8(){
   TGraph *Error_down_eta_pT[12][4];
   TH1D *Error_up_eta_cent[12][4];
   TH1D *Error_down_eta_cent[12][4];
-
-  TGraphErrors *Closure_integral_eta_pT[12][4];
-  TGraphErrors *Closure_integral_eta_pT2[12][4];
- 
-
-  vector<float> closure_integral_values, closure_integral_errors;
-
-  TH1D *Closure_integral_eta_cent[12][4];
-  TH1D *Closure_integral_eta_cent2[12][4];
-  
 
   TLegend *l40,*l41,*l42;
 
@@ -197,30 +192,30 @@ Int_t PAS_plots8(){
   
     switch(g){
     case 0:
-      fin[g] = new TFile("../analysis/Inclusive_Data_AllPlots.root", "READ");
+      fin[g] = new TFile("../study_yield/Inclusive_Data_AllPlots.root", "READ");
       fin_ref[g] = new TFile("../HIN_14_016_FROZEN_PUBLIC_PAS/analysis/Inclusive_Data_AllPlots.root", "READ");
-      // fin[g] = new TFile("../analysis/Inclusive_Data_NoSpillOver_AllPlots.root", "READ");
+      //  fin[g] = new TFile("../study_yield/Inclusive_Data_NoSpillOver_AllPlots.root", "READ");
       datalabel = "Inclusive";     break;
     case 1:
-      fin[g] = new TFile("../analysis/Inclusive_Data_AllPlots.root", "READ");
+      fin[g] = new TFile("../study_yield/Inclusive_Data_AllPlots.root", "READ");
       fin_ref[g] = new TFile("../HIN_14_016_FROZEN_PUBLIC_PAS/analysis/Inclusive_Data_AllPlots.root", "READ");
       datalabel = "Inclusive";     break;
     case 2:
-      fin[g] = new TFile("../analysis/SubLeading_Data_AllPlots.root", "READ");
+      fin[g] = new TFile("../study_yield/SubLeading_Data_AllPlots.root", "READ");
       fin_ref[g] = new TFile("../HIN_14_016_FROZEN_PUBLIC_PAS/analysis/SubLeading_Data_AllPlots.root", "READ");
-      //fin[g] = new TFile("../analysis/SubLeading_Data_NoSpillOver_AllPlots.root", "READ");
+      //     fin[g] = new TFile("../study_yield/SubLeading_Data_NoSpillOver_AllPlots.root", "READ");
       datalabel = "SubLeading";    break;
     case 3:
-      fin[g] = new TFile("../analysis/SubLeading_Data_AllPlots.root", "READ");
+      fin[g] = new TFile("../study_yield/SubLeading_Data_AllPlots.root", "READ");
       fin_ref[g] = new TFile("../HIN_14_016_FROZEN_PUBLIC_PAS/analysis/SubLeading_Data_AllPlots.root", "READ");
       datalabel = "SubLeading";    break;
     case 4:
-      fin[g] = new TFile("../analysis/Leading_Data_AllPlots.root", "READ");
+      fin[g] = new TFile("../study_yield/Leading_Data_AllPlots.root", "READ");
       fin_ref[g] = new TFile("../HIN_14_016_FROZEN_PUBLIC_PAS/analysis/Leading_Data_AllPlots.root", "READ");
-      //fin[g] = new TFile("../analysis/Leading_Data_NoSpillOver_AllPlots.root", "READ");
+      //    fin[g] = new TFile("../study_yield/Leading_Data_NoSpillOver_AllPlots.root", "READ");
       datalabel = "Leading";       break;
     case 5:
-      fin[g] = new TFile("../analysis/Leading_Data_AllPlots.root", "READ");
+      fin[g] = new TFile("../study_yield/Leading_Data_AllPlots.root", "READ");
       fin_ref[g] = new TFile("../HIN_14_016_FROZEN_PUBLIC_PAS/analysis/Leading_Data_AllPlots.root", "READ");
       datalabel = "Leading";       break;
    
@@ -261,28 +256,6 @@ Int_t PAS_plots8(){
 	check_new_phi_rebin[g][i][j]->SetAxisRange(-1.35,1.35,"x");
 
 
-
-
-	TString newchecknameEta_ref = in_name;
-	TString newchecknamePhi_ref = in_name;
-	newchecknameEta_ref.ReplaceAll("Result", "New_check_Eta");
-
-	newchecknameEta_ref += "ref";
-
-	newchecknamePhi_ref.ReplaceAll("Result", "New_check_Phi");
-	newchecknamePhi_ref += "ref";
-
-
-	check_new_eta_ref[g][i][j] = (TH1D*)fin_ref[g]->Get(newchecknameEta_rebin)->Clone(newchecknameEta_ref);
-	check_new_eta_ref[g][i][j]->SetMarkerColor(kRed);
-	check_new_eta_ref[g][i][j]->SetLineColor(kRed);
-
-	check_new_phi_ref[g][i][j] = (TH1D*)fin_ref[g]->Get(newchecknamePhi_rebin)->Clone(newchecknamePhi_ref);
-	check_new_phi_ref[g][i][j]->SetMarkerColor(kRed);
-	check_new_phi_ref[g][i][j]->SetLineColor(kRed);
-
-
-
 	if(g==0||g==2||g==4){
 	  TString newchecknameEtasyst = newchecknameEta_rebin;
 	  newchecknameEtasyst.ReplaceAll("New_check","Syst_error");
@@ -290,17 +263,60 @@ Int_t PAS_plots8(){
 
 	  cout<<newchecknameEtasyst<<endl;
 
-	  check_new_eta_syst[g][i][j] = (TH1D*)fin[g]->Get(newchecknameEtasyst)->Clone(newchecknameEtasyst);
+	  check_new_eta_syst[g][i][j] = (TH1D*)fin[g]->Get(newchecknameEtasyst)->Clone((TString)(newchecknameEtasyst+"new"));
 	  check_new_eta_syst[g][i][j]->SetAxisRange(-1.4,1.41,"x");
-
-
 
 	  TString newchecknamePhisyst = newchecknamePhi_rebin;
 	  newchecknamePhisyst.ReplaceAll("New_check","Syst_error");
 	  newchecknamePhisyst.ReplaceAll("rebin","");
-	  check_new_phi_syst[g][i][j] = (TH1D*)fin[g]->Get(newchecknamePhisyst)->Clone(newchecknamePhisyst);
+	
+	  check_new_phi_syst[g][i][j] = (TH1D*)fin[g]->Get(newchecknamePhisyst)->Clone((TString)(newchecknamePhisyst+"new"));
 	  check_new_phi_syst[g][i][j]->SetAxisRange(-1.4,1.41,"x");
+
+	  TString newchecknameEta_ref = in_name;
+	  TString newchecknamePhi_ref = in_name;
+	  newchecknameEta_ref.ReplaceAll("Result", "New_check_Eta");
+
+	  newchecknameEta_ref += "ref";
+
+	  newchecknamePhi_ref.ReplaceAll("Result", "New_check_Phi");
+	  newchecknamePhi_ref += "ref";
+
+
+	  check_new_eta_ref[g][i][j] = (TH1D*)fin_ref[g]->Get(newchecknameEtasyst)->Clone(newchecknameEta_ref);
+	  check_new_phi_ref[g][i][j] = (TH1D*)fin_ref[g]->Get(newchecknamePhisyst)->Clone(newchecknamePhi_ref);
+
+	  check_new_eta_ref[g][i][j]->SetMarkerSize(1);
+	  check_new_phi_ref[g][i][j]->SetMarkerSize(1);
+	  check_new_phi_ref[g][i][j]->SetMarkerStyle(20);
+	  check_new_eta_ref[g][i][j]->SetMarkerStyle(20);
+
+
+	}else{
+
+	  TString newchecknameEta_ref = in_name;
+	  TString newchecknamePhi_ref = in_name;
+	  newchecknameEta_ref.ReplaceAll("Result", "New_check_Eta");
+
+	  newchecknameEta_ref += "ref";
+
+	  newchecknamePhi_ref.ReplaceAll("Result", "New_check_Phi");
+	  newchecknamePhi_ref += "ref";
+
+	  check_new_eta_ref[g][i][j] = (TH1D*)fin_ref[g]->Get(newchecknameEta_rebin)->Clone(newchecknameEta_ref);
+	  check_new_phi_ref[g][i][j] = (TH1D*)fin_ref[g]->Get(newchecknamePhi_rebin)->Clone(newchecknamePhi_ref);
 	}
+
+	check_new_eta_ref[g][i][j]->SetMarkerColor(kRed);
+	check_new_eta_ref[g][i][j]->SetLineColor(kRed);
+
+
+
+
+
+	check_new_phi_ref[g][i][j]->SetMarkerColor(kRed);
+	check_new_phi_ref[g][i][j]->SetLineColor(kRed);
+
 
 	cout<<"here"<<endl;
 
@@ -768,6 +784,7 @@ Int_t PAS_plots8(){
 	  l40 = new TLegend(textalign2-0.05,texty2-.1,0.6,texty4-0.05);
 	  l40->SetName("l40");
 	  l40->SetTextSizePixels(tspixels);
+	  l40->SetTextFont(43);
 	  l40->SetFillColor(kWhite);
 	  l40->SetLineColor(kWhite);
 	  if(g==1){l40->AddEntry(Integral_eta_Pt[g][j],"Inclusive Jets Integrated #Delta#eta","lp");
@@ -1229,274 +1246,6 @@ Int_t PAS_plots8(){
 
     }// close "only integrate for pp"
 
-    //-------------------------
-    //   Closure Integrals
-    //----------------------------
-   
-  
-    
-    if(g==6||g==8||g==10){
-
-      for(int j = 0; j<4; j++){
-
-	in_name = make_name("Result_",g,3,j,0,centlabel,pTlabel);
-
-
-
-	cintegral_eta_pT[g]->cd(j+1);
-	TString ClosureIntegralEtaPt_name = in_name;
-	ClosureIntegralEtaPt_name.ReplaceAll("Result","Closure_Integral_Eta");
-	ClosureIntegralEtaPt_name.ReplaceAll("_TrkPt4_TrkPt8","");
-	ClosureIntegralEtaPt_name.ReplaceAll("_Pt100_Pt300","");
-
-	cout<<	ClosureIntegralEtaPt_name<<endl;
-	
-
-	//	Closure_integral_eta_pT[g][j] = (TGraph*)fin[g]->Get(ClosureIntegralEtaPt_name)->Clone(ClosureIntegralEtaPt_name);
-	TGraph 	*temp_graph = (TGraph*)fin[g]->Get(ClosureIntegralEtaPt_name)->Clone(ClosureIntegralEtaPt_name);
-
-
-	closure_integral_values.clear();
-	closure_integral_errors.clear();
-	
-	for(int k = 0; k<4; k++){
-	  double pt_val, x_val;
-	  
-	  //Closure_integral_eta_pT[g][j]->GetPoint(k,x_val,pt_val);
-	  temp_graph->GetPoint(k,x_val,pt_val);
-	  
-	  closure_integral_values.push_back(pt_val);
-	  closure_integral_errors.push_back(pt_val/2.);
-	  
-	}
-	
-	Closure_integral_eta_pT[g][j] = new TGraphErrors(pTbin_centers.size(),&pTbin_centers[0],&closure_integral_values[0],&pTbin_errors[0],&closure_integral_errors[0]);
-
-
-	Closure_integral_eta_pT[g][j]->SetMarkerColor(1);
-	Closure_integral_eta_pT[g][j]->SetLineColor(1);
-
-	switch(g){
-	case 6: 
-	  Closure_integral_eta_pT[g][j]->SetMarkerStyle(10);
-	  break;
-	case 8:
-	  Closure_integral_eta_pT[g][j]->SetMarkerStyle(34);
-	  break;
-	case 10: 
-	  Closure_integral_eta_pT[g][j]->SetMarkerStyle(21);
-	  break;
-	default:
-	  Closure_integral_eta_pT[g][j]->SetMarkerStyle(10);
-	  break;
-	}
-
-	Closure_integral_eta_pT[g][j]->SetMinimum(-1.);
-	Closure_integral_eta_pT[g][j]->SetMaximum(3.9);
-	    
-	Closure_integral_eta_pT[g][j]->GetXaxis()->SetRangeUser(.8,8.2);
-	Closure_integral_eta_pT[g][j]->GetYaxis()->SetNdivisions(306);
-	Closure_integral_eta_pT[g][j]->Draw("p X A");
-	 
-
-	Closure_integral_eta_pT[g][j]->GetYaxis()->SetLabelSize(ts);
-	   
-
-
-	Closure_integral_eta_pT[g][j]->GetXaxis()->SetTitle("Track p_{T} (GeV/c)");
-	Closure_integral_eta_pT[g][j]->GetXaxis()->SetTitleSize(ts2);
-	Closure_integral_eta_pT[g][j]->GetXaxis()->SetTitleOffset(xoffset+0.2);
-	Closure_integral_eta_pT[g][j]->GetYaxis()->SetTitle("(dN/dp_{T})_{P+H} - (dN/dp_{T})_{PYTH} (GeV/c)^{-1}");
-
-	Closure_integral_eta_pT[g][j]->GetXaxis()->SetNdivisions(8);
-   
-	
-	Closure_integral_eta_pT[g][j]->GetXaxis()->CenterTitle();
-	Closure_integral_eta_pT[g][j]->GetYaxis()->CenterTitle();
-	   
-	if(j>0){
-	  Closure_integral_eta_pT[g][j]->GetYaxis()->SetTitleSize(0.0);
-	  Closure_integral_eta_pT[g][j]->GetYaxis()->SetLabelSize(0.0);
-	  Closure_integral_eta_pT[g][j]->GetXaxis()->SetTitleSize(ts);
-	  Closure_integral_eta_pT[g][j]->GetXaxis()->SetLabelSize(ts);
-	  Closure_integral_eta_pT[g][j]->GetXaxis()->SetTitleOffset(xoffset+0.15);
-	}else{
-	  Closure_integral_eta_pT[g][j]->GetXaxis()->SetLabelSize(ts3);
-	  Closure_integral_eta_pT[g][j]->GetXaxis()->SetLabelOffset(0.015);
-	  Closure_integral_eta_pT[g][j]->GetYaxis()->SetTitleOffset(1.);
-	  Closure_integral_eta_pT[g][j]->GetYaxis()->SetTitleSize(ts2);
-	  Closure_integral_eta_pT[g][j]->GetYaxis()->SetLabelSize(ts2);
-	}
-
-
-
-	Closure_integral_eta_pT[g][j]->SetMarkerSize(2);
-
-
-
-	linePt = new TLine(1.,0,8.,0);
-	linePt->SetLineStyle(2);
-	linePt->SetLineWidth(1);
-	linePt->Draw("same");
-
-   
-
-	if(g==10){
-	  
-	 	  
-	  Closure_integral_eta_pT2[g][j] = new TGraphErrors(pTbin_centers.size(),&pTbin_centers[0],&closure_integral_values[0],&pTbin_errors[0],&closure_integral_errors[0]);
-
-
-	  Closure_integral_eta_pT2[10][j]->SetFillColor(kOrange-2);
-	  Closure_integral_eta_pT2[10][j]->Draw("same e2");
-	  
-	  
-	  Closure_integral_eta_pT[10][j]->Draw("same p X");
-
-	  Closure_integral_eta_pT[6][j]->SetMarkerColor(kRed);
-	  Closure_integral_eta_pT[6][j]->SetLineColor(kRed);
-	  Closure_integral_eta_pT[6][j]->Draw("same p X");
-
-
-	  Closure_integral_eta_pT[8][j]->SetMarkerColor(kCyan+3);
-	  Closure_integral_eta_pT[8][j]->SetLineColor(kCyan+3);
-	  Closure_integral_eta_pT[8][j]->Draw("same p X");
-	}
-
-	if(j==0){ 
-	  l40 = new TLegend(textalign2,texty1-.05,0.8,texty4-.1);
-	  l40->SetName("l40");
-	  l40->SetTextFont(43);
-	  l40->SetTextSizePixels(tspixels);
-	  l40->SetFillColor(kWhite);
-	  l40->SetLineColor(kWhite);
-	  if(g==6){l40->AddEntry(Closure_integral_eta_pT[g][j],"Inclusive","lp");
-	    //	    l40->AddEntry(Closure_integral_eta_pT2[g][j],"Separate Bins","lp");}
-	  }
-	  if(g==8){l40->AddEntry(Closure_integral_eta_pT[g][j],"Subleading","lp");}
-	  if(g==10){
-	    l40->AddEntry(Closure_integral_eta_pT[g][j],"Leading Spill-Over","p");
-	    l40->AddEntry(Closure_integral_eta_pT[6][j],"Inclusive Spill-Over","p");
-	    l40->AddEntry(Closure_integral_eta_pT[8][j],"Subleading Spill-Over","p");
-	    l40->AddEntry(Closure_integral_eta_pT2[10][j],"Uncertainty Assigned for","f");
-	    l40->AddEntry(Closure_integral_eta_pT2[10][j],"Leading Jet Spill-Over","");
-	    //l40->AddEntry(Closure_integral_eta_pT2[g][j],"Separate Bins","lp");
-	  }
-	   
-	  l40->Draw("same");
-	}
-
-      
-
-	drawlabels_int_pt2(g,j);
-	
-
-      }
-
-      for(int i = 0; i<4; i++){
-
-	cintegral_eta_cent[g]->cd(i+1);
-
-	blank2[i]->SetMinimum(-1.);
-	blank2[i]->GetYaxis()->SetTitle("HYDJET-PYTHIA");
-	blank2[i]->SetLabelSize(ts2);
-	blank2[i]->SetTitleOffset(1.1);
-	blank2[i]->GetYaxis()->SetNdivisions(306);
-	blank2[i]->Draw();
-	
-	TString ClosureIntegralEtaCent_name = "ClosureIntegralEtaCent";
-	ClosureIntegralEtaCent_name+=g;
-	ClosureIntegralEtaCent_name+=i;
-	Closure_integral_eta_cent[g][i] = new TH1D(ClosureIntegralEtaCent_name,"",4,xAxis);
-
-	for(int k=0; k<4; k++){
-	  evalpt = pTbin_centers.at(i);
-	  value = Closure_integral_eta_pT[g][k]->Eval(evalpt);
-	  Closure_integral_eta_cent[g][i]->SetBinContent(k+1,value);
-	}
-
-	switch(g){
-	case 6: 
-	  Closure_integral_eta_cent[g][i]->SetMarkerStyle(10);
-	  break;
-	case 8:
-	  Closure_integral_eta_cent[g][i]->SetMarkerStyle(34);
-	  break;
-	case 10: 
-	  Closure_integral_eta_cent[g][i]->SetMarkerStyle(21);
-	  break;
-	default:
-	  Closure_integral_eta_cent[g][i]->SetMarkerStyle(10);
-	  break;
-	}
-
-	Closure_integral_eta_cent[g][i]->SetMarkerSize(2);
-	
-	Closure_integral_eta_cent[g][i]->SetLineColor(kBlack);
-	Closure_integral_eta_cent[g][i]->GetYaxis()->SetNdivisions(306);
-
-  
-	if(g==10){
-	  Closure_integral_eta_cent[6][i]->SetMarkerColor(kRed);
-	  Closure_integral_eta_cent[6][i]->Draw("same pl");
-	}
-       
-	drawlabels_int_cent2(g,i);
-
-	if(i==0){ 
-	  l40 = new TLegend(textalign2-0.05,texty2-.1,0.6,texty4-0.05);
-	  l40->SetName("l40");
-	  l40->SetTextSizePixels(tspixels);
-	  l40->SetFillColor(kWhite);
-	  l40->SetLineColor(kWhite);
-	  if(g==6){l40->AddEntry(Closure_integral_eta_pT[g][i],"Inclusive","lp");
-	    // l40->AddEntry(Closure_integral_eta_pT2[g][i],"Separate Bins","lp");}
-	  }
-	  if(g==8){l40->AddEntry(Closure_integral_eta_pT[g][i],"SubLeading","lp");}
-	  if(g==10){
-	    l40->AddEntry(Closure_integral_eta_pT[g][i],"Leading","lp");
-	    l40->AddEntry(Closure_integral_eta_pT[6][i],"Inclusive","lp");
-	    //  l40->AddEntry(Closure_integral_eta_pT2[g][i],"Separate Bins","lp");
-	  }
-	   
-	  l40->Draw("same");
-	}
-
-	lineCent->Draw("same");
-
-      }
-
-						       
-      cintegral_eta_pT[g]->cd(0);
-								      
-								      TLatex *canvas_title = new TLatex(0.06,0.9,"CMS Preliminary Simulation");
-      canvas_title->SetTextSizePixels(tspixels);
-      canvas_title->SetTextFont(63);
-      canvas_title->Draw();
-
-      TLatex *canvas_title2 = new TLatex(0.295,0.9,"PYTHIA+HYDJET");
-      canvas_title2->SetTextSizePixels(tspixels);
-      canvas_title2->Draw();
-
-
-      TString IntegralSaveName_pT = in_name;
-      IntegralSaveName_pT.ReplaceAll("Cent0_Cent10_Pt100_Pt300_TrkPt4_TrkPt8",datalabel);
-      IntegralSaveName_pT.ReplaceAll("Result_Gen","Integral_Closure_pT");
-      IntegralSaveName_pT +=".pdf";
-      cintegral_eta_pT[g]->SaveAs(IntegralSaveName_pT);
-      IntegralSaveName_pT.ReplaceAll(".pdf",".png");
-      cintegral_eta_pT[g]->SaveAs(IntegralSaveName_pT);
-
-      TString IntegralSaveName_cent = in_name;
-      IntegralSaveName_cent.ReplaceAll("Cent0_Cent10_Pt100_Pt300_TrkPt4_TrkPt8",datalabel);
-      IntegralSaveName_cent.ReplaceAll("Result","Integral_Closure_Cent");
-      IntegralSaveName_cent +=".pdf";
-      cintegral_eta_cent[g]->SaveAs(IntegralSaveName_cent);
-
-    
-
-    } //close hydjet only
-
   } // close g
 
   cout<<"Now starting on PAS Plots..."<<endl;
@@ -1521,20 +1270,20 @@ Int_t PAS_plots8(){
       mixed_min = 10./34.;
       mixed_max = 50/34.;
       yield_min = 35.;
-      yield_max = 41.;
-      result_min = -1.;
-      result_max = 5.;
+      yield_max = 43.;
+      result_min = -.5;
+      result_max = 7.5;
       break;
     case 1: 
       pTrange = "TrkPt2_TrkPt3"; 
-      raw_min = 2.;
+      raw_min = 1.;
       raw_max = 10.;
-      mixed_min = 2./4.5;
+      mixed_min = 1./4.5;
       mixed_max = 10./4.5;
       yield_min = 4.;
       yield_max = 10.;
-      result_min = -1.;
-      result_max = 5.;
+      result_min = -.45;
+      result_max = 5.55;
       break;
     case 2: 
       pTrange = "TrkPt3_TrkPt4"; 
@@ -1562,42 +1311,68 @@ Int_t PAS_plots8(){
        
 
     TF1 *gen_gaus = new TF1("gen_gaus",
-			    " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
-                           +[4]*(TMath::Exp(-pow(TMath::Abs(x+TMath::Pi())/[5],[6]))  \
-                               + TMath::Exp(-pow(TMath::Abs(x-TMath::Pi())/[5],[6])))");
-    
-    gen_gaus->SetParameter(0,36.);
-    gen_gaus->FixParameter(1,0.001);
-    gen_gaus->FixParameter(2,.0044);
-    gen_gaus->FixParameter(3,0.);
-    gen_gaus->SetParameter(4,2.);
-    gen_gaus->SetParameter(5,0.5);
-    gen_gaus->SetParLimits(5,0.2,0.8);
-    gen_gaus->SetParameter(6,1.);
-
-
-    TF1 *gen_gaus_up = new TF1("gen_gaus_up",
-			       " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
+			  " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
                            +[4]*(TMath::Exp(-pow(TMath::Abs(x+TMath::Pi())/[5],[6]))  \
                                + TMath::Exp(-pow(TMath::Abs(x-TMath::Pi())/[5],[6])))",-TMath::Pi()/2,3*TMath::Pi()/2);
+   
+    TF1 *gen_gaus_up = new TF1("gen_gaus_up",
+			       " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
+                           +[4]*(TMath::Exp(-pow(TMath::Abs(x+TMath::Pi())/[5],[6])) \
+                               + TMath::Exp(-pow(TMath::Abs(x-TMath::Pi())/[5],[6]))) ",-TMath::Pi()/2,3*TMath::Pi()/2);
    
   
 
     TF1 *gen_gaus_down = new TF1("gen_gaus_down",
 				 " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
+                           +[4]*(TMath::Exp(-pow(TMath::Abs(x+TMath::Pi())/[5],[6])) \
+                               + TMath::Exp(-pow(TMath::Abs(x-TMath::Pi())/[5],[6])))",-TMath::Pi()/2,3*TMath::Pi()/2);
+   
+
+    TF1 *gen_gaus_level = new TF1("gen_gaus_level",
+			  " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
                            +[4]*(TMath::Exp(-pow(TMath::Abs(x+TMath::Pi())/[5],[6]))  \
+                               + TMath::Exp(-pow(TMath::Abs(x-TMath::Pi())/[5],[6])))",-TMath::Pi()/2,3*TMath::Pi()/2);
+
+
+
+    TF1 *gen_gaus_bg = new TF1("gen_gaus_bg",
+			  " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
+                           +[4]*(TMath::Exp(-pow(TMath::Abs(x+TMath::Pi())/[5],[6]))  \
+                               + TMath::Exp(-pow(TMath::Abs(x-TMath::Pi())/[5],[6])))",-TMath::Pi()/2,3*TMath::Pi()/2);
+
+     TF1 *sub_gen_gaus = new TF1("sub_gen_gaus",
+			    " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
+                           +[4]*(TMath::Exp(-pow(TMath::Abs(x+TMath::Pi())/[5],[6])) \
+                               + TMath::Exp(-pow(TMath::Abs(x-TMath::Pi())/[5],[6])))",-TMath::Pi()/2,3*TMath::Pi()/2);
+   
+    TF1 *sub_gen_gaus_up = new TF1("sub_gen_gaus_up",
+			       " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
+                           +[4]*(TMath::Exp(-pow(TMath::Abs(x+TMath::Pi())/[5],[6])) \
+                               + TMath::Exp(-pow(TMath::Abs(x-TMath::Pi())/[5],[6])))",-TMath::Pi()/2,3*TMath::Pi()/2);
+   
+  
+
+    TF1 *sub_gen_gaus_down = new TF1("sub_gen_gaus_down",
+				 " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
+                           +[4]*(TMath::Exp(-pow(TMath::Abs(x+TMath::Pi())/[5],[6])) \
                                + TMath::Exp(-pow(TMath::Abs(x-TMath::Pi())/[5],[6])))",-TMath::Pi()/2,3*TMath::Pi()/2);
    
     
+
+    TF1 *sub_gen_gaus_bg = new TF1("sub_gen_gaus_bg",
+			  " [0]*(1+2.0*[1]*TMath::Cos(1.*x)+2.0*[2]*TMath::Cos(2.*x)+2.0*[3]*TMath::Cos(3.*x))\
+                           +[4]*(TMath::Exp(-pow(TMath::Abs(x+TMath::Pi())/[5],[6]))  \
+                               + TMath::Exp(-pow(TMath::Abs(x-TMath::Pi())/[5],[6])))",-TMath::Pi()/2,3*TMath::Pi()/2);
+
     TString figure1_name = "PAS_Figure_1_";
     figure1_name+=pTrange;
-    cFigure1[i] = new TCanvas(figure1_name," ",10,10,1500,600);
-    cFigure1[i]->Divide(3,1,0.001,0.001);
+    cFigure1[i] = new TCanvas(figure1_name," ",10,10,1500,1200);
+    cFigure1[i]->Divide(3,2,0.001,0.001);
   
     TString figure2_name = "PAS_Figure_2_";
     figure2_name+=pTrange;
-    cFigure2[i] = new TCanvas(figure2_name," ",10,10,1500,600);
-    cFigure2[i]->Divide(3,1,0.001,0.001);
+    cFigure2[i] = new TCanvas(figure2_name," ",10,10,1500,1200);
+    cFigure2[i]->Divide(3,2,0.001,0.001);
   
     TString figure3_name = "PAS_Figure_3_";
     figure3_name+=pTrange;
@@ -1671,6 +1446,14 @@ Int_t PAS_plots8(){
 
     drawlabels_PAS_bkg(i);
 
+    TLatex *leading_tex = new TLatex(0.74,0.72,"Leading Jet");
+    leading_tex->SetName("tex04");
+    leading_tex->SetNDC();
+    leading_tex->SetTextFont(63);
+    leading_tex->SetTextSizePixels(tspixels);
+    leading_tex->Draw();
+
+
     cFigure1[i]->cd(2);
 
     gPad->SetTheta(60.839);
@@ -1714,6 +1497,8 @@ Int_t PAS_plots8(){
 
     drawlabels_PAS_bkg(i);
 
+    leading_tex->Draw();
+
     cFigure1[i]->cd(3);
  
     gPad->SetTheta(60.839);
@@ -1750,7 +1535,149 @@ Int_t PAS_plots8(){
       
     drawlabels_PAS_bkg(i);
 
-        
+    leading_tex->Draw();
+
+    cFigure1[i]->cd(4);
+
+    gPad->SetTheta(60.839);
+    gPad->SetPhi(38.0172);
+
+
+    temp_name = make_name("Raw_Yield_",0,i,3,0,centlabel,pTlabel);
+
+    temp_name.ReplaceAll("PbPb_","");
+       
+
+    cout<<temp_name<<endl;
+
+    TH2D *raw_corr_sub = (TH2D*)fbkgsummed_sub->Get(temp_name)->Clone(temp_name);
+    
+    if(i==3){raw_corr_sub->Scale(1/4.);  }
+  
+     
+    dx_eta = raw_corr_sub->GetXaxis()->GetBinWidth(1);
+    dx_phi = raw_corr_sub->GetYaxis()->GetBinWidth(1);
+     
+    raw_corr_sub->Rebin2D(2,4);
+    raw_corr_sub->Scale(1/dx_eta/dx_phi/8.);
+    raw_corr_sub->SetMinimum(raw_min);
+    raw_corr_sub->SetMaximum(raw_max);
+    raw_corr_sub->SetLineColor(kBlack);
+    raw_corr_sub->GetXaxis()->SetRangeUser(-3.,3.);
+    raw_corr_sub->GetYaxis()->SetRangeUser(-1.5,3*TMath::Pi()/2-0.001);
+    raw_corr_sub->GetXaxis()->SetTitle("#Delta#eta");
+    raw_corr_sub->GetYaxis()->SetTitle("#Delta#phi");
+    raw_corr_sub->GetXaxis()->CenterTitle();
+    raw_corr_sub->GetYaxis()->CenterTitle();
+    raw_corr_sub->GetZaxis()->CenterTitle();
+    raw_corr_sub->GetYaxis()->SetTitleSize(0.06);
+    raw_corr_sub->GetXaxis()->SetTitleSize(0.06);
+    raw_corr_sub->GetXaxis()->SetTitleOffset(1.);
+    raw_corr_sub->GetYaxis()->SetTitleOffset(1.);
+    raw_corr_sub->GetZaxis()->SetTitle("S(#Delta#eta,#Delta#phi)");
+    raw_corr_sub->GetZaxis()->SetTitleSize(0.06);
+    raw_corr_sub->GetZaxis()->SetTitleOffset(1.);
+    raw_corr_sub->GetZaxis()->SetNdivisions(205);
+     
+      
+    raw_corr_sub->Draw("surf1");
+
+    drawlabels_PAS_bkg(i);
+
+    TLatex *subleading_tex = new TLatex(0.66,0.72,"Subleading Jet");
+    subleading_tex->SetName("tex04");
+    subleading_tex->SetNDC();
+    subleading_tex->SetTextFont(63);
+    subleading_tex->SetTextSizePixels(tspixels);
+    subleading_tex->Draw();
+
+    cFigure1[i]->cd(5);
+
+    gPad->SetTheta(60.839);
+    gPad->SetPhi(38.0172);
+
+    temp_name.ReplaceAll("Raw_Yield","Mixed_Event");
+
+    TH2D *mixed_bkg_sub = (TH2D*) fbkgsummed_sub->Get(temp_name)->Clone(temp_name);
+      
+    //   if(i==3){mixed_bkg_sub->Scale(1/4.);  }
+
+    mixed_bkg_sub->Rebin2D(2,4);
+    mixed_bkg_sub->Scale(1/8.);
+
+
+    mixed_bkg_sub->GetXaxis()->SetRangeUser(-3.,3.);
+    mixed_bkg_sub->GetYaxis()->SetRangeUser(-1.5,3*TMath::Pi()/2-0.0001);
+    mixed_bkg_sub->SetLineColor(kBlack);
+    mixed_bkg_sub->GetXaxis()->SetTitle("#Delta#eta");
+    mixed_bkg_sub->GetYaxis()->SetTitle("#Delta#phi");
+    mixed_bkg_sub->GetXaxis()->CenterTitle();
+    mixed_bkg_sub->GetYaxis()->CenterTitle();
+    mixed_bkg_sub->GetZaxis()->CenterTitle();
+    mixed_bkg_sub->GetYaxis()->SetTitleSize(0.06);
+    mixed_bkg_sub->GetXaxis()->SetTitleSize(0.06);
+    mixed_bkg_sub->GetZaxis()->SetTitle("ME(#Delta#eta,#Delta#phi)");
+    mixed_bkg_sub->GetXaxis()->SetTitleOffset(1.);
+    mixed_bkg_sub->GetYaxis()->SetTitleOffset(1.);
+    mixed_bkg_sub->GetZaxis()->SetTitleOffset(1.);
+    mixed_bkg_sub->SetMinimum(mixed_min);
+    mixed_bkg_sub->SetMaximum(mixed_max);
+    
+    mixed_bkg_sub->GetXaxis()->SetTitle("#Delta#eta");
+    mixed_bkg_sub->GetYaxis()->SetTitle("#Delta#phi");
+    mixed_bkg_sub->GetZaxis()->SetTitle("ME(#Delta#eta,#Delta#phi)");
+    mixed_bkg_sub->GetZaxis()->SetTitleSize(0.06);
+    mixed_bkg_sub->GetZaxis()->SetNdivisions(205);
+     
+    
+    mixed_bkg_sub->Draw("surf1");
+
+    drawlabels_PAS_bkg(i);
+
+    subleading_tex->Draw();
+
+    cFigure1[i]->cd(6);
+ 
+    gPad->SetTheta(60.839);
+    gPad->SetPhi(38.0172);
+
+
+    temp_name.ReplaceAll("Mixed_Event","Yield_PbPb");
+    TH2D *raw_yield_sub = (TH2D*) fbkgsummed_sub->Get(temp_name)->Clone(temp_name);
+ 
+    if(i==3){raw_yield_sub->Scale(1/4.);}
+    
+    raw_yield_sub->Rebin2D(2,4);
+    raw_yield_sub->Scale(1/dx_eta/dx_phi/8.);
+      
+    raw_yield_sub->GetXaxis()->SetRangeUser(-3.,3.);
+    raw_yield_sub->GetYaxis()->SetRangeUser(-1.5,3*TMath::Pi()/2-0.001);
+    raw_yield_sub->GetXaxis()->SetTitle("#Delta#eta");
+    raw_yield_sub->GetYaxis()->SetTitle("#Delta#phi");
+    raw_yield_sub->GetXaxis()->CenterTitle();
+    raw_yield_sub->GetYaxis()->CenterTitle();
+    raw_yield_sub->GetZaxis()->CenterTitle();
+    raw_yield_sub->GetYaxis()->SetTitleSize(0.06);
+    raw_yield_sub->GetXaxis()->SetTitleSize(0.06);
+    raw_yield_sub->GetZaxis()->SetTitle("S(#Delta#eta,#Delta#phi) / ME(#Delta#eta,#Delta#phi)");
+    raw_yield_sub->GetZaxis()->SetTitleSize(0.06);
+    raw_yield_sub->GetXaxis()->SetTitleOffset(1.);
+    raw_yield_sub->GetYaxis()->SetTitleOffset(1.);
+    raw_yield_sub->GetZaxis()->SetTitleOffset(1.);
+     
+    raw_yield_sub->SetMinimum(yield_min);
+    raw_yield_sub->SetMaximum(yield_max);
+    raw_yield_sub->GetZaxis()->SetNdivisions(205);
+    raw_yield_sub->SetLineColor(kBlack);
+    raw_yield_sub->Draw("surf1");
+      
+    drawlabels_PAS_bkg(i);
+
+    subleading_tex->Draw();
+
+
+    cout<<"done fig 1"<<endl;
+    
     //---------------------------
     //   PAS FIGURE 2
     //--------------------------
@@ -1765,6 +1692,8 @@ Int_t PAS_plots8(){
     raw_yield->Draw("surf1");
     drawlabels_PAS_bkg(i);
 
+    leading_tex->Draw();
+    
   
     cFigure2[i]->cd(2);
       
@@ -1777,16 +1706,19 @@ Int_t PAS_plots8(){
    
     TH1D *fit_bkg = (TH1D*)fbkgfit->Get(temp_name)->Clone(temp_name);
     
-    TString func_name = "fitfunc0";
+    TString func_name = "fitfunc4";
     func_name+=i;
     func_name+=3;
     TF1 *fitfunc = (TF1*)fbkgfit->Get(func_name)->Clone(func_name);
+
+    cout<<func_name<<endl;
 
     if(i==3){fit_bkg->Scale(1/4.);}
 
     fit_bkg->SetMarkerColor(kBlack);
    
     fit_bkg->SetLineColor(kBlack);
+    
     fit_bkg->Rebin(4);
     fit_bkg->Scale(1/dx_phi/dx_eta/4.);
     fit_bkg->SetMinimum(yield_min);
@@ -1803,21 +1735,48 @@ Int_t PAS_plots8(){
     fit_bkg->GetYaxis()->CenterTitle();
     fit_bkg->GetYaxis()->SetNdivisions(205);
     fit_bkg->GetYaxis()->SetTitle("B(#Delta#phi)");
-    // fit_bkg->GetFunction("gen_gaus2")->SetBit(TF1::kNotDraw);
-   
-    fit_bkg->Draw();
-    //fit_bkg->Fit("gen_gaus","","",-1.,1.);
+  
+    fit_bkg->Draw("hist pe1");
 
-    fit_bkg->Fit("gen_gaus","","",-TMath::Pi()/2,3*TMath::Pi()/2);
+
+    float par0 = fitfunc->GetParameter(0)/dx_eta/dx_phi; 
+    float par1 = fitfunc->GetParameter(1);
+    float par2 = fitfunc->GetParameter(2);
+    float par3 = fitfunc->GetParameter(3);
+    float par4 = fitfunc->GetParameter(4)/dx_eta/dx_phi;
+    float par5 = fitfunc->GetParameter(5);
+    float par6 = fitfunc->GetParameter(6);
     
-    float par0 = gen_gaus->GetParameter(0); 
-    float par1 = gen_gaus->GetParameter(1);
-    float par2 = gen_gaus->GetParameter(2);
-    float par3 = gen_gaus->GetParameter(3);
-    float par4 = gen_gaus->GetParameter(4);
-    float par5 = gen_gaus->GetParameter(5);
-    float par6 = gen_gaus->GetParameter(6);
 
+    if(i==3){
+      par0 = fitfunc->GetParameter(0)/dx_eta/dx_phi/4.; 
+      par4 = fitfunc->GetParameter(4)/dx_eta/dx_phi/4.; 
+    }
+
+
+    gen_gaus->FixParameter(0,par0);
+    gen_gaus->FixParameter(1,par1);
+    gen_gaus->FixParameter(2,par2);
+    gen_gaus->FixParameter(3,par3);
+    gen_gaus->FixParameter(4,par4);
+    gen_gaus->FixParameter(5,par5);
+    gen_gaus->FixParameter(6,par6);
+  
+    gen_gaus_bg->FixParameter(0,par0);
+    gen_gaus_bg->FixParameter(1,par1);
+    gen_gaus_bg->FixParameter(2,par2);
+    gen_gaus_bg->FixParameter(3,par3);
+    gen_gaus_bg->FixParameter(4,0.);
+    gen_gaus_bg->FixParameter(5,0.);
+    gen_gaus_bg->FixParameter(6,0.);
+ 
+    gen_gaus_bg->SetLineColor(kRed);
+    gen_gaus_bg->SetLineStyle(2);
+    
+    gen_gaus_bg->Draw("same");
+    
+    gen_gaus->Draw("same");
+    
     switch(i){
     case 0:
       gen_gaus_up->SetParameter(0,par0+.18);
@@ -1838,6 +1797,7 @@ Int_t PAS_plots8(){
 
 
     }
+
     gen_gaus_up->SetParameter(1,par1);
     gen_gaus_down->SetParameter(1,par1);
     gen_gaus_up->SetParameter(2,par2);
@@ -1856,9 +1816,10 @@ Int_t PAS_plots8(){
     gen_gaus_up->Draw("same");
     gen_gaus_down->Draw("same");
 
-    fit_bkg->Draw("same");
    
-    TLegend *legend = new TLegend(0.18,0.55,0.6,0.7);
+    fit_bkg->Draw("same hist pe1");
+   
+    TLegend *legend = new TLegend(0.18,0.5,0.6,0.65);
     legend->AddEntry(fit_bkg,"Sideband Background");
     legend->AddEntry(gen_gaus,"Background Fit");
     legend->AddEntry(gen_gaus_up,"Systematic Uncertainty");
@@ -1908,8 +1869,198 @@ Int_t PAS_plots8(){
     result->Draw("surf1");
       
     drawlabels_PAS_bkg(i);
+
+    leading_tex->Draw();
  
 
+    cFigure2[i]->cd(4);
+
+    gPad->SetTheta(60.839);
+    gPad->SetPhi(38.0172);
+
+    raw_yield_sub->Draw("surf1");
+    drawlabels_PAS_bkg(i);
+
+    subleading_tex->Draw();
+
+    cFigure2[i]->cd(5);
+      
+    gPad->SetTopMargin(0.15);
+
+    llimiteta = raw_yield_sub->GetXaxis()->FindBin(-etalim+0.001);
+    rlimiteta = raw_yield_sub->GetXaxis()->FindBin(etalim-0.001);
+
+    temp_name.ReplaceAll("Result","Summed_bkg");
+
+   
+    TH1D *fit_bkg_sub = (TH1D*)fbkgfit_sub->Get(temp_name)->Clone(temp_name);
+    
+    func_name = "fitfunc2";
+    func_name+=i;
+    func_name+=3;
+    fitfunc = (TF1*)fbkgfit_sub->Get(func_name)->Clone(func_name);
+
+    fit_bkg_sub->GetFunction("gen_gaus")->SetLineColor(kWhite);
+
+
+    if(i==3){fit_bkg_sub->Scale(1/4.);}
+
+    fit_bkg_sub->SetMarkerColor(kBlack);
+   
+    fit_bkg_sub->SetLineColor(kBlack);
+    fit_bkg_sub->Rebin(4);
+    fit_bkg_sub->Scale(1/dx_phi/dx_eta/4.);
+    fit_bkg_sub->SetMinimum(yield_min);
+    fit_bkg_sub->SetMaximum(yield_max);
+    fit_bkg_sub->GetXaxis()->SetRangeUser(-1.5,3*TMath::Pi()/2-0.001);
+    fit_bkg_sub->GetXaxis()->SetTitle("#Delta#phi");
+    fit_bkg_sub->GetXaxis()->SetLabelSize(0.045);
+    fit_bkg_sub->GetXaxis()->SetTitleSize(0.06);
+    fit_bkg_sub->GetXaxis()->SetTitleOffset(0.8);
+    fit_bkg_sub->GetYaxis()->SetLabelSize(0.045);
+    fit_bkg_sub->GetYaxis()->SetTitleSize(0.06);
+    fit_bkg_sub->GetYaxis()->SetTitleOffset(1.);
+    fit_bkg_sub->GetXaxis()->CenterTitle();
+    fit_bkg_sub->GetYaxis()->CenterTitle();
+    fit_bkg_sub->GetYaxis()->SetNdivisions(205);
+    fit_bkg_sub->GetYaxis()->SetTitle("B(#Delta#phi)");
+     
+    fit_bkg_sub->Draw("hist pe1");
+   
+
+    par0 = fitfunc->GetParameter(0)/dx_eta/dx_phi; 
+    par1 = fitfunc->GetParameter(1);
+    par2 = fitfunc->GetParameter(2);
+    par3 = fitfunc->GetParameter(3);
+    par4 = fitfunc->GetParameter(4)/dx_eta/dx_phi;
+    par5 = fitfunc->GetParameter(5);
+    par6 = fitfunc->GetParameter(6);
+
+
+    if(i==3){
+      par0 = fitfunc->GetParameter(0)/dx_eta/dx_phi/4.; 
+      par4 = fitfunc->GetParameter(4)/dx_eta/dx_phi/4.; 
+    }
+
+
+
+    sub_gen_gaus->FixParameter(0,par0);
+    sub_gen_gaus->FixParameter(1,par1);
+    sub_gen_gaus->FixParameter(2,par2);
+    sub_gen_gaus->FixParameter(3,par3);
+    sub_gen_gaus->FixParameter(4,par4);
+    sub_gen_gaus->FixParameter(5,par5);
+    sub_gen_gaus->FixParameter(6,par6);
+
+    sub_gen_gaus_bg->FixParameter(0,par0);
+    sub_gen_gaus_bg->FixParameter(1,par1);
+    sub_gen_gaus_bg->FixParameter(2,par2);
+    sub_gen_gaus_bg->FixParameter(3,par3);
+    sub_gen_gaus_bg->FixParameter(4,0.);
+    sub_gen_gaus_bg->FixParameter(5,0.);
+    sub_gen_gaus_bg->FixParameter(6,0.);
+ 
+    sub_gen_gaus_bg->SetLineColor(kRed);
+    sub_gen_gaus_bg->SetLineStyle(2);
+    
+
+    sub_gen_gaus_bg->Draw("same");
+    
+
+    sub_gen_gaus->Draw("same");
+
+    switch(i){
+    case 0:
+      sub_gen_gaus_up->SetParameter(0,par0+.18);
+      sub_gen_gaus_down->SetParameter(0,par0-.18);
+      break;
+    case 1:
+      sub_gen_gaus_up->SetParameter(0,par0+.12);
+      sub_gen_gaus_down->SetParameter(0,par0-.12);
+      break;
+    case 2:
+      sub_gen_gaus_up->SetParameter(0,par0+.05);
+      sub_gen_gaus_down->SetParameter(0,par0-.05);
+      break;
+    case 3:
+      sub_gen_gaus_up->SetParameter(0,par0+.02);
+      sub_gen_gaus_down->SetParameter(0,par0-.02);
+      break;
+
+
+    }
+
+    sub_gen_gaus_up->SetParameter(1,par1);
+    sub_gen_gaus_down->SetParameter(1,par1);
+    sub_gen_gaus_up->SetParameter(2,par2);
+    sub_gen_gaus_down->SetParameter(2,par2);
+    sub_gen_gaus_up->SetParameter(3,par3);
+    sub_gen_gaus_down->SetParameter(3,par3);
+    sub_gen_gaus_up->SetParameter(4,par4);
+    sub_gen_gaus_down->SetParameter(4,par4);
+    sub_gen_gaus_up->SetParameter(5,par5);
+    sub_gen_gaus_down->SetParameter(5,par5);
+    sub_gen_gaus_up->SetParameter(6,par6);
+    sub_gen_gaus_down->SetParameter(6,par6);
+
+    sub_gen_gaus_up->SetLineColor(kYellow);
+    sub_gen_gaus_down->SetLineColor(kYellow);
+    sub_gen_gaus_up->Draw("same");
+    sub_gen_gaus_down->Draw("same");
+
+
+   
+
+
+    fit_bkg_sub->Draw("same hist pe1");
+   
+     
+    legend->Draw();
+
+    drawlabels_PAS_bkg2(i);
+    
+   
+
+    cFigure2[i]->cd(6);
+
+    gPad->SetTheta(60.839);
+    gPad->SetPhi(38.0172);
+
+
+    temp_name.ReplaceAll("Summed_bkg","Result");
+    TH2D *result_sub = (TH2D*)fbkgfit_sub->Get(temp_name)->Clone(temp_name);
+
+    if(i==3){result_sub->Scale(1/4.);}
+    
+    result_sub->Rebin2D(2,4);
+    result_sub->Scale(1/8./dx_eta/dx_phi);
+      
+    result_sub->GetXaxis()->SetRangeUser(-3.,3.);
+    result_sub->GetYaxis()->SetRangeUser(-1.5,3*TMath::Pi()/2-0.001);
+    result_sub->GetXaxis()->SetTitle("#Delta#eta");
+    result_sub->GetYaxis()->SetTitle("#Delta#phi");
+    result_sub->GetZaxis()->SetTitle("S(#Delta#eta,#Delta#phi) - B(#Delta#eta,#Delta#phi)");
+    result_sub->GetXaxis()->CenterTitle();
+    result_sub->GetYaxis()->CenterTitle();
+    result_sub->GetZaxis()->CenterTitle();
+    result_sub->GetXaxis()->SetLabelSize(0.045);
+    result_sub->GetXaxis()->SetTitleSize(0.06);
+    result_sub->GetXaxis()->SetTitleOffset(1.);
+    result_sub->GetYaxis()->SetLabelSize(0.045);
+    result_sub->GetYaxis()->SetTitleSize(0.06);
+    result_sub->GetYaxis()->SetTitleOffset(1.);
+    result_sub->GetZaxis()->SetLabelSize(0.04);
+    result_sub->GetZaxis()->SetTitleSize(0.06);
+    result_sub->GetZaxis()->SetTitleOffset(1.);
+    result_sub->GetZaxis()->SetNdivisions(205);
+    result_sub->SetMinimum(result_min);
+    result_sub->SetMaximum(result_max);
+    result_sub->SetLineColor(kBlack);
+    result_sub->Draw("surf1");
+      
+    drawlabels_PAS_bkg(i);
+ 
+    subleading_tex->Draw();
 
 
     //Other plots go by centrality class
@@ -1974,8 +2125,9 @@ Int_t PAS_plots8(){
       check_new_eta_rebin[0][i][j]->Draw("same");
       check_new_eta_rebin[1][i][j]->SetMarkerStyle(24);
       check_new_eta_rebin[1][i][j]->Draw("same");
-      //     check_new_eta_ref[0][i][j]->Draw("same");
-      //check_new_eta_ref[1][i][j]->Draw("same");
+     
+      if(draw_ref) check_new_eta_ref[0][i][j]->Draw("same");
+      if(draw_ref) check_new_eta_ref[1][i][j]->Draw("same");
       drawlabels(1,i,j);
 
 	 
@@ -2026,7 +2178,7 @@ Int_t PAS_plots8(){
       PbPb_pp_eta_syst[1][i][j]->Draw("e2");
       PbPb_pp_eta[1][i][j]->Draw("same");
 
-      //   PbPb_pp_eta_ref[1][i][j]->Draw("same");
+      if(draw_ref) PbPb_pp_eta_ref[1][i][j]->Draw("same");
 	 
       lineEta->Draw("same");
 
@@ -2051,8 +2203,8 @@ Int_t PAS_plots8(){
       check_new_phi_syst[0][i][j]->Draw("same e2");
       check_new_phi_rebin[0][i][j]->Draw("same");
 
-      //     check_new_phi_ref[0][i][j]->Draw("same");
-      //check_new_phi_ref[1][i][j]->Draw("same");
+      if(draw_ref) check_new_phi_ref[0][i][j]->Draw("same");
+      if(draw_ref) check_new_phi_ref[1][i][j]->Draw("same");
 
       check_new_phi_rebin[1][i][j]->Draw("same");
 	 
@@ -2096,7 +2248,7 @@ Int_t PAS_plots8(){
       PbPb_pp_phi_syst[1][i][j]->Draw("e2");
       PbPb_pp_phi[1][i][j]->Draw("same p");
 
-      //    PbPb_pp_phi_ref[1][i][j]->Draw("same p");
+      if(draw_ref) PbPb_pp_phi_ref[1][i][j]->Draw("same p");
       linePhi->Draw("same");
 
 
@@ -2125,8 +2277,8 @@ Int_t PAS_plots8(){
       check_new_eta_rebin[4][i][j]->Draw("same");
       check_new_eta_rebin[5][i][j]->SetMarkerStyle(25);
       check_new_eta_rebin[5][i][j]->Draw("same");
-      //   check_new_eta_ref[4][i][j]->Draw("same");
-      //check_new_eta_ref[5][i][j]->Draw("same");
+      if(draw_ref) check_new_eta_ref[4][i][j]->Draw("same");
+      if(draw_ref) check_new_eta_ref[5][i][j]->Draw("same");
    
 
       drawlabels(5,i,j);
@@ -2170,8 +2322,8 @@ Int_t PAS_plots8(){
       check_new_eta_rebin[3][i][j]->SetMarkerStyle(28);
       check_new_eta_rebin[3][i][j]->Draw("same p");
 	  
-      //      check_new_eta_ref[2][i][j]->Draw("same");
-      //check_new_eta_ref[3][i][j]->Draw("same");
+      if(draw_ref) check_new_eta_ref[2][i][j]->Draw("same");
+      if(draw_ref) check_new_eta_ref[3][i][j]->Draw("same");
       lineEta->Draw("same");
 
       
@@ -2214,7 +2366,8 @@ Int_t PAS_plots8(){
       PbPb_pp_eta_syst[5][i][j]->Draw("same e2");
       PbPb_pp_eta[5][i][j]->Draw("same");
 
-      //    PbPb_pp_eta_ref[5][i][j]->Draw("same");
+     if(draw_ref) PbPb_pp_eta_ref[3][i][j]->Draw("same");
+     if(draw_ref) PbPb_pp_eta_ref[5][i][j]->Draw("same");
 	 
       lineEta->Draw("same");
 	    
@@ -2248,8 +2401,8 @@ Int_t PAS_plots8(){
       check_new_phi_rebin[4][i][j]->Draw("same");
       check_new_phi_rebin[5][i][j]->SetMarkerStyle(25);
       check_new_phi_rebin[5][i][j]->Draw("same");
-      //     check_new_phi_ref[4][i][j]->Draw("same");
-      //check_new_phi_ref[5][i][j]->Draw("same");
+      if(draw_ref) check_new_phi_ref[4][i][j]->Draw("same");
+      if(draw_ref) check_new_phi_ref[5][i][j]->Draw("same");
 
       drawlabels(5,i,j);
 	  
@@ -2281,8 +2434,8 @@ Int_t PAS_plots8(){
       check_new_phi_rebin[3][i][j]->SetMarkerStyle(28);
       check_new_phi_rebin[3][i][j]->Draw("same");
 
-      //    check_new_phi_ref[2][i][j]->Draw("same");
-      //check_new_phi_ref[3][i][j]->Draw("same");
+      if(draw_ref) check_new_phi_ref[2][i][j]->Draw("same");
+      if(draw_ref) check_new_phi_ref[3][i][j]->Draw("same");
       linePhi->Draw("same");
 	    
 	    
@@ -2318,7 +2471,8 @@ Int_t PAS_plots8(){
       PbPb_pp_phi_syst[5][i][j]->Draw("same e2");
       PbPb_pp_phi[5][i][j]->Draw("same");
 
-      //    PbPb_pp_phi_ref[5][i][j]->Draw("same");
+      if(draw_ref) PbPb_pp_phi_ref[3][i][j]->Draw("same");
+      if(draw_ref) PbPb_pp_phi_ref[5][i][j]->Draw("same");
 	  
       linePhi->Draw("same");
 	    
@@ -2377,6 +2531,12 @@ Int_t PAS_plots8(){
     cFigure6[i]->Update();
 
  
+    if(draw_ref){
+      figure3_name+="_WithRef";
+      figure4_name+="_WithRef";
+      figure5_name+="_WithRef"; 
+      figure6_name+="_WithRef";
+     }
 
     figure1_name+=".pdf";
     cFigure1[i]->SaveAs(figure1_name);
@@ -2445,7 +2605,7 @@ Int_t PAS_plots8(){
       Integral_eta_Pt[5][j]->GetXaxis()->SetTitleOffset(xoffset+0.2);
       Integral_eta_Pt[5][j]->GetXaxis()->SetLabelOffset(0.015);
       Integral_eta_Pt[5][j]->GetYaxis()->SetLabelSize(ts2);
-      Integral_eta_Pt[5][j]->GetYaxis()->SetTitleSize(ts2);
+      Integral_eta_Pt[5][j]->GetYaxis()->SetTitleSize(ts2-0.005);
     }
       
     Integral_eta_syst[3][j]->SetMarkerSize(2.);
@@ -2478,12 +2638,9 @@ Int_t PAS_plots8(){
       
     gPad->RedrawAxis();
      
-    Integral_eta_Pt[1][j]->SetMarkerColor(kRed);
-    Integral_eta_Pt[1][j]->SetLineColor(kRed);
-    //  Integral_eta_Pt[1][j]->Draw("same p");
-      
-    //   Integral_eta_ref_Pt[3][j]->Draw("same p");
-    //Integral_eta_ref_Pt[5][j]->Draw("same p");
+       
+    if(draw_ref) Integral_eta_ref_Pt[3][j]->Draw("same p");
+    if(draw_ref) Integral_eta_ref_Pt[5][j]->Draw("same p");
     
     Integral_eta_Pt[3][j]->Draw("same e1p");
 
@@ -2513,8 +2670,7 @@ Int_t PAS_plots8(){
       l42->SetLineColor(kWhite);
       l42->AddEntry(Integral_eta_syst[5][j],"Leading Jets","lpfe");
       l42->AddEntry(Integral_eta_syst[3][j],"Subleading Jets","lpfe");
-      //     l42->AddEntry(Integral_eta_Pt[1][j],"Inclusive Jets","lpfe");
-      //   l42->AddEntry(Integral_eta_ref_Pt[5][j],"PAS","lpfe");
+      if(draw_ref) l42->AddEntry(Integral_eta_ref_Pt[5][j],"PAS","lpfe");
       l42->Draw("same");
     }
 
@@ -2543,11 +2699,34 @@ Int_t PAS_plots8(){
       
   figure7_name = "PAS_Figure_7";
  
-  // cFigure7->SaveAs((TString)(figure7_name+"_WithInclusive.pdf"));
-  //cFigure7->SaveAs((TString)(figure7_name+"_WithInclusive.png"));
-  cFigure7->SaveAs((TString)(figure7_name+".pdf"));
-  cFigure7->SaveAs((TString)(figure7_name+".png"));
+  if(draw_ref){
+    cFigure7->SaveAs((TString)(figure7_name+"_WithRef.pdf"));
+    cFigure7->SaveAs((TString)(figure7_name+"_WithRef.png"));
+  }else{
   
+
+    cFigure7->SaveAs((TString)(figure7_name+".pdf"));
+    cFigure7->SaveAs((TString)(figure7_name+".png"));
+
+    for(int j = 0; j<4; j++){
+      
+      cFigure7->cd(j+1);
+
+      
+      Integral_eta_Pt[1][j]->SetMarkerColor(kRed);
+      Integral_eta_Pt[1][j]->SetLineColor(kRed);
+      Integral_eta_Pt[1][j]->Draw("same p");
+
+      if(j==0){
+	l42->AddEntry(Integral_eta_Pt[1][j],"Inclusive Jets","lpfe");
+	l42->Draw();
+      }
+      
+    }
+    cFigure7->SaveAs((TString)(figure7_name+"_WithInclusive.pdf"));
+    cFigure7->SaveAs((TString)(figure7_name+"_WithInclusive.png"));
+  }
+
   return 0;
   
 } //Close main loop
