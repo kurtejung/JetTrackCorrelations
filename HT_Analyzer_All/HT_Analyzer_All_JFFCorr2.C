@@ -696,20 +696,22 @@ int main(int argc, char *argv[]){
 	    my_hists[data_mc_type_code]->only_leadingjets_corrpT[ibin][ibin2]->Fill(my_primary->corrpt->at(j4i), wvz*wcen);
 	    my_hists[data_mc_type_code]->only_leadingjets_phi[ibin][ibin2]->Fill(my_primary->jtphi->at(j4i), wvz*wcen);
 	    my_hists[data_mc_type_code]->only_leadingjets_eta[ibin][ibin2]->Fill(my_primary->jteta->at(j4i), wvz*wcen);
+	    
+	    if(!is_data){
+	      if(closest_j4i==highest_idx_gen){
+		data_mc_type_code=15;
+	      }else if(closest_j4i==second_highest_idx_gen){
+		data_mc_type_code=17;
+	      }else{
+		data_mc_type_code = 19;
+	      }
 
-	    if(closest_j4i==highest_idx_gen){
-	      data_mc_type_code=15;
-	    }else if(closest_j4i==second_highest_idx_gen){
-	      data_mc_type_code=17;
-	    }else{
-	      data_mc_type_code = 19;
+	      my_hists[data_mc_type_code]->only_leadingjets_corrpT[ibin][ibin2]->Fill(my_primary->corrpt->at(j4i), wvz*wcen);
+	      my_hists[data_mc_type_code]->only_leadingjets_phi[ibin][ibin2]->Fill(my_primary->jtphi->at(j4i), wvz*wcen);
+	      my_hists[data_mc_type_code]->only_leadingjets_eta[ibin][ibin2]->Fill(my_primary->jteta->at(j4i), wvz*wcen);
+
+	      data_mc_type_code = 2;
 	    }
-
-	    my_hists[data_mc_type_code]->only_leadingjets_corrpT[ibin][ibin2]->Fill(my_primary->corrpt->at(j4i), wvz*wcen);
-	    my_hists[data_mc_type_code]->only_leadingjets_phi[ibin][ibin2]->Fill(my_primary->jtphi->at(j4i), wvz*wcen);
-	    my_hists[data_mc_type_code]->only_leadingjets_eta[ibin][ibin2]->Fill(my_primary->jteta->at(j4i), wvz*wcen);
-
-	    data_mc_type_code = 2;
 	  }
 
 	  if(j4i==second_highest_idx){
@@ -718,14 +720,15 @@ int main(int argc, char *argv[]){
 	    my_hists[data_mc_type_code]->only_subleadingjets_phi[ibin][ibin2]->Fill(my_primary->jtphi->at(j4i), wvz*wcen);
 	    my_hists[data_mc_type_code]->only_subleadingjets_eta[ibin][ibin2]->Fill(my_primary->jteta->at(j4i), wvz*wcen);
 
-	    if(closest_j4i==second_highest_idx_gen){
-	      data_mc_type_code=15;
-	    }else if(closest_j4i==highest_idx_gen){
-	      data_mc_type_code = 17;
-	    }else{
-	      data_mc_type_code = 19;
+	    if(!is_data){
+	      if(closest_j4i==second_highest_idx_gen){
+		data_mc_type_code=15;
+	      }else if(closest_j4i==highest_idx_gen){
+		data_mc_type_code = 17;
+	      }else{
+		data_mc_type_code = 19;
+	      }
 	    }
-
 	    my_hists[data_mc_type_code]->only_subleadingjets_corrpT[ibin][ibin2]->Fill(my_primary->corrpt->at(j4i), wvz*wcen);
 	    my_hists[data_mc_type_code]->only_subleadingjets_phi[ibin][ibin2]->Fill(my_primary->jtphi->at(j4i), wvz*wcen);
 	    my_hists[data_mc_type_code]->only_subleadingjets_eta[ibin][ibin2]->Fill(my_primary->jteta->at(j4i), wvz*wcen);
@@ -993,8 +996,6 @@ int main(int argc, char *argv[]){
 		my_hists[data_mc_type_code]->hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 	      }
 	      
-
-
 
 	      if(j4i==highest_idx){
 		if(closest_j4i==highest_idx_gen){
