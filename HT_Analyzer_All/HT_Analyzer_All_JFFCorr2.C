@@ -340,7 +340,7 @@ int main(int argc, char *argv[]){
 
     TString me_file_name;
     if(is_data&&!is_pp){
-      me_file_name = "/data/htrauger/FullOfficialReco_PbPbData/MB_data_total_final_50GeV.root";
+      me_file_name = "/data/htrauger/PbPb_MinimumBias_7_16/Data2011_MinimumBias_Combined.root";
     }else{
       if( parti< (int) file_names.size()-1){
 	me_file_name = file_names.at(parti+1);
@@ -1283,7 +1283,7 @@ int main(int argc, char *argv[]){
 	    }  //end only do mixed event if we've found a trigger we want to save
 	
 	  } //that version of mixing was just for data
-
+	
 
 	
 	}   /// Closes jpti loop.  THIS MEANS THAT WE TAKE ALL JETS IN AN EVENT >120 GeV, not just the hardest jets.
