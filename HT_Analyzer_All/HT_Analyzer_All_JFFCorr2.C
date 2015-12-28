@@ -178,7 +178,7 @@ int main(int argc, char *argv[]){
  
   const double etacut = 1.6;
   const double searchetacut = 2.0;
-  const double pTmaxcut = 300.;
+  const double pTmaxcut = 1000.;
   const double pTmincut = 120.;
   const double leadingjetcut = 120. ;
   const double subleadingjetcut = 50. ;
@@ -650,10 +650,10 @@ int main(int argc, char *argv[]){
 	  jet_dir_eta = my_primary->jteta->at(j4i);
 	  jet_dir_phi = my_primary->jtphi->at(j4i);
 	  /*
-	  closest_dr = 999.;
-	  closest_j4i = -1;
+	    closest_dr = 999.;
+	    closest_j4i = -1;
 
-	  for(int j4i_gen = 0; j4i_gen < (int) my_primary->genpt->size(); j4i_gen++) {
+	    for(int j4i_gen = 0; j4i_gen < (int) my_primary->genpt->size(); j4i_gen++) {
 
 	    gen_phi = my_primary->genphi->at(j4i_gen);
 	    gen_eta = my_primary->geneta->at(j4i_gen);
@@ -661,25 +661,24 @@ int main(int argc, char *argv[]){
 	    dr = TMath::Sqrt((jet_dir_eta-gen_eta)*(jet_dir_eta-gen_eta)+(jet_dir_phi-gen_phi)*(jet_dir_phi-gen_phi));
 	      
 	    if(dr<closest_dr){
-	      closest_j4i = j4i_gen;
-	      closest_dr = dr;
+	    closest_j4i = j4i_gen;
+	    closest_dr = dr;
 	    }
-	  }// j4i_gen;
+	    }// j4i_gen;
 	
-	  if((is_inclusive||j4i==highest_idx||j4i==second_highest_idx)){
+	    if((is_inclusive||j4i==highest_idx||j4i==second_highest_idx)){
 	    if(closest_dr<0.3){
-	      jet_dir_eta = my_primary->geneta->at(closest_j4i);	
-	      jet_dir_phi = my_primary->genphi->at(closest_j4i);
+	    jet_dir_eta = my_primary->geneta->at(closest_j4i);	
+	    jet_dir_phi = my_primary->genphi->at(closest_j4i);
 	    }else{
-	      cout<<"No gen jet found: ("<<jet_dir_eta<<","<<jet_dir_phi<<") pT = "<<my_primary->corrpt->at(j4i)<<endl;
-	      unmatched_counter++;
+	    cout<<"No gen jet found: ("<<jet_dir_eta<<","<<jet_dir_phi<<") pT = "<<my_primary->corrpt->at(j4i)<<endl;
+	    unmatched_counter++;
 
 	    }
-	  }
+	    }
 
 	  */
-
-
+     
 	  if(is_inclusive == kTRUE){
 	    my_hists[data_mc_type_code]->all_jets_corrpT[ibin][ibin2]->Fill(my_primary->corrpt->at(j4i), wvz*wcen); 
 	    my_hists[data_mc_type_code]->all_jets_phi[ibin][ibin2]->Fill(my_primary->jtphi->at(j4i), wvz*wcen); 
@@ -728,12 +727,14 @@ int main(int argc, char *argv[]){
 	      }else{
 		data_mc_type_code = 19;
 	      }
-	    }
-	    my_hists[data_mc_type_code]->only_subleadingjets_corrpT[ibin][ibin2]->Fill(my_primary->corrpt->at(j4i), wvz*wcen);
-	    my_hists[data_mc_type_code]->only_subleadingjets_phi[ibin][ibin2]->Fill(my_primary->jtphi->at(j4i), wvz*wcen);
-	    my_hists[data_mc_type_code]->only_subleadingjets_eta[ibin][ibin2]->Fill(my_primary->jteta->at(j4i), wvz*wcen);
+	    
+	      my_hists[data_mc_type_code]->only_subleadingjets_corrpT[ibin][ibin2]->Fill(my_primary->corrpt->at(j4i), wvz*wcen);
+	      my_hists[data_mc_type_code]->only_subleadingjets_phi[ibin][ibin2]->Fill(my_primary->jtphi->at(j4i), wvz*wcen);
+	      my_hists[data_mc_type_code]->only_subleadingjets_eta[ibin][ibin2]->Fill(my_primary->jteta->at(j4i), wvz*wcen);
 
-	    data_mc_type_code = 2;
+	      data_mc_type_code = 2;
+	    }
+
 	  }
 
 	  pt_weight = 1.;
@@ -996,53 +997,57 @@ int main(int argc, char *argv[]){
 		my_hists[data_mc_type_code]->hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 	      }
 	      
-
-	      if(j4i==highest_idx){
-		if(closest_j4i==highest_idx_gen){
-		  if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=15;
-		  else data_mc_type_code = 16;
-		}else if(closest_j4i==second_highest_idx_gen){
-		  if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=17;
-		  else data_mc_type_code = 18;
-		}else{
-		  if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=19;
-		  else data_mc_type_code = 20;
-		}
+	      if(!is_data){
+		if(j4i==highest_idx){
+		  if(closest_j4i==highest_idx_gen){
+		    if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=15;
+		    else data_mc_type_code = 16;
+		  }else if(closest_j4i==second_highest_idx_gen){
+		    if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=17;
+		    else data_mc_type_code = 18;
+		  }else{
+		    if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=19;
+		    else data_mc_type_code = 20;
+		  }
   
-		deta = jet_dir_eta - my_primary->eta->at(tracks);
-		dphi = jet_dir_phi- my_primary->phi->at(tracks);
-		while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
-		while(dphi< (-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
+		  deta = jet_dir_eta - my_primary->eta->at(tracks);
+		  dphi = jet_dir_phi- my_primary->phi->at(tracks);
+		  while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
+		  while(dphi< (-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 	    
-		my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
-	      }
+		  my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+		}
 	  
 
-	      if(j4i==second_highest_idx){
-		if(closest_j4i==second_highest_idx_gen){
-		  if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=15;
-		  else data_mc_type_code = 16;
-		}else if(closest_j4i==highest_idx_gen){
-		  if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=17;
-		  else data_mc_type_code = 18;
-		}else{
-		  if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=19;
-		  else data_mc_type_code = 20;
-		}
+		if(j4i==second_highest_idx){
+		  if(closest_j4i==second_highest_idx_gen){
+		    if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=15;
+		    else data_mc_type_code = 16;
+		  }else if(closest_j4i==highest_idx_gen){
+		    if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=17;
+		    else data_mc_type_code = 18;
+		  }else{
+		    if(my_primary->sube->at(tracks)==0||is_pp) data_mc_type_code=19;
+		    else data_mc_type_code = 20;
+		  }
   
-		deta = jet_dir_eta - my_primary->eta->at(tracks);
-		dphi = jet_dir_phi- my_primary->phi->at(tracks);
+		  deta = jet_dir_eta - my_primary->eta->at(tracks);
+		  dphi = jet_dir_phi- my_primary->phi->at(tracks);
 	
-		while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
-		while(dphi< (-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
+		  while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
+		  while(dphi< (-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 	    
-		my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
-	      }
+		  my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+
+
+
+
+		  data_mc_type_code =2;
+
+		}
 	  
-	      
+	      }	      
 
-
-	      data_mc_type_code =2;
 	
 	    } // Gen particle loop
 	    
@@ -1185,11 +1190,11 @@ int main(int argc, char *argv[]){
 	  
 		  rmin = 99;
 
-		  for(int ijet=0;ijet<(int) me_tree->jtpt->size();ijet++){
+		  for(int ijet=0;ijet<(int) me_tree->corrpt->size();ijet++){
 		    jeteta = me_tree->jteta->at(ijet);
 		    jetphi = me_tree->jtphi->at(ijet);
 		 	    
-		    if(fabs(jeteta)>2 || me_tree->jtpt->at(ijet)<50) continue;
+		    if(fabs(jeteta)>2 || me_tree->corrpt->at(ijet)<50) continue;
 		    r_reco=sqrt(pow(jeteta-eta,2)+pow(acos(cos(jetphi-phi)),2));
 		    if(r_reco<rmin)rmin=r_reco;
 		  }
