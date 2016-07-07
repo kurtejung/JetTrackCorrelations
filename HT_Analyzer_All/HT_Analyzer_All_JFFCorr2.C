@@ -119,13 +119,13 @@ void calculate_efficiency(bool is_pp, double cent, double eta, double pt, double
 //     MAIN LOOP STARTS HERE!  
 //*************************************************************
 
+// arg1 = dataset type, arg2 = number of files
 
-int main(int argc, char *argv[]){
+int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
  
-  assert(argc == 3);
-  dataset_type_code = atoi(argv[1]);    //// pick datasets you want to run over
+  dataset_type_code = datasetTypeCode    //// pick datasets you want to run over
   
-  parti = atoi(argv[2]);
+  parti = nFiles;
 
   if(dataset_type_code == e_Data2011 || dataset_type_code == e_Data_pp){
     is_data = true;

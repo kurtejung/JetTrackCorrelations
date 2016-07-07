@@ -1,1 +1,0 @@
-UIC@10-8-228-213.vlan877.client.wireless.uic.edu.3926

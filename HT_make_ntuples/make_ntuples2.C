@@ -7,13 +7,13 @@
 #include "TH2D.h"
 #include "TF1.h"
 
-#include "class_def/JetAna.h"
-#include "class_def/Tracks.h"
-#include "class_def/HLT.h"
-#include "class_def/HiTree.h"
-#include "class_def/Skim.h"
+#include "class_def/run2_pp/JetAna.h"
+#include "class_def/run2_pp/Tracks.h"
+#include "class_def/run2_pp/HLT.h"
+#include "class_def/run2_pp/HiTree.h"
+#include "class_def/run2_pp/Skim.h"
 #include "class_def/GenParticles.h"
-#include "class_def/pfcand.h"
+#include "class_def/run2_pp/pfcand.h"
 
 #include "TH2F.h"
 #include "TMath.h"
@@ -42,21 +42,19 @@ int dataset_pthats[e_n_dataset_types+1] = {0,0,15,30,50,80,120,170,220,280,370,1
 
 int dataset_type_code = -999;
 
-int main(int argc, char *argv[])
+int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
 {
-  assert( argc == 3);
 
-  dataset_type_code = atoi(argv[1]);  
+  dataset_type_code = datasetTypeCode;
 
   bool is_data = false;
   
   if(dataset_type_code == e_Data2011 || dataset_type_code == e_Data_pp) is_data = true;
- 
- 
+
+
   // assert(!is_data); //for now I'm interested in MC
 
-  int output_file_num = atoi(argv[2]);
-
+  int output_file_num = outFileNum;
 
 
   //-----------------------------
@@ -67,9 +65,9 @@ int main(int argc, char *argv[])
 
   double corrected_pt, residual_corrected_pt, r;
 
-  float radius = 3;
-  bool do_PbPb = 1;
-  bool do_pp_tracking = 0;
+  float radius = 4;
+  bool do_PbPb = 0;
+  bool do_pp_tracking = 1;
   bool do_residual_correction = kTRUE; 
   int nstep_residual = 3; 
   double Pf_pt_cut = 2;
@@ -79,13 +77,11 @@ int main(int argc, char *argv[])
   cout<<"do_PbPb = "<<do_PbPb<<endl;
   cout<<"do_pp_tracking = "<<do_pp_tracking<<endl;
 
-	  
+
   fragmentation_JEC *FF_JEC = new fragmentation_JEC(radius, do_PbPb, do_pp_tracking, do_residual_correction,nstep_residual,Pf_pt_cut); //3rd variable is only for when do_PbPb is false
-	
+
   cout<<"made fragmentation JEC"<<endl;
 
-  FF_JEC->set_correction();
-	
   // For each event
   // Calculate efficiency
 
@@ -106,13 +102,13 @@ int main(int argc, char *argv[])
   TTree *inp_tree6;
   TTree *inp_tree7;
 
-  TString in_file_name;
- 
+  string in_file_name;
+
   if(is_data&&!do_PbPb){
-    in_file_name = "/data/mzakaria/pp_HIForest_20150518/PPHighPtData_ForestTag_PYTHIA_localdb_ppJEC_merged_forest_0.root";
+    in_file_name = "HiForest_pp5TeV_eosDataset.txt";
   }else if(is_data&&do_PbPb){
     in_file_name = "/data/mzakaria/PbPbForest_MatchEqR_Calo_HIHighPt_HIRun2011-14Mar2014-v4.root";
-   }else if(dataset_type_code > 10){
+  }else if(dataset_type_code > 10){
     in_file_name = "/data/htrauger/Pythia_HiForest/HiForest_PYTHIA_pthat";
     in_file_name+=dataset_pthats[dataset_type_code];
     in_file_name+= ".root";
@@ -124,78 +120,28 @@ int main(int argc, char *argv[])
     cerr<<"need to set up to run on that sample..."<<endl;
   }
 
-
-  cout<<"File name is "<<in_file_name<<endl;
-
-  TFile *my_file = TFile::Open(in_file_name);
-
-  if(my_file->IsZombie()) { 
-    std::cout << "Is zombie" << std::endl;
-  }    
-
-  if(do_PbPb){
-    inp_tree = (TTree*)  my_file->Get("akVs3CaloJetAnalyzer/t");
-  }else{
-    inp_tree = (TTree*)  my_file->Get("ak3CaloJetAnalyzer/t");
-  }
-
-  JetAna *my_ct = new JetAna(inp_tree);
-
-  inp_tree2 = (TTree*)  my_file->Get("pfcandAnalyzer/pfTree");
-  pfcand *my_ct2 = new pfcand(inp_tree2);
-
-  inp_tree3 = (TTree*) my_file->Get("hiEvtAnalyzer/HiTree");
-  HiTree *my_ct3 = new HiTree(inp_tree3);
-
-  inp_tree4 = (TTree*) my_file->Get("skimanalysis/HltTree");
-  Skim *my_ct4   = new Skim(inp_tree4);
-
-  Tracks *my_ct5;
-  if(do_PbPb){
-    inp_tree5 = (TTree*) my_file->Get("anaTrack/trackTree");
-    my_ct5 = new Tracks(inp_tree5);
-  }else{
-    inp_tree5 = (TTree*) my_file->Get("ppTrack/trackTree");
-    my_ct5 = new Tracks(inp_tree5);
-  }
-
-
-  inp_tree6 = (TTree*) my_file->Get("hltanalysis/HltTree");
-  HLT *my_ct6 = new HLT(inp_tree6);
- 
-  GenParticles *my_ct7;
- 
-  if(!is_data){ 
-    inp_tree7 = (TTree*) my_file->Get("HiGenParticleAna/hi"); 
-    my_ct7 = new GenParticles(inp_tree7);
-  }
-
-
-  std::cout << "Got CT" << std::endl;
-
-  int n_evt = my_ct->fChain->GetEntriesFast();
   
     //MC
   TString output_file_base;
 
-    if(is_data && !do_PbPb){
-      output_file_base= "/data/htrauger/pp_6_23/";
-    }else if(dataset_type_code > 1 &&dataset_type_code < 11){
-      output_file_base= "/data/htrauger/OfficialHydjet_6_10/";
-    }else if(dataset_type_code > 10){
-      output_file_base= "/data/htrauger/OfficialPythia_6_24/";
-    }else if(is_data&&do_PbPb){
-      output_file_base= "/data/htrauger/PbPb_6_12/";
-    }else{
-      cerr<<"nope, we can't handle that data set"<<endl;
-      return -1;
-    }
+  if(is_data && !do_PbPb){
+    output_file_base= "./";
+  }else if(dataset_type_code > 1 &&dataset_type_code < 11){
+    output_file_base= "/data/htrauger/OfficialHydjet_6_10/";
+  }else if(dataset_type_code > 10){
+    output_file_base= "/data/htrauger/OfficialPythia_6_24/";
+  }else if(is_data&&do_PbPb){
+    output_file_base= "/data/htrauger/PbPb_6_12/";
+  }else{
+    cerr<<"nope, we can't handle that data set"<<endl;
+    return -1;
+  }
 
-    output_file_base +=dataset_type_strs[dataset_type_code];
+  output_file_base +=dataset_type_strs[dataset_type_code];
 
-    TString output_file_extension = "_p";   output_file_extension += output_file_num;   output_file_extension += ".root";
-    TFile *output_file = new TFile((TString) (output_file_base + output_file_extension), "RECREATE");
-    output_file->cd();
+  TString output_file_extension = "_p";   output_file_extension += output_file_num;   output_file_extension += ".root";
+  TFile *output_file = new TFile((TString) (output_file_base + output_file_extension), "RECREATE");
+  output_file->cd();
   TTree *mixing_tree = new TTree("mixing_tree", "");
 
   Int_t mult = -999;
@@ -241,9 +187,15 @@ int main(int argc, char *argv[])
   std::vector<Float_t> *geneta = new std::vector<Float_t>();   geneta->clear();
   std::vector<Float_t> *genphi = new std::vector<Float_t>();   genphi->clear();
   std::vector<Float_t> *genpt = new std::vector<Float_t>();   genpt->clear();
- 
 
-
+  std::vector<Float_t> *discr_ssvHighEff = new std::vector<Float_t>();   discr_ssvHighEff->clear();
+  std::vector<Float_t> *discr_ssvHighPur = new std::vector<Float_t>();   discr_ssvHighPur->clear();
+  std::vector<Float_t> *discr_csvV1 = new std::vector<Float_t>();   discr_csvV1->clear();
+  std::vector<Float_t> *discr_prob = new std::vector<Float_t>();   discr_prob->clear();
+  std::vector<Float_t> *svtxm = new std::vector<Float_t>();   svtxm->clear();
+  std::vector<Float_t> *svtxmcorr = new std::vector<Float_t>();   svtxmcorr->clear();
+  std::vector<Float_t> *svtxdl = new std::vector<Float_t>();   svtxdl->clear();
+  std::vector<Float_t> *svtxdls = new std::vector<Float_t>();   svtxdls->clear();
 
   Int_t pHBHENoiseFilter = -999;
   Int_t pcollisionEventSelection = -999;
@@ -267,7 +219,7 @@ int main(int argc, char *argv[])
   mixing_tree->Branch("pcollisionEventSelection", &pcollisionEventSelection, "pcollisionEventSelection/I");
   mixing_tree->Branch("HLT_HIJet80_v1", &HLT_HIJet80_v1, "HLT_HIJet80_v1/I");
   mixing_tree->Branch("HLT_HIJet80_v7", &HLT_HIJet80_v7, "HLT_HIJet80_v7/I");
- mixing_tree->Branch("pPAcollisionEventSelectionPA", &pPAcollisionEventSelectionPA, "pPAcollisionEventSelectionPA/I");
+  mixing_tree->Branch("pPAcollisionEventSelectionPA", &pPAcollisionEventSelectionPA, "pPAcollisionEventSelectionPA/I");
   mixing_tree->Branch("HLT_PAJet80_NoJetID_v1", &HLT_PAJet80_NoJetID_v1, "HLT_PAJet80_NoJetID_v1/I");
 
   mixing_tree->Branch("hiBin", &hiBin, "hiBin/I");
@@ -311,126 +263,203 @@ int main(int argc, char *argv[])
   mixing_tree->Branch("pfEta", "vector<Float_t>", &pfEta);
   mixing_tree->Branch("pfPhi", "vector<Float_t>", &pfPhi);
   mixing_tree->Branch("sumpt", "vector<Float_t>", &sumpt);
+
+  //adding b-jet stuff....
+  mixing_tree->Branch("discr_ssvHighEff","vector<Float_t>", &discr_ssvHighEff);
+  mixing_tree->Branch("discr_ssvHighPur","vector<Float_t>", &discr_ssvHighPur);
+  mixing_tree->Branch("discr_csvV1","vector<Float_t>", &discr_csvV1);
+  mixing_tree->Branch("discr_prob","vector<Float_t>", &discr_prob);
+  mixing_tree->Branch("svtxm","vector<Float_t>", &svtxm);
+  mixing_tree->Branch("svtxmcorr","vector<Float_t>", &svtxmcorr);
+  mixing_tree->Branch("svtxdl","vector<Float_t>", &svtxdl);
+  mixing_tree->Branch("svtxdls","vector<Float_t>", &svtxdls);
   
   output_file->cd();
 
-  int ev_min = output_file_num*100000;
-  int ev_max = ev_min +100000;
-     
-  cout << "ev_min: " << ev_min << ", Entries: " << n_evt << std::endl;
+  std::ifstream instr(in_file_name.c_str(), std::ifstream::in);
+  std::string filename;
+  int ifile=0;
 
-  assert( ev_min < n_evt );
+  while(instr>>filename && ifile<endfile){
+    cout<<"File name is "<< filename <<endl;
+    ifile++;
+
+    TFile *my_file = TFile::Open(filename.c_str());
+
+    if(my_file->IsZombie()) { 
+      std::cout << "Is zombie" << std::endl;
+    }    
+
+    if(do_PbPb){
+      inp_tree = (TTree*)  my_file->Get("akVs3CaloJetAnalyzer/t");
+    }else{
+      inp_tree = (TTree*)  my_file->Get("ak4CaloJetAnalyzer/t");
+    }
+
+    JetAna *my_ct = new JetAna(inp_tree);
+
+    inp_tree2 = (TTree*)  my_file->Get("pfcandAnalyzer/pfTree");
+    pfcand *my_ct2 = new pfcand(inp_tree2);
+
+    inp_tree3 = (TTree*) my_file->Get("hiEvtAnalyzer/HiTree");
+    HiTree *my_ct3 = new HiTree(inp_tree3);
+
+    inp_tree4 = (TTree*) my_file->Get("skimanalysis/HltTree");
+    Skim *my_ct4   = new Skim(inp_tree4);
+
+    Tracks *my_ct5;
+    if(do_PbPb){
+      inp_tree5 = (TTree*) my_file->Get("anaTrack/trackTree");
+      my_ct5 = new Tracks(inp_tree5);
+    }else{
+      inp_tree5 = (TTree*) my_file->Get("ppTrack/trackTree");
+      my_ct5 = new Tracks(inp_tree5);
+    }
+
+
+    inp_tree6 = (TTree*) my_file->Get("hltanalysis/HltTree");
+    HLT *my_ct6 = new HLT(inp_tree6);
+
+    GenParticles *my_ct7;
+
+    if(!is_data){ 
+      inp_tree7 = (TTree*) my_file->Get("HiGenParticleAna/hi"); 
+      my_ct7 = new GenParticles(inp_tree7);
+    }
+
+
+    std::cout << "Got CT" << std::endl;
+
+    int n_evt = my_ct->fChain->GetEntriesFast();
+
+
+
+    int ev_min = output_file_num*100000;
+    int ev_max = ev_min +100000;
+
+    cout << "ev_min: " << ev_min << ", Entries: " << n_evt << std::endl;
+
+    assert( ev_min < n_evt );
 
   // n_evt = 10000;
 
-  if( ev_max >= n_evt ) ev_max = n_evt;
+    if( ev_max >= n_evt ) ev_max = n_evt;
 
   // if(!do_PbPb){ev_max = n_evt;}
 
-  std::cout << "Will run from event number " << ev_min << " to " << ev_max << "\n";
-  for(int evi = ev_min; evi < ev_max; evi++) {
-      
-    if( evi % 1000 == 0 )  std::cout << "evi: " << evi <<  " of " << n_evt << "\n";
+    std::cout << "Will run from event number " << ev_min << " to " << ev_max << "\n";
+    for(int evi = ev_min; evi < ev_max; evi++) {
+
+      if( evi % 1000 == 0 )  std::cout << "evi: " << evi <<  " of " << n_evt << "\n";
     //if( evi > 1000 ) break;
 
-  
-    my_ct->fChain->GetEntry(evi);
+
+      my_ct->fChain->GetEntry(evi);
 
     //cout<<"got entry 1"<<endl;
 
-    my_ct2->fChain->GetEntry(evi);
+      my_ct2->fChain->GetEntry(evi);
     //cout<<"got entry 2"<<endl;
 
-    my_ct3->fChain->GetEntry(evi);
+      my_ct3->fChain->GetEntry(evi);
     //cout<<"got entry 3"<<endl;
- 
-    my_ct4->fChain->GetEntry(evi);
+
+      my_ct4->fChain->GetEntry(evi);
     //cout<<"got entry 4"<<endl;
 
-    my_ct5->fChain->GetEntry(evi);
+      my_ct5->fChain->GetEntry(evi);
     //cout<<"got entry 5"<<endl;
 
-    my_ct6->fChain->GetEntry(evi);
+      my_ct6->fChain->GetEntry(evi);
     //cout<<"got entry 6"<<endl;
 
-    if(!is_data){   my_ct7->fChain->GetEntry(evi); }
+      if(!is_data){   my_ct7->fChain->GetEntry(evi); }
 
     //cout<<"so far so good"<<endl;
       
     //std::cout << "evi: " << evi << ", number of tracks: " << my_ct5->nTrk << std::endl;
-    nTrk = my_ct5->nTrk;
+      nTrk = my_ct5->nTrk;
 
-    if( evi % 1000 == 0 ) std::cout << "Filled successfully" << std::endl;
+      //if( evi % 1000 == 0 ) std::cout << "Filled successfully" << std::endl;
 
 
-    for(int j4i = 0; j4i < my_ct->nref ; j4i++) {
+      for(int j4i = 0; j4i < my_ct->nref ; j4i++) {
 
-      if( fabs(my_ct->jteta[j4i]) > 2. ) continue;
-     
+        if( fabs(my_ct->jteta[j4i]) > 2. ) continue;
+
       //-----------------------------------------------------------------------------------------
       // Jet Energy Corrections (JFF-dependent, store final corrected values in vector corr_pt)
       //----------------------------------------------------------------------------------------
 
 
-      reco_pt = my_ct->jtpt[j4i];
-      reco_phi = my_ct->jtphi[j4i];
-      reco_eta = my_ct->jteta[j4i];
-	
-      int npf=0;
-	
-      int nPFpart = my_ct2->nPFpart;
+        reco_pt = my_ct->jtpt[j4i];
+        reco_phi = my_ct->jtphi[j4i];
+        reco_eta = my_ct->jteta[j4i];
 
-      for(int ipf=0;ipf< nPFpart; ipf++){
+        int npf=0;
 
-	pfPt_temp = my_ct2->pfPt[ipf];
-	pfVsPt_temp = my_ct2->pfVsPt[ipf];
-	pfEta_temp =  my_ct2->pfEta[ipf];
-	pfPhi_temp =  my_ct2->pfPhi[ipf];
-	pfId_temp = my_ct2->pfId[ipf];  //pfId == 1 for hadrons only
+        int nPFpart = my_ct2->nPFpart;
+
+        for(int ipf=0;ipf< nPFpart; ipf++){
+
+         pfPt_temp = my_ct2->pfPt[ipf];
+         pfVsPt_temp = my_ct2->pfVsPt[ipf];
+         pfEta_temp =  my_ct2->pfEta[ipf];
+         pfPhi_temp =  my_ct2->pfPhi[ipf];
+	       pfId_temp = my_ct2->pfId[ipf];  //pfId == 1 for hadrons only
 
 	//cout<<pfPt<<" "<<pfVsPt<<" "<<pfEta<<" "<<pfPhi<<" "<<pfId<<endl;
-	r=sqrt(pow(reco_eta-pfEta_temp,2)+pow(acos(cos(reco_phi-pfPhi_temp)),2));
-	 
-	if(do_PbPb&&r<((double)(radius)*0.1)&& pfVsPt_temp > Pf_pt_cut && pfEta_temp <2.4 && pfId_temp==1) npf++; 
+         r=sqrt(pow(reco_eta-pfEta_temp,2)+pow(acos(cos(reco_phi-pfPhi_temp)),2));
 
-	if(!do_PbPb&&r<((double)(radius)*0.1)&& pfPt_temp > Pf_pt_cut && pfEta_temp <2.4 && pfId_temp==1) npf++; 
-      }
-	
-      if(do_PbPb){ 
-	corrected_pt= FF_JEC->get_corrected_pt(reco_pt, npf, hiBin);
-      }else{ 
-	corrected_pt= FF_JEC->get_corrected_pt(reco_pt, npf);
-      }
+         if(do_PbPb&&r<((double)(radius)*0.1)&& pfVsPt_temp > Pf_pt_cut && pfEta_temp <2.4 && pfId_temp==1) npf++; 
 
-     
-      if(do_residual_correction){ 
-	residual_corrected_pt=FF_JEC->get_residual_corrected_pt(corrected_pt,hiBin);
-      }
+         if(!do_PbPb&&r<((double)(radius)*0.1)&& pfPt_temp > Pf_pt_cut && pfEta_temp <2.4 && pfId_temp==1) npf++; 
+       }
 
-      if( my_ct->jtpt[j4i] < 25 && residual_corrected_pt < 25) continue;
-      
-      jteta->push_back(reco_eta);
-      jtphi->push_back(reco_phi);
-      jtpt->push_back(reco_pt);
-      corrpt->push_back(residual_corrected_pt);
+       if(do_PbPb){ 
+         corrected_pt= FF_JEC->get_corrected_pt(reco_pt, npf, hiBin);
+       }else{ 
+         corrected_pt= FF_JEC->get_corrected_pt(reco_pt, npf);
+       }
 
-      trackMax->push_back(my_ct->trackMax[j4i]);
+
+       if(do_residual_correction){ 
+         residual_corrected_pt=FF_JEC->get_residual_corrected_pt(corrected_pt,hiBin);
+       }
+
+       if( my_ct->jtpt[j4i] < 25 && residual_corrected_pt < 25) continue;
+
+       jteta->push_back(reco_eta);
+       jtphi->push_back(reco_phi);
+       jtpt->push_back(reco_pt);
+       corrpt->push_back(residual_corrected_pt);
+
+       discr_ssvHighEff->push_back(my_ct->discr_ssvHighEff[j4i]);
+       discr_ssvHighPur->push_back(my_ct->discr_ssvHighPur[j4i]);
+       discr_csvV1->push_back(my_ct->discr_csvV1[j4i]);
+       discr_prob->push_back(my_ct->discr_prob[j4i]);
+       svtxm->push_back(my_ct->svtxm[j4i]);
+       svtxmcorr->push_back(my_ct->svtxmcorr[j4i]);
+       svtxdl->push_back(my_ct->svtxdl[j4i]);
+       svtxdls->push_back(my_ct->svtxdls[j4i]);
+
+       trackMax->push_back(my_ct->trackMax[j4i]);
 
     } /// jet loop
 
- 
+
     if(!is_data){
 
 
       for(int j4i_gen = 0; j4i_gen < my_ct->ngen ; j4i_gen++) {
 
-	if( fabs(my_ct->geneta[j4i_gen]) > 2 ) continue;
-	if( my_ct->genpt[j4i_gen] < 30 ) continue;
-	
-	geneta->push_back(my_ct->geneta[j4i_gen]);
-	genphi->push_back(my_ct->genphi[j4i_gen]);
-	genpt->push_back(my_ct->genpt[j4i_gen]);
-	
+       if( fabs(my_ct->geneta[j4i_gen]) > 2 ) continue;
+       if( my_ct->genpt[j4i_gen] < 30 ) continue;
+
+       geneta->push_back(my_ct->geneta[j4i_gen]);
+       genphi->push_back(my_ct->genphi[j4i_gen]);
+       genpt->push_back(my_ct->genpt[j4i_gen]);
+
       } /// genjet loop
 
     }
@@ -439,14 +468,14 @@ int main(int argc, char *argv[])
 
     for(int pfi = 0; pfi< my_ct2->nPFpart ; pfi++) {
 
-    
+
       pfId->push_back(my_ct2->pfId[pfi]);
       pfPt->push_back(my_ct2->pfPt[pfi]);
       pfVsPt->push_back(my_ct2->pfVsPt[pfi]);
       pfEta->push_back(my_ct2->pfEta[pfi]);
       pfPhi->push_back(my_ct2->pfPhi[pfi]);
       sumpt->push_back(my_ct2->sumpt[pfi]);
-     
+
     } /// particle flow candidate loop
 
 
@@ -466,37 +495,37 @@ int main(int argc, char *argv[])
       // reco track quantities
 
       if(!is_data){
-	pEta->push_back(my_ct5->pEta[itrk]);
-	pPhi->push_back(my_ct5->pPhi[itrk]);
-	pPt->push_back(my_ct5->pPt[itrk]);
+       pEta->push_back(my_ct5->pEta[itrk]);
+       pPhi->push_back(my_ct5->pPhi[itrk]);
+       pPt->push_back(my_ct5->pPt[itrk]);
 
-      }
-	
-      trkEta->push_back(my_ct5->trkEta[itrk]);
-      trkPhi->push_back(my_ct5->trkPhi[itrk]);
-      trkPt->push_back(my_ct5->trkPt[itrk]);
-      trkAlgo->push_back(my_ct5->trkAlgo[itrk]);
-      highPurity->push_back(my_ct5->highPurity[itrk]);
-    
-      trkDxy1 -> push_back(my_ct5->trkDxy1[itrk]);
-      trkDxyError1 -> push_back(my_ct5->trkDxyError1[itrk]);
-      trkDz1 -> push_back(my_ct5->trkDz1[itrk]);
-      trkDzError1 -> push_back(my_ct5->trkDzError1[itrk]);
-      trkPtError -> push_back(my_ct5->trkPtError[itrk]);
+     }
+
+     trkEta->push_back(my_ct5->trkEta[itrk]);
+     trkPhi->push_back(my_ct5->trkPhi[itrk]);
+     trkPt->push_back(my_ct5->trkPt[itrk]);
+     trkAlgo->push_back(my_ct5->trkAlgo[itrk]);
+     highPurity->push_back(my_ct5->highPurity[itrk]);
+
+     trkDxy1 -> push_back(my_ct5->trkDxy1[itrk]);
+     trkDxyError1 -> push_back(my_ct5->trkDxyError1[itrk]);
+     trkDz1 -> push_back(my_ct5->trkDz1[itrk]);
+     trkDzError1 -> push_back(my_ct5->trkDzError1[itrk]);
+     trkPtError -> push_back(my_ct5->trkPtError[itrk]);
      
-    }    
-    
-    if(!is_data){
+   }    
+
+   if(!is_data){
 
       //gen particles loop
-      for(int ipart=0;ipart<my_ct7->mult;ipart++){
- 
-	float temp_eta=my_ct7->eta[ipart];
+    for(int ipart=0;ipart<my_ct7->mult;ipart++){
+
+     float temp_eta=my_ct7->eta[ipart];
 	if(fabs(temp_eta)>2.4) continue; //acceptance of the tracker   
 
 	float temp_pt= my_ct7->pt[ipart];
 	if(temp_pt < 0.5) continue; //acceptance of the tracker
- 
+
 	// reco track quantities
 	
 	eta->push_back(my_ct7->eta[ipart]);
@@ -504,92 +533,102 @@ int main(int argc, char *argv[])
 	pt->push_back(my_ct7->pt[ipart]);
 	chg->push_back(my_ct7->chg[ipart]);
 	sube->push_back(my_ct7->sube[ipart]);
-         
-      }
-    }
 
-    
-    pHBHENoiseFilter = my_ct4->pHBHENoiseFilter;
-    pcollisionEventSelection = my_ct4->pcollisionEventSelection;
-    pPAcollisionEventSelectionPA = my_ct4->pPAcollisionEventSelectionPA;
-    HLT_HIJet80_v1 = my_ct6->HLT_HIJet80_v1;
-    HLT_HIJet80_v7 = my_ct6->HLT_HIJet80_v7;
-    HLT_PAJet80_NoJetID_v1 = my_ct6->HLT_PAJet80_NoJetID_v1;
-  
-    hiBin = my_ct3->hiBin;
-    vz->push_back(my_ct3->vz);
-    pthat = my_ct->pthat;
+  }
+}
+
+
+pHBHENoiseFilter = my_ct4->pHBHENoiseFilter;
+pcollisionEventSelection = my_ct4->pcollisionEventSelection;
+pPAcollisionEventSelectionPA = my_ct4->pPAcollisionEventSelectionPA;
+if(do_PbPb) HLT_HIJet80_v1 = my_ct6->HLT_HIJet80_v1;
+if(do_PbPb) HLT_HIJet80_v7 = my_ct6->HLT_HIJet80_v7;
+if(!do_PbPb) HLT_PAJet80_NoJetID_v1 = my_ct6->HLT_AK4PFJet80_Eta5p1_v1;
+
+hiBin = my_ct3->hiBin;
+vz->push_back(my_ct3->vz);
+pthat = my_ct->pthat;
 
     ///// Fill it
-    mixing_tree->Fill();
+mixing_tree->Fill();
 
-    
+
     ///// Reset
-   
-   	 
-    trkEta->clear();
-    trkPhi->clear();
-    trkPt->clear();
-    trkAlgo->clear();
-    highPurity->clear();
-  
-    vz->clear();
-  
-    jteta->clear();
-    jtphi->clear();
-    jtpt->clear();
-    corrpt->clear();
+
+
+trkEta->clear();
+trkPhi->clear();
+trkPt->clear();
+trkAlgo->clear();
+highPurity->clear();
+
+vz->clear();
+
+jteta->clear();
+jtphi->clear();
+jtpt->clear();
+corrpt->clear();
     //   rawpt->clear();
- 
-    trackMax->clear();
 
-    trkDxy1->clear();
-    trkDxyError1->clear();
-    trkDz1->clear();
-    trkDzError1->clear();
-    trkPtError->clear();
+trackMax->clear();
 
-    pfId->clear();
-    pfPt->clear();
-    pfVsPt->clear();
-    pfEta->clear();
-    pfPhi->clear();
-    sumpt->clear();
+trkDxy1->clear();
+trkDxyError1->clear();
+trkDz1->clear();
+trkDzError1->clear();
+trkPtError->clear();
 
-    if(!is_data){
-      pt->clear();
-      phi->clear();
-      eta->clear();
-      chg->clear();
-      sube->clear();
+pfId->clear();
+pfPt->clear();
+pfVsPt->clear();
+pfEta->clear();
+pfPhi->clear();
+sumpt->clear();
 
-      pPt->clear();
-      pPhi->clear();
-      pEta->clear();
+discr_ssvHighEff->clear();
+discr_ssvHighPur->clear();
+discr_csvV1->clear();
+discr_prob->clear();
+svtxm->clear();
+svtxmcorr->clear();
+svtxdl->clear();
+svtxdls->clear();
+
+if(!is_data){
+  pt->clear();
+  phi->clear();
+  eta->clear();
+  chg->clear();
+  sube->clear();
+
+  pPt->clear();
+  pPhi->clear();
+  pEta->clear();
 
 
-      geneta->clear();
-      genphi->clear();
-      genpt->clear();
-    }
+  geneta->clear();
+  genphi->clear();
+  genpt->clear();
+}
 
 
   }  ///event loop
-   
-  
-  cout<<"writing"<<endl;
-  
+}
+
+
+cout<<"writing"<<endl;
+
   //mixing_tree->Write();
-  output_file->Write();
+output_file->Write();
 
-  
- 
-  output_file->Close();
-  
-  cout<<"done"<<endl;
 
-  
-  
+
+output_file->Close();
+
+cout<<"done"<<endl;
+
+
+
 }
 
 
