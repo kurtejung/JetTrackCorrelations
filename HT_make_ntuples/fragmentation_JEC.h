@@ -13,8 +13,8 @@ struct fragmentation_JEC
  private:
   static const int ncent=4;
   static const int nstepmax=10;
-  static const double lower_pt_cut=15;
-  static const double higher_pt_cut=700;
+  constexpr static const double lower_pt_cut=15;
+  constexpr static const double higher_pt_cut=700;
   int radius;
   int ntrkmax;
   int nstep;

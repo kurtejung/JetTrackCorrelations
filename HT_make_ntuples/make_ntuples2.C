@@ -42,7 +42,7 @@ int dataset_pthats[e_n_dataset_types+1] = {0,0,15,30,50,80,120,170,220,280,370,1
 
 int dataset_type_code = -999;
 
-int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
+void make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
 {
 
   dataset_type_code = datasetTypeCode;
@@ -71,6 +71,7 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
   bool do_residual_correction = kTRUE; 
   int nstep_residual = 3; 
   double Pf_pt_cut = 2;
+  bool doFFCorrection = false;
 
   if(dataset_type_code==e_Data_pp ||dataset_type_code > 10){do_PbPb = 0;   do_pp_tracking = 1;}
 
@@ -78,14 +79,14 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
   cout<<"do_pp_tracking = "<<do_pp_tracking<<endl;
 
 
-  fragmentation_JEC *FF_JEC = new fragmentation_JEC(radius, do_PbPb, do_pp_tracking, do_residual_correction,nstep_residual,Pf_pt_cut); //3rd variable is only for when do_PbPb is false
+  fragmentation_JEC *FF_JEC;
+  if(doFFCorrection) FF_JEC = new fragmentation_JEC(radius, do_PbPb, do_pp_tracking, do_residual_correction,nstep_residual,Pf_pt_cut); //3rd variable is only for when do_PbPb is false
 
   cout<<"made fragmentation JEC"<<endl;
 
   // For each event
   // Calculate efficiency
-
-  FF_JEC->set_correction();
+  if(doFFCorrection) FF_JEC->set_correction();
 
 
   vector<float> corr_pt; 
@@ -134,7 +135,7 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
     output_file_base= "/data/htrauger/PbPb_6_12/";
   }else{
     cerr<<"nope, we can't handle that data set"<<endl;
-    return -1;
+    exit(0);
   }
 
   output_file_base +=dataset_type_strs[dataset_type_code];
@@ -327,30 +328,14 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
       my_ct7 = new GenParticles(inp_tree7);
     }
 
-
-    std::cout << "Got CT" << std::endl;
-
     int n_evt = my_ct->fChain->GetEntriesFast();
-
-
-
-    int ev_min = output_file_num*100000;
-    int ev_max = ev_min +100000;
-
-    cout << "ev_min: " << ev_min << ", Entries: " << n_evt << std::endl;
-
-    assert( ev_min < n_evt );
-
-  // n_evt = 10000;
-
-    if( ev_max >= n_evt ) ev_max = n_evt;
 
   // if(!do_PbPb){ev_max = n_evt;}
 
-    std::cout << "Will run from event number " << ev_min << " to " << ev_max << "\n";
-    for(int evi = ev_min; evi < ev_max; evi++) {
+    cout << "Entries: "<< n_evt << endl;
+    for(int evi = 0; evi < n_evt; evi++) {
 
-      if( evi % 1000 == 0 )  std::cout << "evi: " << evi <<  " of " << n_evt << "\n";
+      if( evi % 10000 == 0 )  std::cout << "evi: " << evi <<  " of " << n_evt << "\n";
     //if( evi > 1000 ) break;
 
 
@@ -373,11 +358,10 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
       my_ct6->fChain->GetEntry(evi);
     //cout<<"got entry 6"<<endl;
 
-      if(!is_data){   my_ct7->fChain->GetEntry(evi); }
+    //  if(!is_data){   my_ct7->fChain->GetEntry(evi); }
 
     //cout<<"so far so good"<<endl;
       
-    //std::cout << "evi: " << evi << ", number of tracks: " << my_ct5->nTrk << std::endl;
       nTrk = my_ct5->nTrk;
 
       //if( evi % 1000 == 0 ) std::cout << "Filled successfully" << std::endl;
@@ -396,17 +380,18 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
         reco_phi = my_ct->jtphi[j4i];
         reco_eta = my_ct->jteta[j4i];
 
+
         int npf=0;
 
         int nPFpart = my_ct2->nPFpart;
 
         for(int ipf=0;ipf< nPFpart; ipf++){
 
-         pfPt_temp = my_ct2->pfPt[ipf];
-         pfVsPt_temp = my_ct2->pfVsPt[ipf];
-         pfEta_temp =  my_ct2->pfEta[ipf];
-         pfPhi_temp =  my_ct2->pfPhi[ipf];
-	       pfId_temp = my_ct2->pfId[ipf];  //pfId == 1 for hadrons only
+         pfPt_temp = my_ct2->pfPt->at(ipf);
+         pfVsPt_temp = my_ct2->pfVsPtInitial->at(ipf);
+         pfEta_temp =  my_ct2->pfEta->at(ipf);
+         pfPhi_temp =  my_ct2->pfPhi->at(ipf);
+	       pfId_temp = my_ct2->pfId->at(ipf);  //pfId == 1 for hadrons only
 
 	//cout<<pfPt<<" "<<pfVsPt<<" "<<pfEta<<" "<<pfPhi<<" "<<pfId<<endl;
          r=sqrt(pow(reco_eta-pfEta_temp,2)+pow(acos(cos(reco_phi-pfPhi_temp)),2));
@@ -417,14 +402,14 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
        }
 
        if(do_PbPb){ 
-         corrected_pt= FF_JEC->get_corrected_pt(reco_pt, npf, hiBin);
+         corrected_pt= reco_pt; //FF_JEC->get_corrected_pt(reco_pt, npf, hiBin);
        }else{ 
-         corrected_pt= FF_JEC->get_corrected_pt(reco_pt, npf);
+         corrected_pt= reco_pt; //FF_JEC->get_corrected_pt(reco_pt, npf);
        }
 
 
        if(do_residual_correction){ 
-         residual_corrected_pt=FF_JEC->get_residual_corrected_pt(corrected_pt,hiBin);
+         residual_corrected_pt= reco_pt; //FF_JEC->get_residual_corrected_pt(corrected_pt,hiBin);
        }
 
        if( my_ct->jtpt[j4i] < 25 && residual_corrected_pt < 25) continue;
@@ -432,7 +417,7 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
        jteta->push_back(reco_eta);
        jtphi->push_back(reco_phi);
        jtpt->push_back(reco_pt);
-       corrpt->push_back(residual_corrected_pt);
+       corrpt->push_back(reco_pt); //residual_corrected_pt);
 
        discr_ssvHighEff->push_back(my_ct->discr_ssvHighEff[j4i]);
        discr_ssvHighPur->push_back(my_ct->discr_ssvHighPur[j4i]);
@@ -451,7 +436,7 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
     if(!is_data){
 
 
-      for(int j4i_gen = 0; j4i_gen < my_ct->ngen ; j4i_gen++) {
+     /* for(int j4i_gen = 0; j4i_gen < my_ct->ngen ; j4i_gen++) {
 
        if( fabs(my_ct->geneta[j4i_gen]) > 2 ) continue;
        if( my_ct->genpt[j4i_gen] < 30 ) continue;
@@ -460,7 +445,7 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
        genphi->push_back(my_ct->genphi[j4i_gen]);
        genpt->push_back(my_ct->genpt[j4i_gen]);
 
-      } /// genjet loop
+      } /// genjet loop*/
 
     }
 
@@ -469,11 +454,11 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
     for(int pfi = 0; pfi< my_ct2->nPFpart ; pfi++) {
 
 
-      pfId->push_back(my_ct2->pfId[pfi]);
-      pfPt->push_back(my_ct2->pfPt[pfi]);
-      pfVsPt->push_back(my_ct2->pfVsPt[pfi]);
-      pfEta->push_back(my_ct2->pfEta[pfi]);
-      pfPhi->push_back(my_ct2->pfPhi[pfi]);
+      pfId->push_back(my_ct2->pfId->at(pfi));
+      pfPt->push_back(my_ct2->pfPt->at(pfi));
+      pfVsPt->push_back(my_ct2->pfVsPtInitial->at(pfi));
+      pfEta->push_back(my_ct2->pfEta->at(pfi));
+      pfPhi->push_back(my_ct2->pfPhi->at(pfi));
       sumpt->push_back(my_ct2->sumpt[pfi]);
 
     } /// particle flow candidate loop
@@ -495,9 +480,9 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
       // reco track quantities
 
       if(!is_data){
-       pEta->push_back(my_ct5->pEta[itrk]);
+      /* pEta->push_back(my_ct5->pEta[itrk]);
        pPhi->push_back(my_ct5->pPhi[itrk]);
-       pPt->push_back(my_ct5->pPt[itrk]);
+       pPt->push_back(my_ct5->pPt[itrk]);*/
 
      }
 
@@ -513,16 +498,16 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
      trkDzError1 -> push_back(my_ct5->trkDzError1[itrk]);
      trkPtError -> push_back(my_ct5->trkPtError[itrk]);
      
-   }    
+   }
 
    if(!is_data){
 
       //gen particles loop
-    for(int ipart=0;ipart<my_ct7->mult;ipart++){
-
+   /* for(int ipart=0;ipart<my_ct7->mult;ipart++){
+  
      float temp_eta=my_ct7->eta[ipart];
 	if(fabs(temp_eta)>2.4) continue; //acceptance of the tracker   
-
+  
 	float temp_pt= my_ct7->pt[ipart];
 	if(temp_pt < 0.5) continue; //acceptance of the tracker
 
@@ -534,20 +519,20 @@ int make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
 	chg->push_back(my_ct7->chg[ipart]);
 	sube->push_back(my_ct7->sube[ipart]);
 
+  }*/
   }
-}
 
 
-pHBHENoiseFilter = my_ct4->pHBHENoiseFilter;
-pcollisionEventSelection = my_ct4->pcollisionEventSelection;
-pPAcollisionEventSelectionPA = my_ct4->pPAcollisionEventSelectionPA;
-if(do_PbPb) HLT_HIJet80_v1 = my_ct6->HLT_HIJet80_v1;
-if(do_PbPb) HLT_HIJet80_v7 = my_ct6->HLT_HIJet80_v7;
+pHBHENoiseFilter = my_ct4->HBHENoiseFilterResultRun2Loose;
+pcollisionEventSelection = (my_ct4->pPAprimaryVertexFilter && my_ct4->HBHENoiseFilterResult);
+pPAcollisionEventSelectionPA = (my_ct4->pPAprimaryVertexFilter && my_ct4->HBHENoiseFilterResult);
+if(do_PbPb) HLT_HIJet80_v1 = my_ct6->HLT_AK4PFJet80_Eta5p1_v1;
+if(do_PbPb) HLT_HIJet80_v7 = my_ct6->HLT_AK4PFJet80_Eta5p1_v1;
 if(!do_PbPb) HLT_PAJet80_NoJetID_v1 = my_ct6->HLT_AK4PFJet80_Eta5p1_v1;
 
 hiBin = my_ct3->hiBin;
 vz->push_back(my_ct3->vz);
-pthat = my_ct->pthat;
+//pthat = my_ct->pthat;
 
     ///// Fill it
 mixing_tree->Fill();
