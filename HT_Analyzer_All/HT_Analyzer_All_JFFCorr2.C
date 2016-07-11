@@ -19,6 +19,7 @@
 #include <TCut.h>
 #include <vector>
 #include "TCanvas.h"
+#include "Jan_24_pp_Iterative/getTrkCorr.h"
 
 using namespace std;
 
@@ -112,8 +113,6 @@ vector <double> dijet_cent;
 
 //Auxillary functions defined below
 void ReadFileList(std::vector<TString> &my_file_names, TString file_of_names, bool debug=false);
-void calculate_efficiency(bool is_pp, double cent, double eta, double pt, double phi,double rmin,double &fake,double &eff, double &secondary, double &multrec);
-
 
 ///***************************************************************
 //     MAIN LOOP STARTS HERE!  
@@ -121,9 +120,9 @@ void calculate_efficiency(bool is_pp, double cent, double eta, double pt, double
 
 // arg1 = dataset type, arg2 = number of files
 
-int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
+void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 1, int nFiles = 1){
  
-  dataset_type_code = datasetTypeCode    //// pick datasets you want to run over
+  dataset_type_code = datasetTypeCode;    //// pick datasets you want to run over
   
   parti = nFiles;
 
@@ -184,6 +183,8 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
   const double subleadingjetcut = 50. ;
   const double dphicut = 5.*(TMath::Pi())/6. ; 
   const double trketamaxcut = 2.4;
+
+  const bool doBjets = true;
  
   
   //****************************************
@@ -217,53 +218,10 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
   //    Get histograms for tracking efficiency calculation
   //-------------------------------------------------------------
 
-  if(is_pp){
-           
-    f_secondary = new TFile("/data/htrauger/TrackCorrectionTables_pp-master/ak3Calo_2014_10_21_pptracking/secondary/secondary_pp.root","READ");
-    hsecondary = (TH2D*)f_secondary->Get("hpt_eta"); 
-    
-    f_multrec = new TFile("/data/htrauger/TrackCorrectionTables_pp-master/ak3Calo_2014_10_21_pptracking/multRec/multiplereco_pp.root","READ");
-    hmultrec = (TH2D*)f_multrec->Get("hpt_eta"); 
-   
-  
-    for(int ipt=0; ipt<npt_pp;ipt++){
-      f_eff_pp[ipt]= new TFile(Form("/data/htrauger/TrackCorrectionTables_pp-master/ak3Calo_2014_10_21_pptracking/eff/eff_pt%d_%d_ak3Calo_dogenjet0.root",(int)ptmin_pp[ipt],(int)ptmax_pp[ipt]));
-      p_eff_pt_pp[ipt]=(TProfile*)f_eff_pp[ipt]->Get("p_eff_pt");
-      p_eff_accept_pp[ipt]=(TProfile2D*)f_eff_pp[ipt]->Get("p_eff_acceptance");
-      p_eff_rmin_pp[ipt]=(TProfile*)f_eff_pp[ipt]->Get("p_eff_rmin");
-  
-    
-      f_fake_pp[ipt]= new TFile(Form("/data/htrauger/TrackCorrectionTables_pp-master/ak3Calo_2014_10_21_pptracking/fake/fake_pt%d_%d_ak3Calo_dogenjet0.root",(int)ptmin_pp[ipt],(int)ptmax_pp[ipt]));   
-    
-      p_fake_pt_pp[ipt]=(TProfile*)f_fake_pp[ipt]->Get("p_fake_pt");
-      p_fake_accept_pp[ipt]=(TProfile2D*)f_fake_pp[ipt]->Get("p_fake_acceptance");
-      p_fake_rmin_pp[ipt]=(TProfile*)f_fake_pp[ipt]->Get("p_fake_rmin");
+  TrkCorr* trkCorr;
+  if(is_pp) trkCorr = new TrkCorr("Jan_24_pp_Iterative/");
+  else trkCorr = new TrkCorr("Jan18_PbPb/");
 
-    }   
-   
-  }else{
-    TString s;     
-    for(int ipt=0; ipt<npt;ipt++){
-   
-      f_eff[ipt]= new TFile(Form("/data/htrauger/TrackCorrectionTables/akVs3Calo_20140920/eff/eff_pt%d_%d_cent%d_%d.root",(int)(100*ptmin_pbpb[ipt]),(int)(100*ptmax_pbpb[ipt]),(int)(0.5*cent_min[ipt]),(int)(0.5*cent_max[ipt])));
-
-      p_eff_cent[ipt]=(TProfile*)f_eff[ipt]->Get("p_eff_cent");   s="p_eff_cent_";    s+=ipt;   p_eff_cent[ipt]->SetName(s);
-      p_eff_pt[ipt]=(TProfile*)f_eff[ipt]->Get("p_eff_pt");    s="p_eff_pt_";    s+=ipt;    p_eff_pt[ipt]->SetName(s);
-      p_eff_accept[ipt]=(TProfile2D*)f_eff[ipt]->Get("p_eff_acceptance");    s="p_eff_accept_";    s+=ipt;    p_eff_accept[ipt]->SetName(s);
-      p_eff_rmin[ipt]=(TProfile*)f_eff[ipt]->Get("p_eff_rmin");  s="p_eff_rmin_";    s+=ipt;      p_eff_rmin[ipt]->SetName(s);
-
-
-      f_fake[ipt]= new TFile(Form("/data/htrauger/TrackCorrectionTables/akVs3Calo_20140920/fake/fake_pt%d_%d_cent%d_%d.root",(int)(100*ptmin_pbpb[ipt]),(int)(100*ptmax_pbpb[ipt]),(int)(0.5*cent_min[ipt]),(int)(0.5*cent_max[ipt])));
-
-      p_fake_cent[ipt]=(TProfile*)f_fake[ipt]->Get("p_fake_cent");     s="p_fake_cent_";    s+=ipt;      p_fake_cent[ipt]->SetName(s);
-      p_fake_pt[ipt]=(TProfile*)f_fake[ipt]->Get("p_fake_pt");   s="p_fake_pt_";    s+=ipt;      p_fake_pt[ipt]->SetName(s);
-      p_fake_accept[ipt]=(TProfile2D*)f_fake[ipt]->Get("p_fake_acceptance");    s="p_fake_accept_";    s+=ipt;      p_fake_accept[ipt]->SetName(s);
-
-      p_fake_rmin[ipt]=(TProfile*)f_fake[ipt]->Get("p_fake_rmin");     s="p_fake_rmin_";    s+=ipt;     p_fake_rmin[ipt]->SetName(s);
-    
-    }
-  }
-  cout<<"Made it through getting tracking efficiency histos for "<<dataset_type_strs[dataset_type_code]<<endl;
   
  
   //----------------------------------------------------------------
@@ -311,7 +269,6 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
     }
   }
  
-  cout<<
     //--------------------------------
 
     //-----------------------------------------------------------------------
@@ -321,10 +278,10 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
 
     cout<<"Am I pp? "<<is_pp<<endl;
 
-  assert(parti <= (int) file_names.size() );
+  //assert(parti <= (int) file_names.size() );
+    cout << "file_names size: "<< file_names.size() << endl;
 
   for(int fi = 0; fi < (int) file_names.size(); fi++) {
-    if( parti >= 0 && parti != fi ) continue;
     TFile *my_file = TFile::Open(file_names.at(fi));
     std::cout << "Current file: " << ", file_name: " << file_names.at(fi) << ", number " << fi << " of " << file_names.size() << std::endl;
     if(my_file->IsZombie()) {
@@ -333,7 +290,7 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
     
   
     TTree *inp_tree = (TTree*)my_file->Get("mixing_tree");
-    mixing_tree *my_primary = new mixing_tree(inp_tree);
+    mixing_tree *my_primary = new mixing_tree(inp_tree, !is_data);
     std::cout << "Successfully retrieved tree from input file!" << std::endl;
     Long64_t n_evt = my_primary->fChain->GetEntriesFast();
 
@@ -383,7 +340,7 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
 	  me_hlt.push_back(me_tree->HLT_PAJet80_NoJetID_v1);
 	}else{
 	  me_cent.push_back((centbins->FindBin(me_tree->hiBin)));
-	  me_hlt.push_back(me_tree->HLT_HIMinBiasHfOrBSC_v1);
+	  me_hlt.push_back(me_tree->HLT_PAJet80_NoJetID_v1);
 	}
 
 	me_vzbin.push_back((vzbins->FindBin(me_tree->vz->at(0))));
@@ -400,6 +357,7 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
     int genjet_fill_count = 0;
 
 
+    cout << "total Events: "<< n_evt << endl;
 
     for(int evi = 0; evi < n_evt; evi++) {
      
@@ -491,6 +449,7 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
 	double jet_pt= my_primary->corrpt->at(j4i);
 	if(TMath::Abs(my_primary->jteta->at(j4i))>=searchetacut) continue ;
 	if(jet_pt<=leadingjetcut) continue ;
+  if(doBjets && my_primary->discr_csvV1->at(j4i) < 0.9) continue;
 	if(jet_pt >lead_pt){
 	  lead_pt=jet_pt;
 	  highest_idx=j4i;
@@ -788,19 +747,16 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
 	    eta= my_primary->trkEta->at(tracks);
 	    pt= my_primary->trkPt->at(tracks);
 	    phi= my_primary->trkPhi->at(tracks);
-	    rmin = 99;
+     float rmin = 999;
+     for(int k = 0; k<my_primary->jtpt->size(); k++)
+     {
+      if(my_primary->jtpt->at(k)<50) break;
+        if(/*TMath::Abs(my_primary->chargedSum->at(k)/my_primary->jtpt->at(k))<0.01 ||*/ my_primary->jteta->at(k)>2) continue;//jet quality cut
+        float R = TMath::Power(my_primary->jteta->at(k)-eta,2)+TMath::Power(my_primary->jtphi->at(k)-phi,2);
+        if(rmin*rmin>R) rmin=TMath::Power(R,0.5);
+      }
 
-	    for(int ijet=0;ijet<(int) my_primary->corrpt->size();ijet++){
-	      jeteta = my_primary->jteta->at(ijet);
-	      jetphi = my_primary->jtphi->at(ijet);
-	    
-	      if(fabs(jeteta)>2 || my_primary->corrpt->at(ijet)<50) continue;
-	   
-	      r_reco=sqrt(pow(jeteta-eta,2)+pow(acos(cos(jetphi-phi)),2));
-	      if(r_reco<rmin)rmin=r_reco;
-	    }
-
-	    calculate_efficiency(is_pp, cent, eta, pt, phi, rmin, fake, eff,secondary, multrec);
+      double trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 0, rmin);
 
 	    if(!is_pp){
 	      secondary = 0.;
@@ -810,11 +766,11 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
 	      multrec = 0.;
 	    }  //just in case 
 	  
-	    trkweight = pt_weight*(1-fake)*(1-secondary)/eff/(1+multrec);
+	    trkweight = pt_weight*trkCorrection; //(1-fake)*(1-secondary)/eff/(1+multrec);
 
-	    trkweight_lead = pt_weight_lead*(1-fake)*(1-secondary)/eff/(1+multrec);
+	    trkweight_lead = pt_weight_lead*trkCorrection; //(1-fake)*(1-secondary)/eff/(1+multrec);
 	    
-	    trkweight_sub = pt_weight_sub*(1-fake)*(1-secondary)/eff/(1+multrec);
+	    trkweight_sub = pt_weight_sub*trkCorrection; //(1-fake)*(1-secondary)/eff/(1+multrec);
 	    //---------------------------
 	    // Now we are ready to fill!
 	    //---------------------------
@@ -1188,19 +1144,16 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
 		  phi= me_tree->trkPhi->at(tracks);
 		  if(!is_pp){cent = me_cent.at(me);}
 	  
-		  rmin = 99;
+		 float rmin = 999;
+     for(int k = 0; k<my_primary->jtpt->size(); k++)
+     {
+      if(my_primary->jtpt->at(k)<50) break;
+        if(/*TMath::Abs(my_primary->chargedSum->at(k)/my_primary->jtpt->at(k))<0.01 ||*/ my_primary->jteta->at(k)>2) continue;//jet quality cut
+        float R = TMath::Power(my_primary->jteta->at(k)-eta,2)+TMath::Power(my_primary->jtphi->at(k)-phi,2);
+        if(rmin*rmin>R) rmin=TMath::Power(R,0.5);
+      }
 
-		  for(int ijet=0;ijet<(int) me_tree->corrpt->size();ijet++){
-		    jeteta = me_tree->jteta->at(ijet);
-		    jetphi = me_tree->jtphi->at(ijet);
-		 	    
-		    if(fabs(jeteta)>2 || me_tree->corrpt->at(ijet)<50) continue;
-		    r_reco=sqrt(pow(jeteta-eta,2)+pow(acos(cos(jetphi-phi)),2));
-		    if(r_reco<rmin)rmin=r_reco;
-		  }
-
-	
-		  calculate_efficiency(is_pp, cent, eta, pt, phi, rmin, fake, eff, secondary, multrec);	     
+      double trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 0, rmin);
 	      
 		  if(!is_pp){
 		    secondary = 0.;
@@ -1210,11 +1163,11 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
 		    multrec = 0;
 		  }  //just in case 
 
-		  trkweight = pt_weight*(1-fake)*(1-secondary)/eff/(1+multrec);
+		  trkweight = pt_weight*trkCorrection; //(1-fake)*(1-secondary)/eff/(1+multrec);
 
-		  trkweight_lead = pt_weight_lead*(1-fake)*(1-secondary)/eff/(1+multrec);
+		  trkweight_lead = pt_weight_lead*trkCorrection; //(1-fake)*(1-secondary)/eff/(1+multrec);
 		  
-		  trkweight_sub = pt_weight_sub*(1-fake)*(1-secondary)/eff/(1+multrec);
+		  trkweight_sub = pt_weight_sub*trkCorrection; //(1-fake)*(1-secondary)/eff/(1+multrec);
  
 		  //---------------------------
 		  // Now we are ready to fill!
@@ -1409,19 +1362,16 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
 	    eta= my_primary->trkEta->at(tracks);
 	    pt= my_primary->trkPt->at(tracks);
 	    phi= my_primary->trkPhi->at(tracks);
-	    rmin = 99;
+	    float rmin = 999;
+     for(int k = 0; k<my_primary->jtpt->size(); k++)
+     {
+      if(my_primary->jtpt->at(k)<50) break;
+        if(/*TMath::Abs(my_primary->chargedSum->at(k)/my_primary->jtpt->at(k))<0.01 ||*/ my_primary->jteta->at(k)>2) continue;//jet quality cut
+        float R = TMath::Power(my_primary->jteta->at(k)-eta,2)+TMath::Power(my_primary->jtphi->at(k)-phi,2);
+        if(rmin*rmin>R) rmin=TMath::Power(R,0.5);
+      }
 
-	    for(int ijet=0;ijet<(int) my_primary->genpt->size();ijet++){
-	      jeteta = my_primary->geneta->at(ijet);
-	      jetphi = my_primary->genphi->at(ijet);
-	    
-	      if(fabs(jeteta)>2 || my_primary->genpt->at(ijet)<50) continue;
-	   
-	      r_reco=sqrt(pow(jeteta-eta,2)+pow(acos(cos(jetphi-phi)),2));
-	      if(r_reco<rmin)rmin=r_reco;
-	    }
-
-	    calculate_efficiency(is_pp, cent, eta, pt, phi, rmin, fake, eff,secondary, multrec);
+      double trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 0, rmin);
 
 	    if(!is_pp){
 	      secondary = 0.;
@@ -1431,9 +1381,9 @@ int HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 1){
 	      multrec = 0.;
 	    }  //just in case 
 	  
-	    trkweight = pt_weight*(1-fake)*(1-secondary)/eff/(1+multrec);
-	    trkweight_sub = pt_weight_sub*(1-fake)*(1-secondary)/eff/(1+multrec);
-	    trkweight_lead = pt_weight_lead*(1-fake)*(1-secondary)/eff/(1+multrec);
+	    trkweight = pt_weight*trkCorrection; //(1-fake)*(1-secondary)/eff/(1+multrec);
+	    trkweight_sub = pt_weight_sub*trkCorrection; //(1-fake)*(1-secondary)/eff/(1+multrec);
+	    trkweight_lead = pt_weight_lead*trkCorrection; //(1-fake)*(1-secondary)/eff/(1+multrec);
 	
  	
 	    //---------------------------
@@ -1950,8 +1900,7 @@ void ReadFileList(std::vector<TString> &my_file_names, TString file_of_names, bo
   if( file_stream.is_open() ) {
     if( debug ) std::cout << "Opened " << file_of_names << " for reading" << std::endl;
     int line_num = 0;
-    while( !file_stream.eof() ) {
-      getline(file_stream, line);
+    while( file_stream >> line ) {
       if( debug ) std::cout << line_num << ": " << line << std::endl;
       TString tstring_line(line);
       if( tstring_line.CompareTo("", TString::kExact) != 0 ) my_file_names.push_back(tstring_line);
@@ -1960,80 +1909,5 @@ void ReadFileList(std::vector<TString> &my_file_names, TString file_of_names, bo
   } else {
     std::cout << "Error, could not open " << file_of_names << " for reading" << std::endl;
     assert(0);
-  }
-}
-
-
-void calculate_efficiency(bool is_pp, double cent, double eta,double pt, double phi,double rmin,double &fake,double &eff, double &secondary, double &multrec){
-
-  double eff_accept,eff_pt, eff_cent, eff_rmin, fake_pt, fake_cent, fake_accept, fake_rmin;
-  
-  fake_pt=fake_cent=fake_accept=fake_rmin=0;
-  eff_pt=eff_cent=eff_accept=eff_rmin=1;
-
-  secondary = 0;
-  multrec = 0;
-
-  if(is_pp){
-    for(int ipt=0;ipt<npt_pp;ipt++){
-      if(pt>=ptmin_pp[ipt] && pt<ptmax_pp[ipt]){
-	eff_pt=p_eff_pt_pp[ipt]->GetBinContent(p_eff_pt_pp[ipt]->FindBin(pt));
-	eff_accept=p_eff_accept_pp[ipt]->GetBinContent(p_eff_accept_pp[ipt]->GetXaxis()->FindBin(phi),p_eff_accept_pp[ipt]->GetYaxis()->FindBin(eta));
-	if(rmin<3)eff_rmin=p_eff_rmin_pp[ipt]->GetBinContent(p_eff_rmin_pp[ipt]->FindBin(rmin));//efficiency for rmin>3 is 1. 
-    
-	fake_pt=p_fake_pt_pp[ipt]->GetBinContent(p_fake_pt_pp[ipt]->FindBin(pt));
-	fake_accept=p_fake_accept_pp[ipt]->GetBinContent(p_fake_accept_pp[ipt]->GetXaxis()->FindBin(phi),p_fake_accept_pp[ipt]->GetYaxis()->FindBin(eta));
-	fake_rmin=p_fake_rmin_pp[ipt]->GetBinContent(p_fake_rmin_pp[ipt]->FindBin(rmin));
-      }     
-    }
-   
-    eff=eff_accept*eff_pt*eff_rmin; 
-    fake=fake_accept+fake_pt+fake_rmin;
-   
-    if(fake<0) fake=0;
-   
-    if(eff==0){
-      cout<<"zero efficiency"<<" eta="<<eta<<" pt="<<pt<<" phi="<<phi<<endl;
-      eff = 0.8;
-    }
-   
-    secondary=hsecondary->GetBinContent(hsecondary->FindBin(pt,eta));
-
-    multrec=hmultrec->GetBinContent(hmultrec->FindBin(pt,eta));
-
-
-
-
-  
-  }else{
-	  
-    //given the pt,centrality,eta,phi and rmin of the track find the factorized efficiencies
-    for(int ipt=0;ipt<npt;ipt++){
-      if(pt>=ptmin_pbpb[ipt] && pt<ptmax_pbpb[ipt] && (cent)>=cent_min[ipt] && (cent)<cent_max[ipt]){
-	eff_pt=p_eff_pt[ipt]->GetBinContent(p_eff_pt[ipt]->FindBin(pt));
-	eff_cent=p_eff_cent[ipt]->GetBinContent(p_eff_cent[ipt]->FindBin(cent));
-	eff_accept=p_eff_accept[ipt]->GetBinContent(p_eff_accept[ipt]->GetXaxis()->FindBin(phi),p_eff_accept[ipt]->GetYaxis()->FindBin(eta));
-	if(rmin<5)eff_rmin=p_eff_rmin[ipt]->GetBinContent(p_eff_rmin[ipt]->FindBin(rmin));
-	break;
-      }
-    } 
-
-    for(int ipt=0;ipt<npt;ipt++){
-      // if(pt>=ptmin_pbpb[ipt] && pt<ptmax_pbpb[ipt] && cent>=cent_min[ipt] && cent<cent_max[ipt]){
-      if(pt>=ptmin_pbpb[ipt] && pt<ptmax_pbpb[ipt] && (cent)>=cent_min[ipt] && (cent)<cent_max[ipt]){
-	fake_pt=p_fake_pt[ipt]->GetBinContent(p_fake_pt[ipt]->FindBin(pt));
-	fake_cent=p_fake_cent[ipt]->GetBinContent(p_fake_cent[ipt]->FindBin(cent));
-	fake_accept=p_fake_accept[ipt]->GetBinContent(p_fake_accept[ipt]->GetXaxis()->FindBin(phi),p_fake_accept[ipt]->GetYaxis()->FindBin(eta));
-	if(rmin<5) fake_rmin=p_fake_rmin[ipt]->GetBinContent(p_fake_rmin[ipt]->FindBin(rmin));
-	break;
-      }
-    }
-	
-    //multiply the factorized corrections to get the overall efficiency
-    eff=eff_accept*eff_cent*eff_pt*eff_rmin;
-    fake=fake_accept+fake_cent+fake_pt+fake_rmin;  
-    if(eff==0){ //the if statements are temporary next corrections won't have these
-      eff=0.8;
-    }
   }
 }
