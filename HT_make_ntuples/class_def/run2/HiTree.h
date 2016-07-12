@@ -52,6 +52,9 @@ public :
    Int_t           hiNtracksEtaCut;
    Int_t           hiNtracksEtaPtCut;
 
+   Int_t           hiNevtPlane;
+   Float_t         hiEvtPlanes[29];   //[hiNevtPlane]
+
    // List of branches
    TBranch        *b_run;   //!
    TBranch        *b_evt;   //!
@@ -83,17 +86,20 @@ public :
    TBranch        *b_hiNtracksEtaCut;   //!
    TBranch        *b_hiNtracksEtaPtCut;   //!
 
-   HiTree(TTree *tree=0);
+   TBranch        *b_hiNevtPlane;   //!
+   TBranch        *b_hiEvtPlanes;   //!
+
+   HiTree(TTree *tree=0, bool ispp);
    virtual ~HiTree();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
-   virtual void     Init(TTree *tree);
+   virtual void     Init(TTree *tree, bool ispp);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
 
-HiTree::HiTree(TTree *tree) : fChain(0) 
+HiTree::HiTree(TTree *tree, bool ispp) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -106,7 +112,7 @@ HiTree::HiTree(TTree *tree) : fChain(0)
       dir->GetObject("HiTree",tree);
 
    }
-   Init(tree);
+   Init(tree, ispp);
 }
 
 HiTree::~HiTree()
@@ -134,7 +140,7 @@ Long64_t HiTree::LoadTree(Long64_t entry)
    return centry;
 }
 
-void HiTree::Init(TTree *tree)
+void HiTree::Init(TTree *tree, bool ispp)
 {
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch
@@ -179,6 +185,11 @@ void HiTree::Init(TTree *tree)
    fChain->SetBranchAddress("hiNtracksPtCut", &hiNtracksPtCut, &b_hiNtracksPtCut);
    fChain->SetBranchAddress("hiNtracksEtaCut", &hiNtracksEtaCut, &b_hiNtracksEtaCut);
    fChain->SetBranchAddress("hiNtracksEtaPtCut", &hiNtracksEtaPtCut, &b_hiNtracksEtaPtCut);
+
+   if(!ispp){
+      fChain->SetBranchAddress("hiNevtPlane", &hiNevtPlane, &b_hiNevtPlane);
+      fChain->SetBranchAddress("hiEvtPlanes", hiEvtPlanes, &b_hiEvtPlanes);
+   }
    Notify();
 }
 

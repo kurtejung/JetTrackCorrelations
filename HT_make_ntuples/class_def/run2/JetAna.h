@@ -25,91 +25,96 @@ public :
    Int_t           evt;
    Float_t         b;
    Int_t           nref;
-   Float_t         rawpt[11];   //[nref]
-   Float_t         jtpt[11];   //[nref]
-   Float_t         jteta[11];   //[nref]
-   Float_t         jty[11];   //[nref]
-   Float_t         jtphi[11];   //[nref]
-   Float_t         jtpu[11];   //[nref]
-   Float_t         jtm[11];   //[nref]
-   Float_t         jtarea[11];   //[nref]
-   Float_t         jtPfCHF[11];   //[nref]
-   Float_t         jtPfNHF[11];   //[nref]
-   Float_t         jtPfCEF[11];   //[nref]
-   Float_t         jtPfNEF[11];   //[nref]
-   Float_t         jtPfMUF[11];   //[nref]
-   Int_t           jtPfCHM[11];   //[nref]
-   Int_t           jtPfNHM[11];   //[nref]
-   Int_t           jtPfCEM[11];   //[nref]
-   Int_t           jtPfNEM[11];   //[nref]
-   Int_t           jtPfMUM[11];   //[nref]
-   Float_t         jttau1[11];   //[nref]
-   Float_t         jttau2[11];   //[nref]
-   Float_t         jttau3[11];   //[nref]
-   Float_t         discr_jetID_cuts[11];   //[nref]
-   Float_t         discr_jetID_bdt[11];   //[nref]
-   Float_t         discr_fr01[11];   //[nref]
-   Float_t         trackMax[11];   //[nref]
-   Float_t         trackSum[11];   //[nref]
-   Int_t           trackN[11];   //[nref]
-   Float_t         trackHardSum[11];   //[nref]
-   Int_t           trackHardN[11];   //[nref]
-   Float_t         chargedMax[11];   //[nref]
-   Float_t         chargedSum[11];   //[nref]
-   Int_t           chargedN[11];   //[nref]
-   Float_t         chargedHardSum[11];   //[nref]
-   Int_t           chargedHardN[11];   //[nref]
-   Float_t         photonMax[11];   //[nref]
-   Float_t         photonSum[11];   //[nref]
-   Int_t           photonN[11];   //[nref]
-   Float_t         photonHardSum[11];   //[nref]
-   Int_t           photonHardN[11];   //[nref]
-   Float_t         neutralMax[11];   //[nref]
-   Float_t         neutralSum[11];   //[nref]
-   Int_t           neutralN[11];   //[nref]
-   Float_t         hcalSum[11];   //[nref]
-   Float_t         ecalSum[11];   //[nref]
-   Float_t         eMax[11];   //[nref]
-   Float_t         eSum[11];   //[nref]
-   Int_t           eN[11];   //[nref]
-   Float_t         muMax[11];   //[nref]
-   Float_t         muSum[11];   //[nref]
-   Int_t           muN[11];   //[nref]
-   Float_t         discr_ssvHighEff[11];   //[nref]
-   Float_t         discr_ssvHighPur[11];   //[nref]
-   Float_t         discr_csvV1[11];   //[nref]
-   Float_t         discr_csvV2[11];   //[nref]
-   Float_t         discr_muByIp3[11];   //[nref]
-   Float_t         discr_muByPt[11];   //[nref]
-   Float_t         discr_prob[11];   //[nref]
-   Float_t         discr_probb[11];   //[nref]
-   Float_t         discr_tcHighEff[11];   //[nref]
-   Float_t         discr_tcHighPur[11];   //[nref]
-   Float_t         ndiscr_ssvHighEff[11];   //[nref]
-   Float_t         ndiscr_ssvHighPur[11];   //[nref]
-   Float_t         ndiscr_csvV1[11];   //[nref]
-   Float_t         ndiscr_csvV2[11];   //[nref]
-   Float_t         ndiscr_muByPt[11];   //[nref]
-   Float_t         pdiscr_csvV1[11];   //[nref]
-   Float_t         pdiscr_csvV2[11];   //[nref]
-   Int_t           nsvtx[11];   //[nref]
-   Int_t           svtxntrk[11];   //[nref]
-   Float_t         svtxdl[11];   //[nref]
-   Float_t         svtxdls[11];   //[nref]
-   Float_t         svtxdl2d[11];   //[nref]
-   Float_t         svtxdls2d[11];   //[nref]
-   Float_t         svtxm[11];   //[nref]
-   Float_t         svtxpt[11];   //[nref]
-   Float_t         svtxmcorr[11];   //[nref]
-   Int_t           nIPtrk[11];   //[nref]
-   Int_t           nselIPtrk[11];   //[nref]
-   Float_t         mue[11];   //[nref]
-   Float_t         mupt[11];   //[nref]
-   Float_t         mueta[11];   //[nref]
-   Float_t         muphi[11];   //[nref]
-   Float_t         mudr[11];   //[nref]
-   Float_t         muptrel[11];   //[nref]
-   Int_t           muchg[11];   //[nref]
+   Float_t         rawpt[16];   //[nref]
+   Float_t         jtpt[16];   //[nref]
+   Float_t         jteta[16];   //[nref]
+   Float_t         jty[16];   //[nref]
+   Float_t         jtphi[16];   //[nref]
+   Float_t         jtpu[16];   //[nref]
+   Float_t         jtm[16];   //[nref]
+   Float_t         jtarea[16];   //[nref]
+   Float_t         jtPfCHF[16];   //[nref]
+   Float_t         jtPfNHF[16];   //[nref]
+   Float_t         jtPfCEF[16];   //[nref]
+   Float_t         jtPfNEF[16];   //[nref]
+   Float_t         jtPfMUF[16];   //[nref]
+   Int_t           jtPfCHM[16];   //[nref]
+   Int_t           jtPfNHM[16];   //[nref]
+   Int_t           jtPfCEM[16];   //[nref]
+   Int_t           jtPfNEM[16];   //[nref]
+   Int_t           jtPfMUM[16];   //[nref]
+   Float_t         jttau1[16];   //[nref]
+   Float_t         jttau2[16];   //[nref]
+   Float_t         jttau3[16];   //[nref]
+   Float_t         discr_jetID_cuts[16];   //[nref]
+   Float_t         discr_jetID_bdt[16];   //[nref]
+   Float_t         discr_fr01[16];   //[nref]
+   Float_t         trackMax[16];   //[nref]
+   Float_t         trackSum[16];   //[nref]
+   Int_t           trackN[16];   //[nref]
+   Float_t         trackHardSum[16];   //[nref]
+   Int_t           trackHardN[16];   //[nref]
+   Float_t         chargedMax[16];   //[nref]
+   Float_t         chargedSum[16];   //[nref]
+   Int_t           chargedN[16];   //[nref]
+   Float_t         chargedHardSum[16];   //[nref]
+   Int_t           chargedHardN[16];   //[nref]
+   Float_t         photonMax[16];   //[nref]
+   Float_t         photonSum[16];   //[nref]
+   Int_t           photonN[16];   //[nref]
+   Float_t         photonHardSum[16];   //[nref]
+   Int_t           photonHardN[16];   //[nref]
+   Float_t         neutralMax[16];   //[nref]
+   Float_t         neutralSum[16];   //[nref]
+   Int_t           neutralN[16];   //[nref]
+   Float_t         hcalSum[16];   //[nref]
+   Float_t         ecalSum[16];   //[nref]
+   Float_t         eMax[16];   //[nref]
+   Float_t         eSum[16];   //[nref]
+   Int_t           eN[16];   //[nref]
+   Float_t         muMax[16];   //[nref]
+   Float_t         muSum[16];   //[nref]
+   Int_t           muN[16];   //[nref]
+   Float_t         discr_ssvHighEff[16];   //[nref]
+   Float_t         discr_ssvHighPur[16];   //[nref]
+   Float_t         discr_csvV1[16];   //[nref]
+   Float_t         discr_csvV2[16];   //[nref]
+   Float_t         discr_muByIp3[16];   //[nref]
+   Float_t         discr_muByPt[16];   //[nref]
+   Float_t         discr_prob[16];   //[nref]
+   Float_t         discr_probb[16];   //[nref]
+   Float_t         discr_tcHighEff[16];   //[nref]
+   Float_t         discr_tcHighPur[16];   //[nref]
+   Float_t         ndiscr_ssvHighEff[16];   //[nref]
+   Float_t         ndiscr_ssvHighPur[16];   //[nref]
+   Float_t         ndiscr_csvV1[16];   //[nref]
+   Float_t         ndiscr_csvV2[16];   //[nref]
+   Float_t         ndiscr_muByPt[16];   //[nref]
+   Float_t         pdiscr_csvV1[16];   //[nref]
+   Float_t         pdiscr_csvV2[16];   //[nref]
+   Int_t           nsvtx[16];   //[nref]
+   Int_t           svtxntrk[16];   //[nref]
+   Float_t         svtxdl[16];   //[nref]
+   Float_t         svtxdls[16];   //[nref]
+   Float_t         svtxdl2d[16];   //[nref]
+   Float_t         svtxdls2d[16];   //[nref]
+   Float_t         svtxm[16];   //[nref]
+   Float_t         svtxpt[16];   //[nref]
+   Float_t         svtxmcorr[16];   //[nref]
+   Int_t           nIPtrk[16];   //[nref]
+   Int_t           nselIPtrk[16];   //[nref]
+   Float_t         mue[16];   //[nref]
+   Float_t         mupt[16];   //[nref]
+   Float_t         mueta[16];   //[nref]
+   Float_t         muphi[16];   //[nref]
+   Float_t         mudr[16];   //[nref]
+   Float_t         muptrel[16];   //[nref]
+   Int_t           muchg[16];   //[nref]
+
+   Float_t         discr_csvMva[16];   //[nref]
+   Float_t         discr_csvSimple[16];   //[nref]
+   Float_t         ndiscr_csvSimple[16];   //[nref]
+   Float_t         pdiscr_csvSimple[16];   //[nref]
 
    // List of branches
    TBranch        *b_evt;   //!
@@ -201,17 +206,22 @@ public :
    TBranch        *b_muptrel;   //!
    TBranch        *b_muchg;   //!
 
-   JetAna(TTree *tree=0);
+   TBranch        *b_discr_csvMva;   //!
+   TBranch        *b_discr_csvSimple;   //!
+   TBranch        *b_ndiscr_csvSimple;   //!
+   TBranch        *b_pdiscr_csvSimple;   //!
+
+   JetAna(TTree *tree=0, bool ispp);
    virtual ~JetAna();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
-   virtual void     Init(TTree *tree);
+   virtual void     Init(TTree *tree, bool ispp);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
 
-JetAna::JetAna(TTree *tree) : fChain(0) 
+JetAna::JetAna(TTree *tree, bool ispp) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -224,7 +234,7 @@ JetAna::JetAna(TTree *tree) : fChain(0)
       dir->GetObject("t",tree);
 
    }
-   Init(tree);
+   Init(tree, ispp);
 }
 
 JetAna::~JetAna()
@@ -252,7 +262,7 @@ Long64_t JetAna::LoadTree(Long64_t entry)
    return centry;
 }
 
-void JetAna::Init(TTree *tree)
+void JetAna::Init(TTree *tree, bool ispp)
 {
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch
@@ -279,19 +289,21 @@ void JetAna::Init(TTree *tree)
    fChain->SetBranchAddress("jtpu", jtpu, &b_jtpu);
    fChain->SetBranchAddress("jtm", jtm, &b_jtm);
    fChain->SetBranchAddress("jtarea", jtarea, &b_jtarea);
-   fChain->SetBranchAddress("jtPfCHF", jtPfCHF, &b_jtPfCHF);
-   fChain->SetBranchAddress("jtPfNHF", jtPfNHF, &b_jtPfNHF);
-   fChain->SetBranchAddress("jtPfCEF", jtPfCEF, &b_jtPfCEF);
-   fChain->SetBranchAddress("jtPfNEF", jtPfNEF, &b_jtPfNEF);
-   fChain->SetBranchAddress("jtPfMUF", jtPfMUF, &b_jtPfMUF);
-   fChain->SetBranchAddress("jtPfCHM", jtPfCHM, &b_jtPfCHM);
-   fChain->SetBranchAddress("jtPfNHM", jtPfNHM, &b_jtPfNHM);
-   fChain->SetBranchAddress("jtPfCEM", jtPfCEM, &b_jtPfCEM);
-   fChain->SetBranchAddress("jtPfNEM", jtPfNEM, &b_jtPfNEM);
-   fChain->SetBranchAddress("jtPfMUM", jtPfMUM, &b_jtPfMUM);
-   fChain->SetBranchAddress("jttau1", jttau1, &b_jttau1);
-   fChain->SetBranchAddress("jttau2", jttau2, &b_jttau2);
-   fChain->SetBranchAddress("jttau3", jttau3, &b_jttau3);
+   if(ispp){
+      fChain->SetBranchAddress("jtPfCHF", jtPfCHF, &b_jtPfCHF);
+      fChain->SetBranchAddress("jtPfNHF", jtPfNHF, &b_jtPfNHF);
+      fChain->SetBranchAddress("jtPfCEF", jtPfCEF, &b_jtPfCEF);
+      fChain->SetBranchAddress("jtPfNEF", jtPfNEF, &b_jtPfNEF);
+      fChain->SetBranchAddress("jtPfMUF", jtPfMUF, &b_jtPfMUF);
+      fChain->SetBranchAddress("jtPfCHM", jtPfCHM, &b_jtPfCHM);
+      fChain->SetBranchAddress("jtPfNHM", jtPfNHM, &b_jtPfNHM);
+      fChain->SetBranchAddress("jtPfCEM", jtPfCEM, &b_jtPfCEM);
+      fChain->SetBranchAddress("jtPfNEM", jtPfNEM, &b_jtPfNEM);
+      fChain->SetBranchAddress("jtPfMUM", jtPfMUM, &b_jtPfMUM);
+      fChain->SetBranchAddress("jttau1", jttau1, &b_jttau1);
+      fChain->SetBranchAddress("jttau2", jttau2, &b_jttau2);
+      fChain->SetBranchAddress("jttau3", jttau3, &b_jttau3);
+   }
    fChain->SetBranchAddress("discr_jetID_cuts", discr_jetID_cuts, &b_discr_jetID_cuts);
    fChain->SetBranchAddress("discr_jetID_bdt", discr_jetID_bdt, &b_discr_jetID_bdt);
    fChain->SetBranchAddress("discr_fr01", discr_fr01, &b_discr_fr01);
@@ -323,8 +335,12 @@ void JetAna::Init(TTree *tree)
    fChain->SetBranchAddress("muN", muN, &b_muN);
    fChain->SetBranchAddress("discr_ssvHighEff", discr_ssvHighEff, &b_discr_ssvHighEff);
    fChain->SetBranchAddress("discr_ssvHighPur", discr_ssvHighPur, &b_discr_ssvHighPur);
-   fChain->SetBranchAddress("discr_csvV1", discr_csvV1, &b_discr_csvV1);
-   fChain->SetBranchAddress("discr_csvV2", discr_csvV2, &b_discr_csvV2);
+   if(ispp) fChain->SetBranchAddress("discr_csvV1", discr_csvV1, &b_discr_csvV1);
+   if(ispp) fChain->SetBranchAddress("discr_csvV2", discr_csvV2, &b_discr_csvV2);
+   else{
+      fChain->SetBranchAddress("discr_csvMva", discr_csvMva, &b_discr_csvMva);
+      fChain->SetBranchAddress("discr_csvSimple", discr_csvSimple, &b_discr_csvSimple);
+   }
    fChain->SetBranchAddress("discr_muByIp3", discr_muByIp3, &b_discr_muByIp3);
    fChain->SetBranchAddress("discr_muByPt", discr_muByPt, &b_discr_muByPt);
    fChain->SetBranchAddress("discr_prob", discr_prob, &b_discr_prob);
@@ -333,11 +349,13 @@ void JetAna::Init(TTree *tree)
    fChain->SetBranchAddress("discr_tcHighPur", discr_tcHighPur, &b_discr_tcHighPur);
    fChain->SetBranchAddress("ndiscr_ssvHighEff", ndiscr_ssvHighEff, &b_ndiscr_ssvHighEff);
    fChain->SetBranchAddress("ndiscr_ssvHighPur", ndiscr_ssvHighPur, &b_ndiscr_ssvHighPur);
-   fChain->SetBranchAddress("ndiscr_csvV1", ndiscr_csvV1, &b_ndiscr_csvV1);
-   fChain->SetBranchAddress("ndiscr_csvV2", ndiscr_csvV2, &b_ndiscr_csvV2);
+   if(ispp) fChain->SetBranchAddress("ndiscr_csvV1", ndiscr_csvV1, &b_ndiscr_csvV1);
+   if(ispp) fChain->SetBranchAddress("ndiscr_csvV2", ndiscr_csvV2, &b_ndiscr_csvV2);
+   else fChain->SetBranchAddress("ndiscr_csvSimple", ndiscr_csvSimple, &b_ndiscr_csvSimple);
    fChain->SetBranchAddress("ndiscr_muByPt", ndiscr_muByPt, &b_ndiscr_muByPt);
-   fChain->SetBranchAddress("pdiscr_csvV1", pdiscr_csvV1, &b_pdiscr_csvV1);
-   fChain->SetBranchAddress("pdiscr_csvV2", pdiscr_csvV2, &b_pdiscr_csvV2);
+   if(ispp) fChain->SetBranchAddress("pdiscr_csvV1", pdiscr_csvV1, &b_pdiscr_csvV1);
+   if(ispp) fChain->SetBranchAddress("pdiscr_csvV2", pdiscr_csvV2, &b_pdiscr_csvV2);
+   else fChain->SetBranchAddress("pdiscr_csvSimple", pdiscr_csvSimple, &b_pdiscr_csvSimple);
    fChain->SetBranchAddress("nsvtx", nsvtx, &b_nsvtx);
    fChain->SetBranchAddress("svtxntrk", svtxntrk, &b_svtxntrk);
    fChain->SetBranchAddress("svtxdl", svtxdl, &b_svtxdl);

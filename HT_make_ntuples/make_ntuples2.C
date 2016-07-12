@@ -7,13 +7,13 @@
 #include "TH2D.h"
 #include "TF1.h"
 
-#include "class_def/run2_pp/JetAna.h"
-#include "class_def/run2_pp/Tracks.h"
-#include "class_def/run2_pp/HLT.h"
-#include "class_def/run2_pp/HiTree.h"
-#include "class_def/run2_pp/Skim.h"
+#include "class_def/run2/JetAna.h"
+#include "class_def/run2/Tracks.h"
+#include "class_def/run2/HLT.h"
+#include "class_def/run2/HiTree.h"
+#include "class_def/run2/Skim.h"
 #include "class_def/GenParticles.h"
-#include "class_def/run2_pp/pfcand.h"
+#include "class_def/run2/pfcand.h"
 
 #include "TH2F.h"
 #include "TMath.h"
@@ -65,7 +65,7 @@ void make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
 
   double corrected_pt, residual_corrected_pt, r;
 
-  float radius = 4;
+  int radius = 4;
   bool do_PbPb = 0;
   bool do_pp_tracking = 1;
   bool do_residual_correction = kTRUE; 
@@ -200,10 +200,8 @@ void make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
 
   Int_t pHBHENoiseFilter = -999;
   Int_t pcollisionEventSelection = -999;
-  Int_t HLT_HIJet80_v1 = -999;
-  Int_t HLT_HIJet80_v7 = -999;
+  Int_t HLT_Jet80 = -999;
   Int_t pPAcollisionEventSelectionPA = -999;
-  Int_t HLT_PAJet80_NoJetID_v1 = -999;
   Int_t hiBin = -999;
   Float_t pthat = -999;
 
@@ -218,10 +216,8 @@ void make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
   mixing_tree->Branch("vz", "vector<Float_t>", &vz);
   mixing_tree->Branch("pHBHENoiseFilter", &pHBHENoiseFilter, "pHBHENoiseFilter/I");
   mixing_tree->Branch("pcollisionEventSelection", &pcollisionEventSelection, "pcollisionEventSelection/I");
-  mixing_tree->Branch("HLT_HIJet80_v1", &HLT_HIJet80_v1, "HLT_HIJet80_v1/I");
-  mixing_tree->Branch("HLT_HIJet80_v7", &HLT_HIJet80_v7, "HLT_HIJet80_v7/I");
+  mixing_tree->Branch("HLT_Jet80", &HLT_Jet80, "HLT_Jet80/I");
   mixing_tree->Branch("pPAcollisionEventSelectionPA", &pPAcollisionEventSelectionPA, "pPAcollisionEventSelectionPA/I");
-  mixing_tree->Branch("HLT_PAJet80_NoJetID_v1", &HLT_PAJet80_NoJetID_v1, "HLT_PAJet80_NoJetID_v1/I");
 
   mixing_tree->Branch("hiBin", &hiBin, "hiBin/I");
 
@@ -292,34 +288,34 @@ void make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
     }    
 
     if(do_PbPb){
-      inp_tree = (TTree*)  my_file->Get("akVs3CaloJetAnalyzer/t");
+      inp_tree = (TTree*)  my_file->Get(Form("akPu%dCaloJetAnalyzer/t",radius));
     }else{
-      inp_tree = (TTree*)  my_file->Get("ak4CaloJetAnalyzer/t");
+      inp_tree = (TTree*)  my_file->Get(Form("ak%dCaloJetAnalyzer/t",radius));
     }
 
-    JetAna *my_ct = new JetAna(inp_tree);
+    JetAna *my_ct = new JetAna(inp_tree, !do_PbPb);
 
     inp_tree2 = (TTree*)  my_file->Get("pfcandAnalyzer/pfTree");
-    pfcand *my_ct2 = new pfcand(inp_tree2);
+    pfcand *my_ct2 = new pfcand(inp_tree2, !do_PbPb);
 
     inp_tree3 = (TTree*) my_file->Get("hiEvtAnalyzer/HiTree");
-    HiTree *my_ct3 = new HiTree(inp_tree3);
+    HiTree *my_ct3 = new HiTree(inp_tree3, !do_PbPb);
 
     inp_tree4 = (TTree*) my_file->Get("skimanalysis/HltTree");
-    Skim *my_ct4   = new Skim(inp_tree4);
+    Skim *my_ct4   = new Skim(inp_tree4, !do_PbPb);
 
     Tracks *my_ct5;
     if(do_PbPb){
       inp_tree5 = (TTree*) my_file->Get("anaTrack/trackTree");
-      my_ct5 = new Tracks(inp_tree5);
+      my_ct5 = new Tracks(inp_tree5, !do_PbPb);
     }else{
       inp_tree5 = (TTree*) my_file->Get("ppTrack/trackTree");
-      my_ct5 = new Tracks(inp_tree5);
+      my_ct5 = new Tracks(inp_tree5, !do_PbPb);
     }
 
 
     inp_tree6 = (TTree*) my_file->Get("hltanalysis/HltTree");
-    HLT *my_ct6 = new HLT(inp_tree6);
+    HLT *my_ct6 = new HLT(inp_tree6, !do_PbPb);
 
     GenParticles *my_ct7;
 
@@ -524,11 +520,16 @@ void make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
 
 
 pHBHENoiseFilter = my_ct4->HBHENoiseFilterResultRun2Loose;
-pcollisionEventSelection = (my_ct4->pPAprimaryVertexFilter && my_ct4->HBHENoiseFilterResult);
-pPAcollisionEventSelectionPA = (my_ct4->pPAprimaryVertexFilter && my_ct4->HBHENoiseFilterResult);
-if(do_PbPb) HLT_HIJet80_v1 = my_ct6->HLT_AK4PFJet80_Eta5p1_v1;
-if(do_PbPb) HLT_HIJet80_v7 = my_ct6->HLT_AK4PFJet80_Eta5p1_v1;
-if(!do_PbPb) HLT_PAJet80_NoJetID_v1 = my_ct6->HLT_AK4PFJet80_Eta5p1_v1;
+
+if(!do_PbPb){
+  pcollisionEventSelection = (my_ct4->pPAprimaryVertexFilter && my_ct4->HBHENoiseFilterResult);
+  pPAcollisionEventSelectionPA = (my_ct4->pPAprimaryVertexFilter && my_ct4->HBHENoiseFilterResult);
+}
+else{
+  pcollisionEventSelection = (my_ct4->pcollisionEventSelection && my_ct4->HBHENoiseFilterResult);
+}
+if(do_PbPb) HLT_Jet80 = my_ct6->HLT_HIPuAK4CaloJet80_Eta5p1_v1;
+if(!do_PbPb) HLT_Jet80 = my_ct6->HLT_AK4PFJet80_Eta5p1_v1;
 
 hiBin = my_ct3->hiBin;
 vz->push_back(my_ct3->vz);

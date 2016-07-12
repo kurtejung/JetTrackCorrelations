@@ -19,8 +19,6 @@ public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
-// Fixed size dimensions of array or collections stored in the TTree if any.
-
    // Declaration of leaf types
    Int_t           nEv;
    Int_t           nLumi;
@@ -50,37 +48,37 @@ public :
    Float_t         xVtxSim[1];   //[nVtxSim]
    Float_t         yVtxSim[1];   //[nVtxSim]
    Float_t         zVtxSim[1];   //[nVtxSim]
-   Float_t         trkPt[249];   //[nTrk]
-   Float_t         trkPtError[249];   //[nTrk]
-   UChar_t         trkNHit[249];   //[nTrk]
-   UChar_t         trkNlayer[249];   //[nTrk]
-   Float_t         trkEta[249];   //[nTrk]
-   Float_t         trkPhi[249];   //[nTrk]
-   Int_t           trkCharge[249];   //[nTrk]
-   UChar_t         trkNVtx[249];   //[nTrk]
+   Float_t         trkPt[20000];   //[nTrk]
+   Float_t         trkPtError[20000];   //[nTrk]
+   UChar_t         trkNHit[20000];   //[nTrk]
+   UChar_t         trkNlayer[20000];   //[nTrk]
+   Float_t         trkEta[20000];   //[nTrk]
+   Float_t         trkPhi[20000];   //[nTrk]
+   Int_t           trkCharge[20000];   //[nTrk]
+   UChar_t         trkNVtx[20000];   //[nTrk]
    Int_t           nTrkTimesnVtx;
    Bool_t          trkAssocVtx[1470];   //[nTrkTimesnVtx]
    Float_t         trkDxyOverDxyError[1470];   //[nTrkTimesnVtx]
    Float_t         trkDzOverDzError[1470];   //[nTrkTimesnVtx]
-   Bool_t          highPurity[249];   //[nTrk]
-   Bool_t          tight[249];   //[nTrk]
-   Bool_t          loose[249];   //[nTrk]
-   Float_t         trkChi2[249];   //[nTrk]
-   UChar_t         trkNdof[249];   //[nTrk]
-   Float_t         trkDxy1[249];   //[nTrk]
-   Float_t         trkDxyError1[249];   //[nTrk]
-   Float_t         trkDz1[249];   //[nTrk]
-   Float_t         trkDzError1[249];   //[nTrk]
-   Bool_t          trkFake[249];   //[nTrk]
-   UChar_t         trkAlgo[249];   //[nTrk]
-   UChar_t         trkOriginalAlgo[249];   //[nTrk]
-   Float_t         trkMVA[249];   //[nTrk]
-   Bool_t          trkMVALoose[249];   //[nTrk]
-   Bool_t          trkMVATight[249];   //[nTrk]
-   Int_t           pfType[249];   //[nTrk]
-   Float_t         pfCandPt[249];   //[nTrk]
-   Float_t         pfEcal[249];   //[nTrk]
-   Float_t         pfHcal[249];   //[nTrk]
+   Bool_t          highPurity[20000];   //[nTrk]
+   Bool_t          tight[20000];   //[nTrk]
+   Bool_t          loose[20000];   //[nTrk]
+   Float_t         trkChi2[20000];   //[nTrk]
+   UChar_t         trkNdof[20000];   //[nTrk]
+   Float_t         trkDxy1[20000];   //[nTrk]
+   Float_t         trkDxyError1[20000];   //[nTrk]
+   Float_t         trkDz1[20000];   //[nTrk]
+   Float_t         trkDzError1[20000];   //[nTrk]
+   Bool_t          trkFake[20000];   //[nTrk]
+   UChar_t         trkAlgo[20000];   //[nTrk]
+   UChar_t         trkOriginalAlgo[20000];   //[nTrk]
+   Float_t         trkMVA[20000];   //[nTrk]
+   Bool_t          trkMVALoose[20000];   //[nTrk]
+   Bool_t          trkMVATight[20000];   //[nTrk]
+   Int_t           pfType[20000];   //[nTrk]
+   Float_t         pfCandPt[20000];   //[nTrk]
+   Float_t         pfEcal[20000];   //[nTrk]
+   Float_t         pfHcal[20000];   //[nTrk]
 
    // List of branches
    TBranch        *b_nEv;   //!
@@ -143,17 +141,17 @@ public :
    TBranch        *b_pfEcal;   //!
    TBranch        *b_pfHcal;   //!
 
-   Tracks(TTree *tree=0);
+   Tracks(TTree *tree=0, bool ispp);
    virtual ~Tracks();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
-   virtual void     Init(TTree *tree);
+   virtual void     Init(TTree *tree, bool ispp);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
 
-Tracks::Tracks(TTree *tree) : fChain(0) 
+Tracks::Tracks(TTree *tree, bool ispp) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -194,7 +192,7 @@ Long64_t Tracks::LoadTree(Long64_t entry)
    return centry;
 }
 
-void Tracks::Init(TTree *tree)
+void Tracks::Init(TTree *tree, bool ispp)
 {
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch
@@ -263,7 +261,7 @@ void Tracks::Init(TTree *tree)
    fChain->SetBranchAddress("trkAlgo", trkAlgo, &b_trkAlgo);
    fChain->SetBranchAddress("trkOriginalAlgo", trkOriginalAlgo, &b_trkOriginalAlgo);
    fChain->SetBranchAddress("trkMVA", trkMVA, &b_trkMVA);
-   fChain->SetBranchAddress("trkMVALoose", trkMVALoose, &b_trkMVALoose);
+   if(ispp) fChain->SetBranchAddress("trkMVALoose", trkMVALoose, &b_trkMVALoose);
    fChain->SetBranchAddress("trkMVATight", trkMVATight, &b_trkMVATight);
    fChain->SetBranchAddress("pfType", pfType, &b_pfType);
    fChain->SetBranchAddress("pfCandPt", pfCandPt, &b_pfCandPt);

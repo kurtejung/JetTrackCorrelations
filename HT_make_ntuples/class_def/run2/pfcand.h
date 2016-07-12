@@ -47,17 +47,17 @@ public :
    TBranch        *b_vpsi;   //!
    TBranch        *b_sumpt;   //!
 
-   pfcand(TTree *tree=0);
+   pfcand(TTree *tree=0, bool ispp);
    virtual ~pfcand();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
-   virtual void     Init(TTree *tree);
+   virtual void     Init(TTree *tree, bool ispp);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
 
-pfcand::pfcand(TTree *tree) : fChain(0) 
+pfcand::pfcand(TTree *tree, bool ispp) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -98,7 +98,7 @@ Long64_t pfcand::LoadTree(Long64_t entry)
    return centry;
 }
 
-void pfcand::Init(TTree *tree)
+void pfcand::Init(TTree *tree, bool ispp)
 {
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch
@@ -131,6 +131,8 @@ void pfcand::Init(TTree *tree)
    fChain->SetBranchAddress("vn", vn, &b_vn);
    fChain->SetBranchAddress("psin", psin, &b_vpsi);
    fChain->SetBranchAddress("sumpt", sumpt, &b_sumpt);
+
+   ispp = 0; //dummy variable for now - might be used in the future
    Notify();
 }
 
