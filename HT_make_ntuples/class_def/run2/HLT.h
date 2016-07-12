@@ -1031,7 +1031,7 @@ public :
    TBranch        *b_HLT_HIPuAK4CaloBJetSSV80_Eta2p1_v1;   //!
    TBranch        *b_HLT_HIPuAK4CaloBJetSSV80_Eta2p1_v1_Prescl;   //!
 
-   HLT(TTree *tree=0, bool ispp);
+   HLT(TTree *tree=0, bool ispp=0);
    virtual ~HLT();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);

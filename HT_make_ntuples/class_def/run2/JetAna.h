@@ -211,7 +211,7 @@ public :
    TBranch        *b_ndiscr_csvSimple;   //!
    TBranch        *b_pdiscr_csvSimple;   //!
 
-   JetAna(TTree *tree=0, bool ispp);
+   JetAna(TTree *tree=0, bool ispp=0);
    virtual ~JetAna();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -303,9 +303,9 @@ void JetAna::Init(TTree *tree, bool ispp)
       fChain->SetBranchAddress("jttau1", jttau1, &b_jttau1);
       fChain->SetBranchAddress("jttau2", jttau2, &b_jttau2);
       fChain->SetBranchAddress("jttau3", jttau3, &b_jttau3);
+      fChain->SetBranchAddress("discr_jetID_cuts", discr_jetID_cuts, &b_discr_jetID_cuts);
+      fChain->SetBranchAddress("discr_jetID_bdt", discr_jetID_bdt, &b_discr_jetID_bdt);
    }
-   fChain->SetBranchAddress("discr_jetID_cuts", discr_jetID_cuts, &b_discr_jetID_cuts);
-   fChain->SetBranchAddress("discr_jetID_bdt", discr_jetID_bdt, &b_discr_jetID_bdt);
    fChain->SetBranchAddress("discr_fr01", discr_fr01, &b_discr_fr01);
    fChain->SetBranchAddress("trackMax", trackMax, &b_trackMax);
    fChain->SetBranchAddress("trackSum", trackSum, &b_trackSum);

@@ -89,7 +89,7 @@ public :
    TBranch        *b_hiNevtPlane;   //!
    TBranch        *b_hiEvtPlanes;   //!
 
-   HiTree(TTree *tree=0, bool ispp);
+   HiTree(TTree *tree=0, bool ispp=0);
    virtual ~HiTree();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);

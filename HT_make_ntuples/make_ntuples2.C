@@ -32,9 +32,6 @@
 using namespace std;
 
 
-
-//arg 1 = which data set, arg 2 = output file number
-
 enum enum_dataset_types {e_Data2011,e_Data_pp,e_HydJet15,e_HydJet30,e_HydJet50, e_HydJet80, e_HydJet120,e_HydJet170,e_HydJet220,e_HydJet280, e_HydJet370,e_Pythia15,e_Pythia30,e_Pythia50, e_Pythia80, e_Pythia120,e_Pythia170,e_Pythia220,e_Pythia280, e_Pythia370, e_n_dataset_types};
 TString dataset_type_strs[e_n_dataset_types] = {"Data2011","Data_pp","HydJet15","HydJet30","HydJet50","HydJet80", "HydJet120", "HydJet170","HydJet220","HydJet280","HydJet370","Pythia15","Pythia30","Pythia50","Pythia80", "Pythia120", "Pythia170","Pythia220","Pythia280","Pythia370"};
 
@@ -42,20 +39,18 @@ int dataset_pthats[e_n_dataset_types+1] = {0,0,15,30,50,80,120,170,220,280,370,1
 
 int dataset_type_code = -999;
 
-void make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
+//arg 1 = which data set, arg 2 = output file number
+void make_ntuples2(int endfile = 1, int dataset_type_code = 0 , int output_file_num = 1)
 {
-
-  dataset_type_code = datasetTypeCode;
 
   bool is_data = false;
   
-  if(dataset_type_code == e_Data2011 || dataset_type_code == e_Data_pp) is_data = true;
+  if(dataset_type_code == 0 || dataset_type_code == 1) is_data = true;
+
+  cout << "dataset code: " << dataset_type_code << endl;
 
 
   // assert(!is_data); //for now I'm interested in MC
-
-  int output_file_num = outFileNum;
-
 
   //-----------------------------
   // Set JFF-dependent corrections
@@ -64,16 +59,15 @@ void make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
   float reco_eta, reco_phi, reco_pt, pfPt_temp, pfEta_temp, pfPhi_temp, pfId_temp, pfVsPt_temp;
 
   double corrected_pt, residual_corrected_pt, r;
+  bool do_PbPb=1, do_pp_tracking=0;
 
   int radius = 4;
-  bool do_PbPb = 0;
-  bool do_pp_tracking = 1;
   bool do_residual_correction = kTRUE; 
   int nstep_residual = 3; 
   double Pf_pt_cut = 2;
   bool doFFCorrection = false;
 
-  if(dataset_type_code==e_Data_pp ||dataset_type_code > 10){do_PbPb = 0;   do_pp_tracking = 1;}
+  if(dataset_type_code== 1 || dataset_type_code > 10){do_PbPb = 0;   do_pp_tracking = 1;}
 
   cout<<"do_PbPb = "<<do_PbPb<<endl;
   cout<<"do_pp_tracking = "<<do_pp_tracking<<endl;
@@ -108,7 +102,7 @@ void make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
   if(is_data&&!do_PbPb){
     in_file_name = "HiForest_pp5TeV_eosDataset.txt";
   }else if(is_data&&do_PbPb){
-    in_file_name = "/data/mzakaria/PbPbForest_MatchEqR_Calo_HIHighPt_HIRun2011-14Mar2014-v4.root";
+    in_file_name = "PbPbForest_HiRun2015_MITForest.txt";
   }else if(dataset_type_code > 10){
     in_file_name = "/data/htrauger/Pythia_HiForest/HiForest_PYTHIA_pthat";
     in_file_name+=dataset_pthats[dataset_type_code];
@@ -127,12 +121,12 @@ void make_ntuples2(int endfile = 1, int datasetTypeCode = 1, int outFileNum = 1)
 
   if(is_data && !do_PbPb){
     output_file_base= "./";
+  }else if(is_data&&do_PbPb){
+    output_file_base= "./PbPb_data/";
   }else if(dataset_type_code > 1 &&dataset_type_code < 11){
     output_file_base= "/data/htrauger/OfficialHydjet_6_10/";
   }else if(dataset_type_code > 10){
     output_file_base= "/data/htrauger/OfficialPythia_6_24/";
-  }else if(is_data&&do_PbPb){
-    output_file_base= "/data/htrauger/PbPb_6_12/";
   }else{
     cerr<<"nope, we can't handle that data set"<<endl;
     exit(0);

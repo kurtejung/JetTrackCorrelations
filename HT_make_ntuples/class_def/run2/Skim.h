@@ -74,7 +74,7 @@ public :
    TBranch        *b_pclusterCompatibilityFilter;   //!
 
 
-   Skim(TTree *tree=0, bool ispp);
+   Skim(TTree *tree=0, bool ispp=0);
    virtual ~Skim();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -97,7 +97,7 @@ Skim::Skim(TTree *tree, bool ispp) : fChain(0)
       dir->GetObject("HltTree",tree);
 
    }
-   Init(tree);
+   Init(tree, ispp);
 }
 
 Skim::~Skim()

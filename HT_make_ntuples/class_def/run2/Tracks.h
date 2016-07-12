@@ -141,7 +141,7 @@ public :
    TBranch        *b_pfEcal;   //!
    TBranch        *b_pfHcal;   //!
 
-   Tracks(TTree *tree=0, bool ispp);
+   Tracks(TTree *tree=0, bool ispp=0);
    virtual ~Tracks();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -164,7 +164,7 @@ Tracks::Tracks(TTree *tree, bool ispp) : fChain(0)
       dir->GetObject("trackTree",tree);
 
    }
-   Init(tree);
+   Init(tree, ispp);
 }
 
 Tracks::~Tracks()

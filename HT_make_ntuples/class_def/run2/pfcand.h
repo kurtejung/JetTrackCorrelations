@@ -47,7 +47,7 @@ public :
    TBranch        *b_vpsi;   //!
    TBranch        *b_sumpt;   //!
 
-   pfcand(TTree *tree=0, bool ispp);
+   pfcand(TTree *tree=0, bool ispp=0);
    virtual ~pfcand();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -70,7 +70,7 @@ pfcand::pfcand(TTree *tree, bool ispp) : fChain(0)
       dir->GetObject("pfTree",tree);
 
    }
-   Init(tree);
+   Init(tree, ispp);
 }
 
 pfcand::~pfcand()
