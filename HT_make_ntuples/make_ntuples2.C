@@ -134,14 +134,14 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	//output_file_extension += output_file_num;   
 	output_file_extension += ".root";
 	TFile *output_file = new TFile((TString) (output_file_base+output_file_extension), "RECREATE");
-	
-
 	TTree *mixing_tree = new TTree("mixing_tree", "");
 
-	vector<float> trkEta, trkPhi, trkPt, trkAlgo, highPurity, jteta, jtphi, jtpt, corrpt;
+	vector<float> trkEta, trkPhi, trkPt, jteta, jtphi, jtpt, corrpt;
+	vector<UChar_t> trkAlgo;
+	vector<bool> highPurity;
 	vector<float> trackMax, trkDxy1, trkDxyError1, trkDz1, trkDzError1, trkPtError;
-	vector<int> pfId;
-	vector<float> pfPt, pfVsPt, pfEta, pfPhi, pfVsPtInitial, sumpt;
+	vector<int> *pfId=0;
+	vector<float> *pfPt=0, *pfEta=0, *pfPhi=0, *pfVsPtInitial=0;
 	vector<int> sube, chg;
 	vector<float> pt, phi, eta, pPt, pPhi, pEta, geneta, genphi, genpt;
 	vector<float> discr_ssvHighEff, discr_ssvHighPur, discr_csvV1, discr_prob, svtxm, svtxpt, svtxmcorr, svtxdl, svtxdls;
@@ -152,23 +152,23 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	Int_t pPAcollisionEventSelectionPA = -999;
 	Int_t hiBin = -999;
 	Float_t pthat = -999;
-	float vz = -999;
+	Float_t vz = -999, sumpt[15];
 
 	/// higenparticles
 
 	//mixing_tree->Branch("nTrk", &nTrk, "nTrk/I");
+	mixing_tree->Branch("trkPt", "vector<Float_t>", &trkPt);
 	mixing_tree->Branch("trkEta", "vector<Float_t>", &trkEta);
 	mixing_tree->Branch("trkPhi", "vector<Float_t>", &trkPhi);
-	mixing_tree->Branch("trkPt", "vector<Float_t>", &trkPt);
-	mixing_tree->Branch("trkAlgo", "vector<Float_t>", &trkAlgo);
-	mixing_tree->Branch("highPurity", "vector<Float_t>", &highPurity);
-	mixing_tree->Branch("vz", "Float_t", &vz);
+	mixing_tree->Branch("trkAlgo", "vector<UChar_t>", &trkAlgo);
+	mixing_tree->Branch("highPurity", "vector<Bool_t>", &highPurity);
+	mixing_tree->Branch("vz", &vz);
 	//mixing_tree->Branch("pHBHENoiseFilter", &pHBHENoiseFilter, "pHBHENoiseFilter/I");
 	//mixing_tree->Branch("pcollisionEventSelection", &pcollisionEventSelection, "pcollisionEventSelection/I");
 	//mixing_tree->Branch("HLT_Jet80", &HLT_Jet80, "HLT_Jet80/I");
 	//mixing_tree->Branch("pPAcollisionEventSelectionPA", &pPAcollisionEventSelectionPA, "pPAcollisionEventSelectionPA/I");
 
-	mixing_tree->Branch("hiBin", &hiBin, "hiBin/I");
+	mixing_tree->Branch("hiBin", &hiBin);
 
 	mixing_tree->Branch("jteta", "vector<Float_t>", &jteta);
 	mixing_tree->Branch("jtphi", "vector<Float_t>", &jtphi);
@@ -205,10 +205,10 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	//mixing_tree->Branch("nPFpart", &nPFpart, "nPFpart/I");
 	mixing_tree->Branch("pfId", "vector<Int_t>", &pfId);
 	mixing_tree->Branch("pfPt", "vector<Float_t>", &pfPt);
-	mixing_tree->Branch("pfVsPt", "vector<Float_t>", &pfVsPt);
+	mixing_tree->Branch("pfVsPtInitial", "vector<Float_t>", &pfVsPtInitial);
 	mixing_tree->Branch("pfEta", "vector<Float_t>", &pfEta);
 	mixing_tree->Branch("pfPhi", "vector<Float_t>", &pfPhi);
-	mixing_tree->Branch("sumpt", "vector<Float_t>", &sumpt);
+	mixing_tree->Branch("sumpt", sumpt);
 
 	//adding b-jet stuff....
 	mixing_tree->Branch("discr_ssvHighEff","vector<Float_t>", &discr_ssvHighEff);
@@ -227,14 +227,16 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	std::string filename;
 	int ifile=0;
 
-	const int MAXJETS = 20;
+	const int MAXJETS = 100;
 	Float_t t_jtpt[MAXJETS], t_jteta[MAXJETS], t_jtphi[MAXJETS], t_discr_ssvHighEff[MAXJETS], t_discr_ssvHighPur[MAXJETS], t_discr_csvV1[MAXJETS], t_discr_prob[MAXJETS], t_svtxm[MAXJETS], t_svtxpt[MAXJETS], t_svtxmcorr[MAXJETS], t_svtxdl[MAXJETS], t_svtxdls[MAXJETS];
 
-	const int MAXPARTICLES = 30000;
-	Float_t t_trkPt[MAXPARTICLES], t_trkEta[MAXPARTICLES], t_trkPhi[MAXPARTICLES], t_trkAlgo[MAXPARTICLES], t_highPurity[MAXPARTICLES], t_trkDxy1[MAXPARTICLES], t_trkDxyError1[MAXPARTICLES], t_trkDz1[MAXPARTICLES], t_trkDzError1[MAXPARTICLES], t_trkPtError[MAXPARTICLES], t_trackMax[MAXPARTICLES];
+	const int MAXPARTICLES = 25000;
+	Float_t t_trkPt[MAXPARTICLES], t_trkEta[MAXPARTICLES], t_trkPhi[MAXPARTICLES], t_trkDxy1[MAXPARTICLES], t_trkDxyError1[MAXPARTICLES], t_trkDz1[MAXPARTICLES], t_trkDzError1[MAXPARTICLES], t_trkPtError[MAXPARTICLES], t_trackMax[MAXPARTICLES];
+	UChar_t t_trkAlgo[MAXPARTICLES];
+	Bool_t t_highPurity[MAXPARTICLES];
 
 	Int_t nTrk, nref;
-	bool HBHENoiseFilter, eventSelection, pvFilter;
+	Int_t HBHENoiseFilter, eventSelection, pvFilter;
 
 	while(instr>>filename && ifile<endfile){
 		filename.erase(std::remove(filename.begin(), filename.end(), '"'), filename.end());
@@ -317,7 +319,6 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 		inp_tree->SetBranchAddress("jteta",t_jteta);
 		inp_tree->SetBranchAddress("jtphi",t_jtphi);
 
-		inp_tree->SetBranchAddress("ntrk",&nTrk);
 		inp_tree->SetBranchAddress("trackMax",t_trackMax);
 
 		inp_tree->SetBranchAddress("nTrk",&nTrk);
@@ -329,11 +330,10 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 
 		inp_tree->SetBranchAddress("pfId",&pfId);
 		inp_tree->SetBranchAddress("pfPt",&pfPt);
-		inp_tree->SetBranchAddress("pfVsPt",&pfVsPt);
 		inp_tree->SetBranchAddress("pfEta",&pfEta);
 		inp_tree->SetBranchAddress("pfPhi",&pfPhi);
 		inp_tree->SetBranchAddress("pfVsPtInitial",&pfVsPtInitial);
-		inp_tree->SetBranchAddress("sumpt",&sumpt);	
+		inp_tree->SetBranchAddress("sumpt",sumpt);	
 
 		inp_tree->SetBranchAddress("discr_ssvHighEff", t_discr_ssvHighEff);
 		inp_tree->SetBranchAddress("discr_ssvHighPur", t_discr_ssvHighPur);
@@ -380,7 +380,6 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 
 			//if( evi % 1000 == 0 ) std::cout << "Filled successfully" << std::endl;
 
-
 			for(int j4i = 0; j4i < nref ; j4i++) {
 
 				if( fabs(t_jteta[j4i]) > 2. ) continue;
@@ -397,13 +396,13 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 
 				int npf=0;
 
-				for(int ipf=0;ipf< pfPt.size(); ipf++){
+				for(unsigned int ipf=0;ipf< pfPt->size(); ipf++){
 
-					pfPt_temp = pfPt.at(ipf);
-					pfVsPt_temp = pfVsPtInitial.at(ipf);
-					pfEta_temp =  pfEta.at(ipf);
-					pfPhi_temp =  pfPhi.at(ipf);
-					pfId_temp = pfId.at(ipf);  //pfId == 1 for hadrons only
+					pfPt_temp = pfPt->at(ipf);
+					pfVsPt_temp = pfVsPtInitial->at(ipf);
+					pfEta_temp =  pfEta->at(ipf);
+					pfPhi_temp =  pfPhi->at(ipf);
+					pfId_temp = pfId->at(ipf);  //pfId == 1 for hadrons only
 
 					//cout<<pfPt<<" "<<pfVsPt<<" "<<pfEta<<" "<<pfPhi<<" "<<pfId<<endl;
 					r=sqrt(pow(reco_eta-pfEta_temp,2)+pow(acos(cos(reco_phi-pfPhi_temp)),2));
@@ -564,18 +563,18 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 			trkDzError1.clear();
 			trkPtError.clear();
 
-			pfId.clear();
-			pfPt.clear();
-			pfVsPt.clear();
-			pfEta.clear();
-			pfPhi.clear();
-			sumpt.clear();
+			pfId->clear();
+			pfPt->clear();
+			pfVsPtInitial->clear();
+			pfEta->clear();
+			pfPhi->clear();
 
 			discr_ssvHighEff.clear();
 			discr_ssvHighPur.clear();
 			discr_csvV1.clear();
 			discr_prob.clear();
 			svtxm.clear();
+			svtxpt.clear();
 			svtxmcorr.clear();
 			svtxdl.clear();
 			svtxdls.clear();
