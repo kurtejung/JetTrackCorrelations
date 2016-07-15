@@ -136,11 +136,11 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	TFile *output_file = new TFile((TString) (output_file_base+output_file_extension), "RECREATE");
 	TTree *mixing_tree = new TTree("mixing_tree", "");
 
-	vector<float> trkEta, trkPhi, trkPt, jteta, jtphi, jtpt, corrpt;
+	vector<float> trkEta, trkPhi, trkPt, jteta, jtphi, jtpt, rawpt, corrpt;
 	vector<UChar_t> trkAlgo;
 	vector<bool> highPurity;
-	vector<float> trackMax, trkDxy1, trkDxyError1, trkDz1, trkDzError1, trkPtError;
-	vector<int> *pfId=0;
+	vector<float> trackMax, trkDxy1, trkDxyError1, trkDz1, trkDzError1, trkPtError, pfEcal, pfHcal, trkMVALoose, trkMVATight;
+	vector<int> *pfId=0, trkNHit, trkNlayer;
 	vector<float> *pfPt=0, *pfEta=0, *pfPhi=0, *pfVsPtInitial=0;
 	vector<int> sube, chg;
 	vector<float> pt, phi, eta, pPt, pPhi, pEta, geneta, genphi, genpt;
@@ -152,7 +152,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	Int_t pPAcollisionEventSelectionPA = -999;
 	Int_t hiBin = -999;
 	Float_t pthat = -999;
-	Float_t vz = -999, sumpt[15];
+	Float_t vz = -999;//, sumpt[15];
 
 	/// higenparticles
 
@@ -173,8 +173,8 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	mixing_tree->Branch("jteta", "vector<Float_t>", &jteta);
 	mixing_tree->Branch("jtphi", "vector<Float_t>", &jtphi);
 	mixing_tree->Branch("jtpt", "vector<Float_t>", &jtpt);
+	mixing_tree->Branch("rawpt","vector<Float_t>", &rawpt);
 	mixing_tree->Branch("corrpt", "vector<Float_t>", &corrpt);
-	// mixing_tree->Branch("rawpt", "vector<Float_t>", &rawpt);
 
 	if(!is_data) mixing_tree->Branch("pthat", &pthat, "pthat/F");
 	mixing_tree->Branch("trackMax", "vector<Float_t>", &trackMax);
@@ -183,6 +183,12 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	mixing_tree->Branch("trkDz1", "vector<Float_t>", &trkDz1);
 	mixing_tree->Branch("trkDzError1", "vector<Float_t>", &trkDzError1);
 	mixing_tree->Branch("trkPtError", "vector<Float_t>", &trkPtError);
+	mixing_tree->Branch("trkNHit",&trkNHit);
+	mixing_tree->Branch("trkNlayer",&trkNlayer);
+	mixing_tree->Branch("pfEcal",&pfEcal);
+	mixing_tree->Branch("pfHcal",&pfHcal);
+	mixing_tree->Branch("trkMVALoose",&trkMVALoose);
+	mixing_tree->Branch("trkMVATight",&trkMVATight);
 
 	if(!is_data){
 		//mixing_tree->Branch("mult", &mult, "mult/I");
@@ -208,7 +214,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	mixing_tree->Branch("pfVsPtInitial", "vector<Float_t>", &pfVsPtInitial);
 	mixing_tree->Branch("pfEta", "vector<Float_t>", &pfEta);
 	mixing_tree->Branch("pfPhi", "vector<Float_t>", &pfPhi);
-	mixing_tree->Branch("sumpt", sumpt);
+	//mixing_tree->Branch("sumpt", sumpt);
 
 	//adding b-jet stuff....
 	mixing_tree->Branch("discr_ssvHighEff","vector<Float_t>", &discr_ssvHighEff);
@@ -228,11 +234,12 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	int ifile=0;
 
 	const int MAXJETS = 100;
-	Float_t t_jtpt[MAXJETS], t_jteta[MAXJETS], t_jtphi[MAXJETS], t_discr_ssvHighEff[MAXJETS], t_discr_ssvHighPur[MAXJETS], t_discr_csvV1[MAXJETS], t_discr_prob[MAXJETS], t_svtxm[MAXJETS], t_svtxpt[MAXJETS], t_svtxmcorr[MAXJETS], t_svtxdl[MAXJETS], t_svtxdls[MAXJETS];
+	Float_t t_jtpt[MAXJETS], t_jteta[MAXJETS], t_jtphi[MAXJETS], t_discr_ssvHighEff[MAXJETS], t_discr_ssvHighPur[MAXJETS], t_discr_csvV1[MAXJETS], t_discr_prob[MAXJETS], t_svtxm[MAXJETS], t_svtxpt[MAXJETS], t_svtxmcorr[MAXJETS], t_svtxdl[MAXJETS], t_svtxdls[MAXJETS], t_rawpt[MAXJETS];
 
 	const int MAXPARTICLES = 25000;
-	Float_t t_trkPt[MAXPARTICLES], t_trkEta[MAXPARTICLES], t_trkPhi[MAXPARTICLES], t_trkDxy1[MAXPARTICLES], t_trkDxyError1[MAXPARTICLES], t_trkDz1[MAXPARTICLES], t_trkDzError1[MAXPARTICLES], t_trkPtError[MAXPARTICLES], t_trackMax[MAXPARTICLES];
-	UChar_t t_trkAlgo[MAXPARTICLES];
+	Float_t t_trkPt[MAXPARTICLES], t_trkEta[MAXPARTICLES], t_trkPhi[MAXPARTICLES], t_trkDxy1[MAXPARTICLES], t_trkDxyError1[MAXPARTICLES], t_trkDz1[MAXPARTICLES], t_trkDzError1[MAXPARTICLES], t_trkPtError[MAXPARTICLES], t_trackMax[MAXPARTICLES], t_pfEcal[MAXPARTICLES], t_pfHcal[MAXPARTICLES];
+	Bool_t t_trkMVALoose[MAXPARTICLES], t_trkMVATight[MAXPARTICLES];
+	UChar_t t_trkAlgo[MAXPARTICLES], t_trkNHit[MAXPARTICLES], t_trkNlayer[MAXPARTICLES];
 	Bool_t t_highPurity[MAXPARTICLES];
 
 	Int_t nTrk, nref;
@@ -266,22 +273,17 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 			inp_tree = (TTree*)  my_file->Get(Form("ak%dCaloJetAnalyzer/t",radius));
 		}
 
-		//JetAna inp_tree, !do_PbPb);
-
 		inp_tree2 = (TTree*)  my_file->Get("pfcandAnalyzer/pfTree");
 		if(!inp_tree2){ cout << "PFCand Tree not found!! Exiting..." << endl; exit(1); }
 		else inp_tree->AddFriend(inp_tree2);
-		//pfcand (inp_tree2, !do_PbPb);
 
 		inp_tree3 = (TTree*) my_file->Get("hiEvtAnalyzer/HiTree");
 		if(!inp_tree3){ cout << "Evt Tree not found!! Exiting..." << endl; exit(1); }
 		else inp_tree->AddFriend(inp_tree3);
-		//HiTree (inp_tree3, !do_PbPb);
 
 		inp_tree4 = (TTree*) my_file->Get("skimanalysis/HltTree");
 		if(!inp_tree4){ cout << "Skim Tree not found!! Exiting..." << endl; exit(1); }
 		else inp_tree->AddFriend(inp_tree4);
-		//Skim (inp_tree4, !do_PbPb);
 
 		if(do_PbPb){
 			inp_tree5 = (TTree*) my_file->Get("anaTrack/trackTree");
@@ -290,20 +292,16 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 		}
 		if(!inp_tree5){ cout << "track Tree not found!! Exiting..." << endl; exit(1); }
 		else inp_tree->AddFriend(inp_tree5);
-		//Tracks (inp_tree5, !do_PbPb);
 
 		inp_tree6 = (TTree*) my_file->Get("hltanalysis/HltTree");
 		if(!inp_tree6){ cout << "HLT Tree not found!! Exiting..." << endl; exit(1); }
 		else inp_tree->AddFriend(inp_tree6);
-		//HLT (inp_tree6, !do_PbPb);
 
 		if(!is_data){ 
 			inp_tree7 = (TTree*) my_file->Get("HiGenParticleAna/hi");
 			if(!inp_tree7){ cout << "GenPart Tree not found!! Exiting..." << endl; exit(1); }
 			else inp_tree->AddFriend(inp_tree7);
 		}
-		//GenParticles (inp_tree7);
-
 
 		inp_tree->SetBranchAddress("trkPt",t_trkPt);
 		inp_tree->SetBranchAddress("trkEta",t_trkEta);
@@ -318,6 +316,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 		inp_tree->SetBranchAddress("jtpt",t_jtpt);
 		inp_tree->SetBranchAddress("jteta",t_jteta);
 		inp_tree->SetBranchAddress("jtphi",t_jtphi);
+		inp_tree->SetBranchAddress("rawpt",t_rawpt);
 
 		inp_tree->SetBranchAddress("trackMax",t_trackMax);
 
@@ -327,13 +326,19 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 		inp_tree->SetBranchAddress("trkDz1",t_trkDz1);
 		inp_tree->SetBranchAddress("trkDzError1",t_trkDzError1);
 		inp_tree->SetBranchAddress("trkPtError",t_trkPtError);
+		inp_tree->SetBranchAddress("trkNHit",t_trkNHit);
+		inp_tree->SetBranchAddress("trkNlayer",t_trkNlayer);
+		inp_tree->SetBranchAddress("pfEcal",t_pfEcal);
+		inp_tree->SetBranchAddress("pfHcal",t_pfHcal);
+		if(!do_PbPb) inp_tree->SetBranchAddress("trkMVALoose",t_trkMVALoose);
+		inp_tree->SetBranchAddress("trkMVATight",t_trkMVATight);
 
 		inp_tree->SetBranchAddress("pfId",&pfId);
 		inp_tree->SetBranchAddress("pfPt",&pfPt);
 		inp_tree->SetBranchAddress("pfEta",&pfEta);
 		inp_tree->SetBranchAddress("pfPhi",&pfPhi);
 		inp_tree->SetBranchAddress("pfVsPtInitial",&pfVsPtInitial);
-		inp_tree->SetBranchAddress("sumpt",sumpt);	
+		//inp_tree->SetBranchAddress("sumpt",sumpt);	
 
 		inp_tree->SetBranchAddress("discr_ssvHighEff", t_discr_ssvHighEff);
 		inp_tree->SetBranchAddress("discr_ssvHighPur", t_discr_ssvHighPur);
@@ -362,17 +367,10 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 
 		int n_evt = inp_tree->GetEntriesFast();
 
-		// if(!do_PbPb){ev_max = n_evt;}
-
 		cout << "Entries: "<< n_evt << endl;
 		for(int evi = 0; evi < n_evt; evi++) {
 
-			//if( evi % 10000 == 0 ) std::cout << "evi: " << evi <<  " of " << n_evt << "\n";
-			//if( evi > 1000 ) break;
-
 			inp_tree->GetEntry(evi);
-
-			//cout<<"so far so good"<<endl;
 
 			if(!HLT_Jet80) continue;
 			if(!do_PbPb && (!pvFilter || !HBHENoiseFilter)) continue;
@@ -429,6 +427,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 				jtphi.push_back(reco_phi);
 				jtpt.push_back(reco_pt);
 				corrpt.push_back(reco_pt); //residual_corrected_pt);
+				rawpt.push_back(t_rawpt[j4i]);
 
 				discr_ssvHighEff.push_back(t_discr_ssvHighEff[j4i]);
 				discr_ssvHighPur.push_back(t_discr_ssvHighPur[j4i]);
@@ -460,21 +459,6 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 				   } /// genjet loop*/
 
 			}
-
-			//nPFpart = .nPFpart;
-
-			/*for(int pfi = 0; pfi< .nPFpart ; pfi++) {
-
-
-				pfId.push_back(.pfId->at(pfi));
-				pfPt.push_back(.pfPt->at(pfi));
-				pfVsPt.push_back(.pfVsPtInitial->at(pfi));
-				pfEta.push_back(.pfEta->at(pfi));
-				pfPhi.push_back(.pfPhi->at(pfi));
-				sumpt.push_back(.sumpt[pfi]);
-
-			}*/ /// particle flow candidate loop
-
 
 			//// reco track loop
 			for(int itrk=0;itrk<nTrk;itrk++){
@@ -510,6 +494,13 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 				trkDzError1.push_back(t_trkDzError1[itrk]);
 				trkPtError.push_back(t_trkPtError[itrk]);
 
+				trkNHit.push_back(t_trkNHit[itrk]);
+				trkNlayer.push_back(t_trkNlayer[itrk]);
+				pfEcal.push_back(t_pfEcal[itrk]);
+				pfHcal.push_back(t_pfHcal[itrk]);
+				trkMVALoose.push_back(t_trkMVALoose[itrk]);
+				trkMVATight.push_back(t_trkMVATight[itrk]);
+
 			}
 
 			if(!is_data){
@@ -539,10 +530,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 			///// Fill it
 			mixing_tree->Fill();
 
-
 			///// Reset
-
-
 			trkEta.clear();
 			trkPhi.clear();
 			trkPt.clear();
@@ -553,7 +541,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 			jtphi.clear();
 			jtpt.clear();
 			corrpt.clear();
-			//   rawpt.clear();
+			rawpt.clear();
 
 			trackMax.clear();
 
@@ -562,6 +550,12 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 			trkDz1.clear();
 			trkDzError1.clear();
 			trkPtError.clear();
+			pfEcal.clear();
+			pfHcal.clear();
+			trkMVATight.clear();
+			trkMVALoose.clear();
+			trkNHit.clear();
+			trkNlayer.clear();
 
 			pfId->clear();
 			pfPt->clear();
@@ -596,7 +590,6 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 				genpt.clear();
 			}
 
-
 		}  ///event loop
 
 		my_file->Close();
@@ -612,8 +605,6 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	output_file->Close();
 
 	cout<<"done"<<endl;
-
-
 
 }
 
