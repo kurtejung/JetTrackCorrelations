@@ -32,7 +32,7 @@ int dataset_pthats[e_n_dataset_types+1] = {0,0,15,30,50,80,120,170,220,280,370,1
 int dataset_type_code = -999;
 
 //arg 1 = which data set, arg 2 = output file number
-void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_type_code = 0 , int output_file_num = 1)
+void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_type_code = 0 , int output_file_num = 1)
 {
 
 	bool is_data = false;
@@ -233,10 +233,10 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 10, int dataset_typ
 	std::string filename;
 	int ifile=0;
 
-	const int MAXJETS = 100;
+	const int MAXJETS = 500;
 	Float_t t_jtpt[MAXJETS], t_jteta[MAXJETS], t_jtphi[MAXJETS], t_discr_ssvHighEff[MAXJETS], t_discr_ssvHighPur[MAXJETS], t_discr_csvV1[MAXJETS], t_discr_prob[MAXJETS], t_svtxm[MAXJETS], t_svtxpt[MAXJETS], t_svtxmcorr[MAXJETS], t_svtxdl[MAXJETS], t_svtxdls[MAXJETS], t_rawpt[MAXJETS];
 
-	const int MAXPARTICLES = 25000;
+	const int MAXPARTICLES = 60000;
 	Float_t t_trkPt[MAXPARTICLES], t_trkEta[MAXPARTICLES], t_trkPhi[MAXPARTICLES], t_trkDxy1[MAXPARTICLES], t_trkDxyError1[MAXPARTICLES], t_trkDz1[MAXPARTICLES], t_trkDzError1[MAXPARTICLES], t_trkPtError[MAXPARTICLES], t_trackMax[MAXPARTICLES], t_pfEcal[MAXPARTICLES], t_pfHcal[MAXPARTICLES];
 	Bool_t t_trkMVALoose[MAXPARTICLES], t_trkMVATight[MAXPARTICLES];
 	UChar_t t_trkAlgo[MAXPARTICLES], t_trkNHit[MAXPARTICLES], t_trkNlayer[MAXPARTICLES];
