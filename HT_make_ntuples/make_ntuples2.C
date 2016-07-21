@@ -32,7 +32,7 @@ int dataset_pthats[e_n_dataset_types+1] = {0,0,15,30,50,80,120,170,220,280,370,1
 int dataset_type_code = -999;
 
 //arg 1 = which data set, arg 2 = output file number
-void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 2, int dataset_type_code = 0 , int output_file_num = 1)
+void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_type_code = 0 , int output_file_num = 1)
 {
 
 	bool is_data = false;
