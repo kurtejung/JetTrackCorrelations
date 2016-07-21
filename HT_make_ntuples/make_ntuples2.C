@@ -32,7 +32,7 @@ int dataset_pthats[e_n_dataset_types+1] = {0,0,15,30,50,80,120,170,220,280,370,1
 int dataset_type_code = -999;
 
 //arg 1 = which data set, arg 2 = output file number
-void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_type_code = 0 , int output_file_num = 1)
+void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 2, int dataset_type_code = 0 , int output_file_num = 1)
 {
 
 	bool is_data = false;
@@ -88,6 +88,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	TTree *inp_tree5;
 	TTree *inp_tree6;
 	TTree *inp_tree7=0;
+	TTree *pftree;
 
 	string in_file_name;
 
@@ -136,32 +137,61 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	TFile *output_file = new TFile((TString) (output_file_base+output_file_extension), "RECREATE");
 	TTree *mixing_tree = new TTree("mixing_tree", "");
 
-	vector<float> trkEta, trkPhi, trkPt, jteta, jtphi, jtpt, rawpt, corrpt;
-	vector<UChar_t> trkAlgo;
+	vector<float> pf_jteta, pf_jtphi, pf_jtpt, pf_rawpt, pf_corrpt, pf_trackMax;
+	vector<float> calo_jteta, calo_jtphi, calo_jtpt, calo_rawpt, calo_corrpt, calo_trackMax;
+	vector<int> trkAlgo;
 	vector<bool> highPurity;
-	vector<float> trackMax, trkDxy1, trkDxyError1, trkDz1, trkDzError1, trkPtError, pfEcal, pfHcal, trkMVALoose, trkMVATight;
-	vector<int> *pfId=0, trkNHit, trkNlayer;
+	vector<float> trackMax, trkDxy1, trkDxyError1, trkDz1, trkDzError1, trkPtError, pfEcal, pfHcal, trkMVALoose, trkMVATight, trkChi2, trkEta, trkPhi, trkPt;
+	vector<int> *pfId=0, trkNHit, trkNlayer, trkNdof;
 	vector<float> *pfPt=0, *pfEta=0, *pfPhi=0, *pfVsPtInitial=0;
 	vector<int> sube, chg;
 	vector<float> pt, phi, eta, pPt, pPhi, pEta, geneta, genphi, genpt;
-	vector<float> discr_ssvHighEff, discr_ssvHighPur, discr_csvV1, discr_prob, svtxm, svtxpt, svtxmcorr, svtxdl, svtxdls;
+	vector<float> pf_discr_ssvHighEff, pf_discr_ssvHighPur, pf_discr_csvV1, pf_discr_prob, pf_svtxm, pf_svtxpt, pf_svtxmcorr, pf_svtxdl, pf_svtxdls;
+	vector<float> calo_discr_ssvHighEff, calo_discr_ssvHighPur, calo_discr_csvV1, calo_discr_prob, calo_svtxm, calo_svtxpt, calo_svtxmcorr, calo_svtxdl, calo_svtxdls;
 
-	Int_t pHBHENoiseFilter = -999;
-	Int_t pcollisionEventSelection = -999;
-	Int_t HLT_Jet80 = -999;
+	Int_t HBHENoiseFilter, HBHENoiseFilterResultRun1, HBHENoiseFilterResultRun2Loose, HBHENoiseFilterResultRun2Tight, HBHEIsoNoiseFilterResult;
+	Int_t phfCoincFilter1, phfCoincFilter2, phfCoincFilter3, phfCoincFilter4, phfCoincFilter5;
+	Int_t eventSelection, pvFilter;
+	Int_t HLT_Jet80, HLT_Jet100, HLT_Jet80_ps, HLT_Jet100_ps;
 	Int_t pPAcollisionEventSelectionPA = -999;
+	Int_t pClusterCompatibilityFilter, pVertexFilterCutGplus;
 	Int_t hiBin = -999;
 	Float_t pthat = -999;
 	Float_t vz = -999;//, sumpt[15];
 
 	/// higenparticles
 
+	mixing_tree->Branch("HLT_ak4CaloJet80", &HLT_Jet80);
+	mixing_tree->Branch("HLT_ak4CaloJet100", &HLT_Jet100);
+	mixing_tree->Branch("HLT_ak4CaloJet80_Prescale", &HLT_Jet80_ps);
+	mixing_tree->Branch("HLT_ak4CaloJet100_Prescale", &HLT_Jet100_ps);
+
+	mixing_tree->Branch("HBHENoiseFilterResult",&HBHENoiseFilter);
+	mixing_tree->Branch("HBHENoiseFilterResultRun1",&HBHENoiseFilterResultRun1);
+	mixing_tree->Branch("HBHENoiseFilterResultRun2Loose",&HBHENoiseFilterResultRun2Loose);
+	mixing_tree->Branch("HBHENoiseFilterResultRun2Tight",&HBHENoiseFilterResultRun2Tight);
+	mixing_tree->Branch("HBHEIsoNoiseFilterResult",&HBHEIsoNoiseFilterResult);
+
+	if(!do_PbPb){
+		mixing_tree->Branch("pPAprimaryVertexFilter",&pvFilter);
+		mixing_tree->Branch("pVertexFilterCutGplus",&pVertexFilterCutGplus);
+	}
+	else{	
+		mixing_tree->Branch("pcollisionEventSelection",&eventSelection);			
+		mixing_tree->Branch("pprimaryVertexFilter",&pvFilter);
+		mixing_tree->Branch("pclusterCompatibilityFilter",&pClusterCompatibilityFilter);
+		mixing_tree->Branch("phfCoincFilter1",&phfCoincFilter1);
+		mixing_tree->Branch("phfCoincFilter2",&phfCoincFilter2);
+		mixing_tree->Branch("phfCoincFilter3",&phfCoincFilter3);
+		mixing_tree->Branch("phfCoincFilter4",&phfCoincFilter4);
+		mixing_tree->Branch("phfCoincFilter5",&phfCoincFilter5);
+	}
 	//mixing_tree->Branch("nTrk", &nTrk, "nTrk/I");
-	mixing_tree->Branch("trkPt", "vector<Float_t>", &trkPt);
-	mixing_tree->Branch("trkEta", "vector<Float_t>", &trkEta);
-	mixing_tree->Branch("trkPhi", "vector<Float_t>", &trkPhi);
-	mixing_tree->Branch("trkAlgo", "vector<UChar_t>", &trkAlgo);
-	mixing_tree->Branch("highPurity", "vector<Bool_t>", &highPurity);
+	mixing_tree->Branch("trkPt", &trkPt);
+	mixing_tree->Branch("trkEta", &trkEta);
+	mixing_tree->Branch("trkPhi", &trkPhi);
+	mixing_tree->Branch("trkAlgo", &trkAlgo);
+	mixing_tree->Branch("highPurity", &highPurity);
 	mixing_tree->Branch("vz", &vz);
 	//mixing_tree->Branch("pHBHENoiseFilter", &pHBHENoiseFilter, "pHBHENoiseFilter/I");
 	//mixing_tree->Branch("pcollisionEventSelection", &pcollisionEventSelection, "pcollisionEventSelection/I");
@@ -170,19 +200,29 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 
 	mixing_tree->Branch("hiBin", &hiBin);
 
-	mixing_tree->Branch("jteta", "vector<Float_t>", &jteta);
-	mixing_tree->Branch("jtphi", "vector<Float_t>", &jtphi);
-	mixing_tree->Branch("jtpt", "vector<Float_t>", &jtpt);
-	mixing_tree->Branch("rawpt","vector<Float_t>", &rawpt);
-	mixing_tree->Branch("corrpt", "vector<Float_t>", &corrpt);
+	mixing_tree->Branch("pf_jteta", &pf_jteta);
+	mixing_tree->Branch("pf_jtphi", &pf_jtphi);
+	mixing_tree->Branch("pf_jtpt", &pf_jtpt);
+	mixing_tree->Branch("pf_rawpt", &pf_rawpt);
+	mixing_tree->Branch("pf_corrpt", &pf_corrpt);
+	mixing_tree->Branch("pf_trackMax", &pf_trackMax);
+
+	mixing_tree->Branch("calo_jteta", &calo_jteta);
+	mixing_tree->Branch("calo_jtphi", &calo_jtphi);
+	mixing_tree->Branch("calo_jtpt", &calo_jtpt);
+	mixing_tree->Branch("calo_rawpt", &calo_rawpt);
+	mixing_tree->Branch("calo_corrpt", &calo_corrpt);
+	mixing_tree->Branch("calo_trackMax", &calo_trackMax);
 
 	if(!is_data) mixing_tree->Branch("pthat", &pthat, "pthat/F");
-	mixing_tree->Branch("trackMax", "vector<Float_t>", &trackMax);
-	mixing_tree->Branch("trkDxy1", "vector<Float_t>", &trkDxy1);
-	mixing_tree->Branch("trkDxyError1", "vector<Float_t>", &trkDxyError1);
-	mixing_tree->Branch("trkDz1", "vector<Float_t>", &trkDz1);
-	mixing_tree->Branch("trkDzError1", "vector<Float_t>", &trkDzError1);
-	mixing_tree->Branch("trkPtError", "vector<Float_t>", &trkPtError);
+	mixing_tree->Branch("trackMax", &trackMax);
+	mixing_tree->Branch("trkDxy", &trkDxy1);
+	mixing_tree->Branch("trkDxyError", &trkDxyError1);
+	mixing_tree->Branch("trkDz", &trkDz1);
+	mixing_tree->Branch("trkDzError", &trkDzError1);
+	mixing_tree->Branch("trkPtError", &trkPtError);
+	mixing_tree->Branch("trkChi2", &trkChi2);
+	mixing_tree->Branch("trkNdof", &trkNdof);
 	mixing_tree->Branch("trkNHit",&trkNHit);
 	mixing_tree->Branch("trkNlayer",&trkNlayer);
 	mixing_tree->Branch("pfEcal",&pfEcal);
@@ -192,40 +232,50 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 
 	if(!is_data){
 		//mixing_tree->Branch("mult", &mult, "mult/I");
-		mixing_tree->Branch("pt", "vector<Float_t>", &pt);
-		mixing_tree->Branch("phi", "vector<Float_t>", &phi);
-		mixing_tree->Branch("eta", "vector<Float_t>", &eta);
-		mixing_tree->Branch("chg", "vector<Int_t>", &chg);
-		mixing_tree->Branch("sube", "vector<Int_t>", &sube);
+		mixing_tree->Branch("pt", &pt);
+		mixing_tree->Branch("phi",  &phi);
+		mixing_tree->Branch("eta",  &eta);
+		mixing_tree->Branch("chg", &chg);
+		mixing_tree->Branch("sube", &sube);
 		//mixing_tree->Branch("nParticle", &nParticle, "nParticle/I");
-		mixing_tree->Branch("pPt", "vector<Float_t>", &pPt);
-		mixing_tree->Branch("pPhi", "vector<Float_t>", &pPhi);
-		mixing_tree->Branch("pEta", "vector<Float_t>", &pEta);
+		mixing_tree->Branch("pPt", &pPt);
+		mixing_tree->Branch("pPhi", &pPhi);
+		mixing_tree->Branch("pEta", &pEta);
 
 
-		mixing_tree->Branch("geneta", "vector<Float_t>", &geneta);
-		mixing_tree->Branch("genphi", "vector<Float_t>", &genphi);
-		mixing_tree->Branch("genpt", "vector<Float_t>", &genpt);
+		mixing_tree->Branch("geneta", &geneta);
+		mixing_tree->Branch("genphi", &genphi);
+		mixing_tree->Branch("genpt", &genpt);
 	}
 
 	//mixing_tree->Branch("nPFpart", &nPFpart, "nPFpart/I");
-	mixing_tree->Branch("pfId", "vector<Int_t>", &pfId);
-	mixing_tree->Branch("pfPt", "vector<Float_t>", &pfPt);
-	mixing_tree->Branch("pfVsPtInitial", "vector<Float_t>", &pfVsPtInitial);
-	mixing_tree->Branch("pfEta", "vector<Float_t>", &pfEta);
-	mixing_tree->Branch("pfPhi", "vector<Float_t>", &pfPhi);
+	mixing_tree->Branch("pfId", &pfId);
+	mixing_tree->Branch("pfPt", &pfPt);
+	mixing_tree->Branch("pfVsPtInitial", &pfVsPtInitial);
+	mixing_tree->Branch("pfEta", &pfEta);
+	mixing_tree->Branch("pfPhi", &pfPhi);
 	//mixing_tree->Branch("sumpt", sumpt);
 
 	//adding b-jet stuff....
-	mixing_tree->Branch("discr_ssvHighEff","vector<Float_t>", &discr_ssvHighEff);
-	mixing_tree->Branch("discr_ssvHighPur","vector<Float_t>", &discr_ssvHighPur);
-	mixing_tree->Branch("discr_csvV1","vector<Float_t>", &discr_csvV1);
-	mixing_tree->Branch("discr_prob","vector<Float_t>", &discr_prob);
-	mixing_tree->Branch("svtxm","vector<Float_t>", &svtxm);
-	mixing_tree->Branch("svtxpt","vector<Float_t>", &svtxpt);
-	mixing_tree->Branch("svtxmcorr","vector<Float_t>", &svtxmcorr);
-	mixing_tree->Branch("svtxdl","vector<Float_t>", &svtxdl);
-	mixing_tree->Branch("svtxdls","vector<Float_t>", &svtxdls);
+	mixing_tree->Branch("pf_discr_ssvHighEff", &pf_discr_ssvHighEff);
+	mixing_tree->Branch("pf_discr_ssvHighPur", &pf_discr_ssvHighPur);
+	mixing_tree->Branch("pf_discr_csvV1", &pf_discr_csvV1);
+	mixing_tree->Branch("pf_discr_prob", &pf_discr_prob);
+	mixing_tree->Branch("pf_svtxm", &pf_svtxm);
+	mixing_tree->Branch("pf_svtxpt", &pf_svtxpt);
+	mixing_tree->Branch("pf_svtxmcorr", &pf_svtxmcorr);
+	mixing_tree->Branch("pf_svtxdl", &pf_svtxdl);
+	mixing_tree->Branch("pf_svtxdls", &pf_svtxdls);
+
+	mixing_tree->Branch("calo_discr_ssvHighEff", &calo_discr_ssvHighEff);
+	mixing_tree->Branch("calo_discr_ssvHighPur", &calo_discr_ssvHighPur);
+	mixing_tree->Branch("calo_discr_csvV1", &calo_discr_csvV1);
+	mixing_tree->Branch("calo_discr_prob", &calo_discr_prob);
+	mixing_tree->Branch("calo_svtxm", &calo_svtxm);
+	mixing_tree->Branch("calo_svtxpt", &calo_svtxpt);
+	mixing_tree->Branch("calo_svtxmcorr", &calo_svtxmcorr);
+	mixing_tree->Branch("calo_svtxdl", &calo_svtxdl);
+	mixing_tree->Branch("calo_svtxdls", &calo_svtxdls);
 
 
 	std::ifstream instr(in_file_name.c_str(), std::ifstream::in);
@@ -234,16 +284,16 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	int ifile=0;
 
 	const int MAXJETS = 500;
-	Float_t t_jtpt[MAXJETS], t_jteta[MAXJETS], t_jtphi[MAXJETS], t_discr_ssvHighEff[MAXJETS], t_discr_ssvHighPur[MAXJETS], t_discr_csvV1[MAXJETS], t_discr_prob[MAXJETS], t_svtxm[MAXJETS], t_svtxpt[MAXJETS], t_svtxmcorr[MAXJETS], t_svtxdl[MAXJETS], t_svtxdls[MAXJETS], t_rawpt[MAXJETS];
+	Float_t t_pf_jtpt[MAXJETS], t_pf_jteta[MAXJETS], t_pf_jtphi[MAXJETS], t_pf_discr_ssvHighEff[MAXJETS], t_pf_discr_ssvHighPur[MAXJETS], t_pf_discr_csvV1[MAXJETS], t_pf_discr_prob[MAXJETS], t_pf_svtxm[MAXJETS], t_pf_svtxpt[MAXJETS], t_pf_svtxmcorr[MAXJETS], t_pf_svtxdl[MAXJETS], t_pf_svtxdls[MAXJETS], t_pf_rawpt[MAXJETS], t_pf_trackMax[MAXJETS];
+	Float_t t_calo_jtpt[MAXJETS], t_calo_jteta[MAXJETS], t_calo_jtphi[MAXJETS], t_calo_discr_ssvHighEff[MAXJETS], t_calo_discr_ssvHighPur[MAXJETS], t_calo_discr_csvV1[MAXJETS], t_calo_discr_prob[MAXJETS], t_calo_svtxm[MAXJETS], t_calo_svtxpt[MAXJETS], t_calo_svtxmcorr[MAXJETS], t_calo_svtxdl[MAXJETS], t_calo_svtxdls[MAXJETS], t_calo_rawpt[MAXJETS], t_calo_trackMax[MAXJETS];
 
 	const int MAXPARTICLES = 60000;
-	Float_t t_trkPt[MAXPARTICLES], t_trkEta[MAXPARTICLES], t_trkPhi[MAXPARTICLES], t_trkDxy1[MAXPARTICLES], t_trkDxyError1[MAXPARTICLES], t_trkDz1[MAXPARTICLES], t_trkDzError1[MAXPARTICLES], t_trkPtError[MAXPARTICLES], t_trackMax[MAXPARTICLES], t_pfEcal[MAXPARTICLES], t_pfHcal[MAXPARTICLES];
+	Float_t t_trkPt[MAXPARTICLES], t_trkEta[MAXPARTICLES], t_trkPhi[MAXPARTICLES], t_trkDxy1[MAXPARTICLES], t_trkDxyError1[MAXPARTICLES], t_trkDz1[MAXPARTICLES], t_trkDzError1[MAXPARTICLES], t_trkPtError[MAXPARTICLES], t_trackMax[MAXPARTICLES], t_pfEcal[MAXPARTICLES], t_pfHcal[MAXPARTICLES], t_trkChi2[MAXPARTICLES];
 	Bool_t t_trkMVALoose[MAXPARTICLES], t_trkMVATight[MAXPARTICLES];
-	UChar_t t_trkAlgo[MAXPARTICLES], t_trkNHit[MAXPARTICLES], t_trkNlayer[MAXPARTICLES];
+	UChar_t t_trkAlgo[MAXPARTICLES], t_trkNHit[MAXPARTICLES], t_trkNlayer[MAXPARTICLES], t_trkNdof[MAXPARTICLES];
 	Bool_t t_highPurity[MAXPARTICLES];
 
-	Int_t nTrk, nref;
-	Int_t HBHENoiseFilter, eventSelection, pvFilter;
+	Int_t nTrk, calo_nref, pf_nref;
 
 	while(instr>>filename && ifile<endfile){
 		filename.erase(std::remove(filename.begin(), filename.end(), '"'), filename.end());
@@ -269,8 +319,10 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 
 		if(do_PbPb){
 			inp_tree = (TTree*)  my_file->Get(Form("akPu%dCaloJetAnalyzer/t",radius));
+			pftree = (TTree*) my_file->Get(Form("akPu%dPFJetAnalyzer/t",radius));
 		}else{
 			inp_tree = (TTree*)  my_file->Get(Form("ak%dCaloJetAnalyzer/t",radius));
+			pftree = (TTree*) my_file->Get(Form("ak%dPFJetAnalyzer/t",radius));
 		}
 
 		inp_tree2 = (TTree*)  my_file->Get("pfcandAnalyzer/pfTree");
@@ -312,13 +364,19 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 		inp_tree->SetBranchAddress("vz",&vz);
 		inp_tree->SetBranchAddress("hiBin",&hiBin);
 
-		inp_tree->SetBranchAddress("nref",&nref);
-		inp_tree->SetBranchAddress("jtpt",t_jtpt);
-		inp_tree->SetBranchAddress("jteta",t_jteta);
-		inp_tree->SetBranchAddress("jtphi",t_jtphi);
-		inp_tree->SetBranchAddress("rawpt",t_rawpt);
+		inp_tree->SetBranchAddress("nref",&calo_nref);
+		inp_tree->SetBranchAddress("jtpt",t_calo_jtpt);
+		inp_tree->SetBranchAddress("jteta",t_calo_jteta);
+		inp_tree->SetBranchAddress("jtphi",t_calo_jtphi);
+		inp_tree->SetBranchAddress("rawpt",t_calo_rawpt);
+		inp_tree->SetBranchAddress("trackMax",t_calo_trackMax);
 
-		inp_tree->SetBranchAddress("trackMax",t_trackMax);
+		pftree->SetBranchAddress("nref",&pf_nref);
+		pftree->SetBranchAddress("jtpt",t_pf_jtpt);
+		pftree->SetBranchAddress("jteta",t_pf_jteta);
+		pftree->SetBranchAddress("jtphi",t_pf_jtphi);
+		pftree->SetBranchAddress("rawpt",t_pf_rawpt);
+		pftree->SetBranchAddress("trackMax",t_pf_trackMax);
 
 		inp_tree->SetBranchAddress("nTrk",&nTrk);
 		inp_tree->SetBranchAddress("trkDxy1",t_trkDxy1);
@@ -328,6 +386,8 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 		inp_tree->SetBranchAddress("trkPtError",t_trkPtError);
 		inp_tree->SetBranchAddress("trkNHit",t_trkNHit);
 		inp_tree->SetBranchAddress("trkNlayer",t_trkNlayer);
+		inp_tree->SetBranchAddress("trkChi2",t_trkChi2);
+		inp_tree->SetBranchAddress("trkNdof",t_trkNdof);
 		inp_tree->SetBranchAddress("pfEcal",t_pfEcal);
 		inp_tree->SetBranchAddress("pfHcal",t_pfHcal);
 		if(!do_PbPb) inp_tree->SetBranchAddress("trkMVALoose",t_trkMVALoose);
@@ -340,30 +400,64 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 		inp_tree->SetBranchAddress("pfVsPtInitial",&pfVsPtInitial);
 		//inp_tree->SetBranchAddress("sumpt",sumpt);	
 
-		inp_tree->SetBranchAddress("discr_ssvHighEff", t_discr_ssvHighEff);
-		inp_tree->SetBranchAddress("discr_ssvHighPur", t_discr_ssvHighPur);
-		if(!do_PbPb) inp_tree->SetBranchAddress("discr_csvV1", t_discr_csvV1);
+		inp_tree->SetBranchAddress("discr_ssvHighEff", t_calo_discr_ssvHighEff);
+		inp_tree->SetBranchAddress("discr_ssvHighPur", t_calo_discr_ssvHighPur);
+		if(!do_PbPb) inp_tree->SetBranchAddress("discr_csvV1", t_calo_discr_csvV1);
 		else{
-			inp_tree->SetBranchAddress("discr_csvSimple", t_discr_csvV1);
+			inp_tree->SetBranchAddress("discr_csvSimple", t_calo_discr_csvV1);
 		}
-		inp_tree->SetBranchAddress("discr_prob", t_discr_prob);
-		inp_tree->SetBranchAddress("svtxdl", t_svtxdl);
-		inp_tree->SetBranchAddress("svtxdls", t_svtxdls);
-		inp_tree->SetBranchAddress("svtxm", t_svtxm);
-		inp_tree->SetBranchAddress("svtxpt", t_svtxpt);
-		inp_tree->SetBranchAddress("svtxmcorr", t_svtxmcorr);
+		inp_tree->SetBranchAddress("discr_prob", t_calo_discr_prob);
+		inp_tree->SetBranchAddress("svtxdl", t_calo_svtxdl);
+		inp_tree->SetBranchAddress("svtxdls", t_calo_svtxdls);
+		inp_tree->SetBranchAddress("svtxm", t_calo_svtxm);
+		inp_tree->SetBranchAddress("svtxpt", t_calo_svtxpt);
+		inp_tree->SetBranchAddress("svtxmcorr", t_calo_svtxmcorr);
 
-		inp_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHENoiseFilter);
+		pftree->SetBranchAddress("discr_ssvHighEff", t_pf_discr_ssvHighEff);
+		pftree->SetBranchAddress("discr_ssvHighPur", t_pf_discr_ssvHighPur);
+		if(!do_PbPb) pftree->SetBranchAddress("discr_csvV1", t_pf_discr_csvV1);
+		else{
+			pftree->SetBranchAddress("discr_csvSimple", t_pf_discr_csvV1);
+		}
+		pftree->SetBranchAddress("discr_prob", t_pf_discr_prob);
+		pftree->SetBranchAddress("svtxdl", t_pf_svtxdl);
+		pftree->SetBranchAddress("svtxdls", t_pf_svtxdls);
+		pftree->SetBranchAddress("svtxm", t_pf_svtxm);
+		pftree->SetBranchAddress("svtxpt", t_pf_svtxpt);
+		pftree->SetBranchAddress("svtxmcorr", t_pf_svtxmcorr);
+
+		inp_tree->SetBranchAddress("HBHENoiseFilterResult",&HBHENoiseFilter);
+		inp_tree->SetBranchAddress("HBHENoiseFilterResultRun1",&HBHENoiseFilterResultRun1);
+		inp_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHENoiseFilterResultRun2Loose);
+		inp_tree->SetBranchAddress("HBHENoiseFilterResultRun2Tight",&HBHENoiseFilterResultRun2Tight);
+		inp_tree->SetBranchAddress("HBHEIsoNoiseFilterResult",&HBHEIsoNoiseFilterResult);
+
 		if(!do_PbPb){
 			inp_tree->SetBranchAddress("pPAprimaryVertexFilter",&pvFilter);
+			inp_tree->SetBranchAddress("pVertexFilterCutGplus",&pVertexFilterCutGplus);
 		}
 		else{	
 			inp_tree->SetBranchAddress("pcollisionEventSelection",&eventSelection);			
 			inp_tree->SetBranchAddress("pprimaryVertexFilter",&pvFilter);
+			inp_tree->SetBranchAddress("pclusterCompatibilityFilter",&pClusterCompatibilityFilter);
+			inp_tree->SetBranchAddress("phfCoincFilter1",&phfCoincFilter1);
+			inp_tree->SetBranchAddress("phfCoincFilter2",&phfCoincFilter2);
+			inp_tree->SetBranchAddress("phfCoincFilter3",&phfCoincFilter3);
+			inp_tree->SetBranchAddress("phfCoincFilter4",&phfCoincFilter4);
+			inp_tree->SetBranchAddress("phfCoincFilter5",&phfCoincFilter5);
 		}
 
-		if(!do_PbPb) inp_tree->SetBranchAddress("HLT_AK4PFJet80_Eta5p1_v1", &HLT_Jet80);
-		else inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet80_Eta5p1_v1", &HLT_Jet80);
+		if(!do_PbPb){ 
+			inp_tree->SetBranchAddress("HLT_AK4PFJet80_Eta5p1_v1", &HLT_Jet80);
+			inp_tree->SetBranchAddress("HLT_AK4PFJet100_Eta5p1_v1", &HLT_Jet100);
+		}
+		else{
+			inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet80_Eta5p1_v1", &HLT_Jet80);
+			inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet100_Eta5p1_v1", &HLT_Jet100);
+			inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet80_Eta5p1_v1_Prescl", &HLT_Jet80_ps);
+			inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet100_Eta5p1_v1_Prescl", &HLT_Jet100_ps);
+		}
+
 
 		int n_evt = inp_tree->GetEntriesFast();
 
@@ -371,25 +465,29 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 		for(int evi = 0; evi < n_evt; evi++) {
 
 			inp_tree->GetEntry(evi);
+			pftree->GetEntry(evi);
 
-			if(!HLT_Jet80) continue;
+			if(!HLT_Jet80 && !HLT_Jet100) continue;
 			if(!do_PbPb && (!pvFilter || !HBHENoiseFilter)) continue;
-			if(do_PbPb && (!pvFilter || !HBHENoiseFilter || !eventSelection)) continue;
+
+			// Removing event selection for PbPb skims so we can test various selection criteria
+			//if(do_PbPb && (!pvFilter || !HBHENoiseFilter || !eventSelection)) continue;
 
 			//if( evi % 1000 == 0 ) std::cout << "Filled successfully" << std::endl;
 
-			for(int j4i = 0; j4i < nref ; j4i++) {
+			//start calo jet loop
+			for(int j4i = 0; j4i < calo_nref ; j4i++) {
 
-				if( fabs(t_jteta[j4i]) > 2. ) continue;
+				if( fabs(t_calo_jteta[j4i]) > 2. ) continue;
 
 				//-----------------------------------------------------------------------------------------
 				// Jet Energy Corrections (JFF-dependent, store final corrected values in vector corr_pt)
 				//----------------------------------------------------------------------------------------
 
 
-				reco_pt = t_jtpt[j4i];
-				reco_phi = t_jtphi[j4i];
-				reco_eta = t_jteta[j4i];
+				reco_pt = t_calo_jtpt[j4i];
+				reco_phi = t_calo_jtphi[j4i];
+				reco_eta = t_calo_jteta[j4i];
 
 
 				int npf=0;
@@ -421,27 +519,94 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 					residual_corrected_pt= reco_pt; //FF_JEC->get_residual_corrected_pt(corrected_pt,hiBin);
 				}
 
-				if( jtpt[j4i] < 25 && residual_corrected_pt < 25) continue;
+				if( t_calo_jtpt[j4i] < 25 && residual_corrected_pt < 25) continue;
 
-				jteta.push_back(reco_eta);
-				jtphi.push_back(reco_phi);
-				jtpt.push_back(reco_pt);
-				corrpt.push_back(reco_pt); //residual_corrected_pt);
-				rawpt.push_back(t_rawpt[j4i]);
+				calo_jteta.push_back(reco_eta);
+				calo_jtphi.push_back(reco_phi);
+				calo_jtpt.push_back(reco_pt);
+				calo_corrpt.push_back(reco_pt); //residual_corrected_pt);
+				calo_rawpt.push_back(t_calo_rawpt[j4i]);
 
-				discr_ssvHighEff.push_back(t_discr_ssvHighEff[j4i]);
-				discr_ssvHighPur.push_back(t_discr_ssvHighPur[j4i]);
-				discr_csvV1.push_back(t_discr_csvV1[j4i]);
-				discr_prob.push_back(t_discr_prob[j4i]);
-				svtxm.push_back(t_svtxm[j4i]);
-				svtxpt.push_back(t_svtxpt[j4i]);
-				svtxmcorr.push_back(t_svtxmcorr[j4i]);
-				svtxdl.push_back(t_svtxdl[j4i]);
-				svtxdls.push_back(t_svtxdls[j4i]);
+				calo_discr_ssvHighEff.push_back(t_calo_discr_ssvHighEff[j4i]);
+				calo_discr_ssvHighPur.push_back(t_calo_discr_ssvHighPur[j4i]);
+				calo_discr_csvV1.push_back(t_calo_discr_csvV1[j4i]);
+				calo_discr_prob.push_back(t_calo_discr_prob[j4i]);
+				calo_svtxm.push_back(t_calo_svtxm[j4i]);
+				calo_svtxpt.push_back(t_calo_svtxpt[j4i]);
+				calo_svtxmcorr.push_back(t_calo_svtxmcorr[j4i]);
+				calo_svtxdl.push_back(t_calo_svtxdl[j4i]);
+				calo_svtxdls.push_back(t_calo_svtxdls[j4i]);
 
-				trackMax.push_back(t_trackMax[j4i]);
+				calo_trackMax.push_back(t_calo_trackMax[j4i]);
 
-			} /// jet loop
+			} /// calo jet loop
+
+
+			//start pf jet loop
+			for(int j4i = 0; j4i < pf_nref ; j4i++) {
+
+				if( fabs(t_pf_jteta[j4i]) > 2. ) continue;
+
+				//-----------------------------------------------------------------------------------------
+				// Jet Energy Corrections (JFF-dependent, store final corrected values in vector corr_pt)
+				//----------------------------------------------------------------------------------------
+
+
+				reco_pt = t_pf_jtpt[j4i];
+				reco_phi = t_pf_jtphi[j4i];
+				reco_eta = t_pf_jteta[j4i];
+
+
+				int npf=0;
+
+				for(unsigned int ipf=0;ipf< pfPt->size(); ipf++){
+
+					pfPt_temp = pfPt->at(ipf);
+					pfVsPt_temp = pfVsPtInitial->at(ipf);
+					pfEta_temp =  pfEta->at(ipf);
+					pfPhi_temp =  pfPhi->at(ipf);
+					pfId_temp = pfId->at(ipf);  //pfId == 1 for hadrons only
+
+					//cout<<pfPt<<" "<<pfVsPt<<" "<<pfEta<<" "<<pfPhi<<" "<<pfId<<endl;
+					r=sqrt(pow(reco_eta-pfEta_temp,2)+pow(acos(cos(reco_phi-pfPhi_temp)),2));
+
+					if(do_PbPb&&r<((double)(radius)*0.1)&& pfVsPt_temp > Pf_pt_cut && pfEta_temp <2.4 && pfId_temp==1) npf++; 
+
+					if(!do_PbPb&&r<((double)(radius)*0.1)&& pfPt_temp > Pf_pt_cut && pfEta_temp <2.4 && pfId_temp==1) npf++; 
+				}
+
+				if(do_PbPb){ 
+					corrected_pt= reco_pt; //FF_JEC->get_corrected_pt(reco_pt, npf, hiBin);
+				}else{ 
+					corrected_pt= reco_pt; //FF_JEC->get_corrected_pt(reco_pt, npf);
+				}
+
+
+				if(do_residual_correction){ 
+					residual_corrected_pt= reco_pt; //FF_JEC->get_residual_corrected_pt(corrected_pt,hiBin);
+				}
+
+				if( t_pf_jtpt[j4i] < 25 && residual_corrected_pt < 25) continue;
+
+				pf_jteta.push_back(reco_eta);
+				pf_jtphi.push_back(reco_phi);
+				pf_jtpt.push_back(reco_pt);
+				pf_corrpt.push_back(reco_pt); //residual_corrected_pt);
+				pf_rawpt.push_back(t_pf_rawpt[j4i]);
+
+				pf_discr_ssvHighEff.push_back(t_pf_discr_ssvHighEff[j4i]);
+				pf_discr_ssvHighPur.push_back(t_pf_discr_ssvHighPur[j4i]);
+				pf_discr_csvV1.push_back(t_pf_discr_csvV1[j4i]);
+				pf_discr_prob.push_back(t_pf_discr_prob[j4i]);
+				pf_svtxm.push_back(t_pf_svtxm[j4i]);
+				pf_svtxpt.push_back(t_pf_svtxpt[j4i]);
+				pf_svtxmcorr.push_back(t_pf_svtxmcorr[j4i]);
+				pf_svtxdl.push_back(t_pf_svtxdl[j4i]);
+				pf_svtxdls.push_back(t_pf_svtxdls[j4i]);
+
+				pf_trackMax.push_back(t_pf_trackMax[j4i]);
+
+			} /// pf jet loop
 
 
 			if(!is_data){
@@ -486,7 +651,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 				trkPhi.push_back(t_trkPhi[itrk]);
 				trkPt.push_back(t_trkPt[itrk]);
 				trkAlgo.push_back(t_trkAlgo[itrk]);
-				highPurity.push_back(t_highPurity[itrk]);
+				highPurity.push_back((bool)t_highPurity[itrk]);
 
 				trkDxy1.push_back(t_trkDxy1[itrk]);
 				trkDxyError1.push_back(t_trkDxyError1[itrk]);
@@ -494,8 +659,10 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 				trkDzError1.push_back(t_trkDzError1[itrk]);
 				trkPtError.push_back(t_trkPtError[itrk]);
 
-				trkNHit.push_back(t_trkNHit[itrk]);
-				trkNlayer.push_back(t_trkNlayer[itrk]);
+				trkNHit.push_back((int)t_trkNHit[itrk]);
+				trkNlayer.push_back((int)t_trkNlayer[itrk]);
+				trkChi2.push_back(t_trkChi2[itrk]);
+				trkNdof.push_back((int)t_trkNdof[itrk]);
 				pfEcal.push_back(t_pfEcal[itrk]);
 				pfHcal.push_back(t_pfHcal[itrk]);
 				trkMVALoose.push_back(t_trkMVALoose[itrk]);
@@ -537,19 +704,27 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 			trkAlgo.clear();
 			highPurity.clear();
 
-			jteta.clear();
-			jtphi.clear();
-			jtpt.clear();
-			corrpt.clear();
-			rawpt.clear();
+			calo_jteta.clear();
+			calo_jtphi.clear();
+			calo_jtpt.clear();
+			calo_corrpt.clear();
+			calo_rawpt.clear();
+			calo_trackMax.clear();
 
-			trackMax.clear();
+			pf_jteta.clear();
+			pf_jtphi.clear();
+			pf_jtpt.clear();
+			pf_corrpt.clear();
+			pf_rawpt.clear();
+			pf_trackMax.clear();
 
 			trkDxy1.clear();
 			trkDxyError1.clear();
 			trkDz1.clear();
 			trkDzError1.clear();
 			trkPtError.clear();
+			trkChi2.clear();
+			trkNdof.clear();
 			pfEcal.clear();
 			pfHcal.clear();
 			trkMVATight.clear();
@@ -563,15 +738,25 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 			pfEta->clear();
 			pfPhi->clear();
 
-			discr_ssvHighEff.clear();
-			discr_ssvHighPur.clear();
-			discr_csvV1.clear();
-			discr_prob.clear();
-			svtxm.clear();
-			svtxpt.clear();
-			svtxmcorr.clear();
-			svtxdl.clear();
-			svtxdls.clear();
+			calo_discr_ssvHighEff.clear();
+			calo_discr_ssvHighPur.clear();
+			calo_discr_csvV1.clear();
+			calo_discr_prob.clear();
+			calo_svtxm.clear();
+			calo_svtxpt.clear();
+			calo_svtxmcorr.clear();
+			calo_svtxdl.clear();
+			calo_svtxdls.clear();
+
+			pf_discr_ssvHighEff.clear();
+			pf_discr_ssvHighPur.clear();
+			pf_discr_csvV1.clear();
+			pf_discr_prob.clear();
+			pf_svtxm.clear();
+			pf_svtxpt.clear();
+			pf_svtxmcorr.clear();
+			pf_svtxdl.clear();
+			pf_svtxdls.clear();
 
 			if(!is_data){
 				pt.clear();
