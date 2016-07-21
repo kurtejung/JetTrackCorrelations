@@ -141,7 +141,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	vector<float> calo_jteta, calo_jtphi, calo_jtpt, calo_rawpt, calo_corrpt, calo_trackMax;
 	vector<int> trkAlgo;
 	vector<bool> highPurity;
-	vector<float> trackMax, trkDxy1, trkDxyError1, trkDz1, trkDzError1, trkPtError, pfEcal, pfHcal, trkMVALoose, trkMVATight, trkChi2, trkEta, trkPhi, trkPt;
+	vector<float> trkDxy1, trkDxyError1, trkDz1, trkDzError1, trkPtError, pfEcal, pfHcal, trkMVALoose, trkMVATight, trkChi2, trkEta, trkPhi, trkPt;
 	vector<int> *pfId=0, trkNHit, trkNlayer, trkNdof;
 	vector<float> *pfPt=0, *pfEta=0, *pfPhi=0, *pfVsPtInitial=0;
 	vector<int> sube, chg;
@@ -215,7 +215,6 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	mixing_tree->Branch("calo_trackMax", &calo_trackMax);
 
 	if(!is_data) mixing_tree->Branch("pthat", &pthat, "pthat/F");
-	mixing_tree->Branch("trackMax", &trackMax);
 	mixing_tree->Branch("trkDxy", &trkDxy1);
 	mixing_tree->Branch("trkDxyError", &trkDxyError1);
 	mixing_tree->Branch("trkDz", &trkDz1);
@@ -288,7 +287,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	Float_t t_calo_jtpt[MAXJETS], t_calo_jteta[MAXJETS], t_calo_jtphi[MAXJETS], t_calo_discr_ssvHighEff[MAXJETS], t_calo_discr_ssvHighPur[MAXJETS], t_calo_discr_csvV1[MAXJETS], t_calo_discr_prob[MAXJETS], t_calo_svtxm[MAXJETS], t_calo_svtxpt[MAXJETS], t_calo_svtxmcorr[MAXJETS], t_calo_svtxdl[MAXJETS], t_calo_svtxdls[MAXJETS], t_calo_rawpt[MAXJETS], t_calo_trackMax[MAXJETS];
 
 	const int MAXPARTICLES = 60000;
-	Float_t t_trkPt[MAXPARTICLES], t_trkEta[MAXPARTICLES], t_trkPhi[MAXPARTICLES], t_trkDxy1[MAXPARTICLES], t_trkDxyError1[MAXPARTICLES], t_trkDz1[MAXPARTICLES], t_trkDzError1[MAXPARTICLES], t_trkPtError[MAXPARTICLES], t_trackMax[MAXPARTICLES], t_pfEcal[MAXPARTICLES], t_pfHcal[MAXPARTICLES], t_trkChi2[MAXPARTICLES];
+	Float_t t_trkPt[MAXPARTICLES], t_trkEta[MAXPARTICLES], t_trkPhi[MAXPARTICLES], t_trkDxy1[MAXPARTICLES], t_trkDxyError1[MAXPARTICLES], t_trkDz1[MAXPARTICLES], t_trkDzError1[MAXPARTICLES], t_trkPtError[MAXPARTICLES], t_pfEcal[MAXPARTICLES], t_pfHcal[MAXPARTICLES], t_trkChi2[MAXPARTICLES];
 	Bool_t t_trkMVALoose[MAXPARTICLES], t_trkMVATight[MAXPARTICLES];
 	UChar_t t_trkAlgo[MAXPARTICLES], t_trkNHit[MAXPARTICLES], t_trkNlayer[MAXPARTICLES], t_trkNdof[MAXPARTICLES];
 	Bool_t t_highPurity[MAXPARTICLES];
