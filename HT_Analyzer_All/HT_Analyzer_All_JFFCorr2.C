@@ -119,11 +119,11 @@ void ReadFileList(std::vector<TString> &my_file_names, TString file_of_names, bo
 
 // arg1 = dataset type, arg2 = number of files
 
-void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 2){
+void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFiles = 2){
  
   dataset_type_code = datasetTypeCode;    //// pick datasets you want to run over
   
-  parti = nFiles;
+  parti = startfile+nFiles;
 
   if(dataset_type_code == e_Data2011 || dataset_type_code == e_Data_pp){
     is_data = true;
@@ -277,12 +277,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 2){
 
     cout<<"Am I pp? "<<is_pp<<endl;
 
-    TFile *fout = new TFile("PbPb_5TeV_histOutput.root","recreate");
-
   //assert(parti <= (int) file_names.size() );
     cout << "file_names size: "<< file_names.size() << endl;
 
-  for(int fi = 0; fi < (int) file_names.size(); fi++) {
+  for(int fi = startfile; fi < (int) file_names.size() && fi<parti; fi++) {
     TFile *my_file = TFile::Open(file_names.at(fi));
     std::cout << "Current file: " << ", file_name: " << file_names.at(fi) << ", number " << fi << " of " << file_names.size() << std::endl;
     if(my_file->IsZombie()) {
@@ -297,7 +295,7 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 2){
     vector<float> *trkEta=0, *trkPhi=0, *trkPt=0, *jteta=0, *jtphi=0, *jtpt=0, *rawpt=0, *corrpt=0;
     vector<UChar_t> *trkAlgo=0;
     vector<bool> *highPurity=0;
-    vector<float> *trackMax=0, *trkDxy1=0, *trkDxyError1=0, *trkDz1=0, *trkDzError1=0, *trkPtError=0, *pfEcal=0, *pfHcal=0, *trkMVALoose=0, *trkMVATight=0;
+    vector<float> *trackMax=0, *trkDxy1=0, *trkDxyError1=0, *trkDz1=0, *trkDzError1=0, *trkPtError=0, *pfEcal=0, *pfHcal=0, *trkMVALoose=0, *trkMVATight=0, *trkNdof=0, *trkChi2=0;
     vector<int> *pfId=0, *trkNHit=0, *trkNlayer=0;
     vector<float> *pfPt=0, *pfEta=0, *pfPhi=0, *pfVsPtInitial=0;
     vector<int> *sube=0, *chg=0;
@@ -307,10 +305,15 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 2){
 	Int_t hiBin = -999;
 	Float_t pthat = -999;
 	Float_t vz = -999;
+	Int_t HBHEFilter, collisionEventSelection, phfCoincFilter;
 
 	/// higenparticles
 
 	//mixing_tree->Branch("nTrk", &nTrk, "nTrk/I");
+	mixing_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
+	mixing_tree->SetBranchAddress("pcollisionEventSelection",&collisionEventSelection);
+	mixing_tree->SetBranchAddress("phfCoincFilter3",&phfCoincFilter);
+
 	mixing_tree->SetBranchAddress("trkPt", &trkPt);
 	mixing_tree->SetBranchAddress("trkEta", &trkEta);
 	mixing_tree->SetBranchAddress("trkPhi", &trkPhi);
@@ -320,21 +323,23 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 2){
 
 	mixing_tree->SetBranchAddress("hiBin", &hiBin);
 
-	mixing_tree->SetBranchAddress("jteta", &jteta);
-	mixing_tree->SetBranchAddress("jtphi", &jtphi);
-	mixing_tree->SetBranchAddress("jtpt", &jtpt);
-	mixing_tree->SetBranchAddress("rawpt", &rawpt);
-	mixing_tree->SetBranchAddress("corrpt", &corrpt);
+	mixing_tree->SetBranchAddress("calo_jteta", &jteta);
+	mixing_tree->SetBranchAddress("calo_jtphi", &jtphi);
+	mixing_tree->SetBranchAddress("calo_jtpt", &jtpt);
+	mixing_tree->SetBranchAddress("calo_rawpt", &rawpt);
+	mixing_tree->SetBranchAddress("calo_corrpt", &corrpt);
 
 	if(!is_data) mixing_tree->SetBranchAddress("pthat", &pthat);
-	mixing_tree->SetBranchAddress("trackMax", &trackMax);
-	mixing_tree->SetBranchAddress("trkDxy1", &trkDxy1);
-	mixing_tree->SetBranchAddress("trkDxyError1", &trkDxyError1);
-	mixing_tree->SetBranchAddress("trkDz1", &trkDz1);
-	mixing_tree->SetBranchAddress("trkDzError1", &trkDzError1);
+	mixing_tree->SetBranchAddress("calo_trackMax", &trackMax);
+	mixing_tree->SetBranchAddress("trkDxy", &trkDxy1);
+	mixing_tree->SetBranchAddress("trkDxyError", &trkDxyError1);
+	mixing_tree->SetBranchAddress("trkDz", &trkDz1);
+	mixing_tree->SetBranchAddress("trkDzError", &trkDzError1);
 	mixing_tree->SetBranchAddress("trkPtError", &trkPtError);
 	mixing_tree->SetBranchAddress("trkNHit",&trkNHit);
 	mixing_tree->SetBranchAddress("trkNlayer",&trkNlayer);
+	mixing_tree->SetBranchAddress("trkNdof",&trkNdof);
+	mixing_tree->SetBranchAddress("trkChi2",&trkChi2);
 	mixing_tree->SetBranchAddress("pfEcal",&pfEcal);
 	mixing_tree->SetBranchAddress("pfHcal",&pfHcal);
 	mixing_tree->SetBranchAddress("trkMVALoose",&trkMVALoose);
@@ -362,15 +367,15 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 2){
 	mixing_tree->SetBranchAddress("pfPhi", &pfPhi);
 
 	//adding b-jet stuff....
-	mixing_tree->SetBranchAddress("discr_ssvHighEff", &discr_ssvHighEff);
-	mixing_tree->SetBranchAddress("discr_ssvHighPur", &discr_ssvHighPur);
-	mixing_tree->SetBranchAddress("discr_csvV1", &discr_csvV1);
-	mixing_tree->SetBranchAddress("discr_prob", &discr_prob);
-	mixing_tree->SetBranchAddress("svtxm", &svtxm);
-	mixing_tree->SetBranchAddress("svtxpt", &svtxpt);
-	mixing_tree->SetBranchAddress("svtxmcorr", &svtxmcorr);
-	mixing_tree->SetBranchAddress("svtxdl", &svtxdl);
-	mixing_tree->SetBranchAddress("svtxdls", &svtxdls);
+	mixing_tree->SetBranchAddress("calo_discr_ssvHighEff", &discr_ssvHighEff);
+	mixing_tree->SetBranchAddress("calo_discr_ssvHighPur", &discr_ssvHighPur);
+	mixing_tree->SetBranchAddress("calo_discr_csvV1", &discr_csvV1);
+	mixing_tree->SetBranchAddress("calo_discr_prob", &discr_prob);
+	mixing_tree->SetBranchAddress("calo_svtxm", &svtxm);
+	mixing_tree->SetBranchAddress("calo_svtxpt", &svtxpt);
+	mixing_tree->SetBranchAddress("calo_svtxmcorr", &svtxmcorr);
+	mixing_tree->SetBranchAddress("calo_svtxdl", &svtxdl);
+	mixing_tree->SetBranchAddress("calo_svtxdls", &svtxdls);
 
 
     TString me_file_name;
@@ -452,7 +457,7 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 2){
         
       int ibin2 = 0;  int ibin3=0;
 
-
+      if(!HBHEFilter || !collisionEventSelection || !phfCoincFilter) continue;
       if(fabs(vz) > 15.) continue;      
 
       my_hists[data_mc_type_code]->NEvents_after_noise->Fill(hiBin/2.0);
@@ -758,7 +763,12 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 2){
 	  for(int tracks =0; tracks < (int) trkPt->size(); tracks++){
 	    if(fabs(trkEta->at(tracks))>=trketamaxcut) continue;
 	    if (highPurity->at(tracks)!=1) continue;
-	    if(trkPt->at(tracks)<=trkPtCut) continue;
+	    if(trkChi2->at(tracks)/(float)trkNdof->at(tracks)/(float)trkNlayer->at(tracks)>0.15) continue;
+	    if(trkNHit->at(tracks)<11 && trkPt->at(tracks)>0.7) continue;
+
+	    float Et = (pfHcal->at(tracks)+pfEcal->at(tracks))/TMath::CosH(trkEta->at(tracks));
+	    if(!(trkPt->at(tracks)<20 || (Et>0.5*trkPt->at(tracks)))) continue;
+	    if(trkPt->at(tracks)<=trkPtCut || trkPt->at(tracks)>300.) continue;
 
 	  
 	    for(int trkpti = 0; trkpti < nTrkPtBins; trkpti++) {
@@ -1898,7 +1908,6 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int nFiles = 2){
   cout<<"There were a total of "<<unmatched_counter<<" jets we could not match over all selections."<<endl;
 
   cout<<"Ready to write"<<endl;
-  fout->cd();
 
   if(is_data){
     my_hists[data_mc_type_code]->Write(0);

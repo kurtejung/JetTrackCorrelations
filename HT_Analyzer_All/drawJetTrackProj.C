@@ -4,11 +4,11 @@ void drawJetTrackProj(){
 	
 	const int nTrkPtBins = 5;
 	const int jetPtBins = 1;
-	const int centralityBins = 1;
+	const int centralityBins = 4;
 	const int collType = 2;
 
 	//pp  bins are filled duplicate in every cent bin so just picking 1 is fine
-	const int centBins[centralityBins+1] = {0,10};
+	const int centBins[centralityBins+1] = {0,10,30,50,100};
 	const int jptBins[jetPtBins+1] = {100,300};
 	const int trkPtBins[nTrkPtBins+1] = {1, 2, 3, 4, 8, 999};
 
@@ -65,12 +65,16 @@ void drawJetTrackProj(){
 					int highBin = inclCorrPlots[i][j][k][m]->GetYaxis()->FindBin(nearSideHigh);
 					inclFG_nearPeak[i][j][k][m] = (TH1D*)inclCorrPlots[i][j][k][m]->ProjectionX(Form("_pxNear_cent%d_jtpt%d_trkpt%d_coll%d",i,j,k,m),lowBin, highBin,"e");
 					bFG_nearPeak[i][j][k][m] = (TH1D*)bjetCorrPlots[i][j][k][m]->ProjectionX(Form("_bpxNear_cent%d_jtpt%d_trkpt%d_coll%d",i,j,k,m),lowBin, highBin,"e");
+					inclFG_nearPeak[i][j][k][m]->Rebin(4);
+					bFG_nearPeak[i][j][k][m]->Rebin(4);
 
 				//now do the middle stuff as BG
 					lowBin = inclCorrPlots[i][j][k][m]->GetYaxis()->FindBin(nearSideHigh);
 					highBin = inclCorrPlots[i][j][k][m]->GetYaxis()->FindBin(awaySideLow);
 					inclBG[i][j][k][m] = (TH1D*)inclCorrPlots[i][j][k][m]->ProjectionX(Form("_pxBG_cent%d_jtpt%d_trkpt%d_coll%d",i,j,k,m),lowBin, highBin,"e");
 					bBG[i][j][k][m] = (TH1D*)bjetCorrPlots[i][j][k][m]->ProjectionX(Form("_bpxBG_cent%d_jtpt%d_trkpt%d_coll%d",i,j,k,m),lowBin, highBin,"e");
+					inclBG[i][j][k][m]->Rebin(4);
+					bBG[i][j][k][m]->Rebin(4);
 
 
 				//now do the away-side peak
@@ -78,14 +82,31 @@ void drawJetTrackProj(){
 					highBin = inclCorrPlots[i][j][k][m]->GetYaxis()->FindBin(awaySideHigh);
 					inclFG_awayPeak[i][j][k][m] = (TH1D*)inclCorrPlots[i][j][k][m]->ProjectionX(Form("_pxAway_cent%d_jtpt%d_trkpt%d_coll%d",i,j,k,m),lowBin, highBin,"e");
 					bFG_awayPeak[i][j][k][m] = (TH1D*)bjetCorrPlots[i][j][k][m]->ProjectionX(Form("_bpxAway_cent%d_jtpt%d_trkpt%d_coll%d",i,j,k,m),lowBin, highBin,"e");
+					inclFG_awayPeak[i][j][k][m]->Rebin(4);
+					bFG_awayPeak[i][j][k][m]->Rebin(4);
 				}
 			}
 		}
 	}
 
+	/*for(int i=1; i<centralityBins; i++){
+		for(int j=0; j<jetPtBins; j++){
+			for(int k=0; k<nTrkPtBins; k++){
+				inclFG_nearPeak[0][j][k][1]->Add(inclFG_nearPeak[i][j][k][1]);
+				bFG_nearPeak[0][j][k][1]->Add(bFG_nearPeak[i][j][k][1]);
+				inclBG[0][j][k][1]->Add(inclBG[i][j][k][1]);
+				bBG[0][j][k][1]->Add(bBG[i][j][k][1]);
+				inclFG_awayPeak[0][j][k][1]->Add(inclFG_awayPeak[i][j][k][1]);
+				bFG_awayPeak[0][j][k][1]->Add(bFG_awayPeak[i][j][k][1]);
+			}
+		}
+	}*/
+
 	int tptBin = 0;
 	double bFrac = 1./0.035/0.90; //  1/bfrac/taggingPurity
 	int collision = 1;
+
+	TLatex *l1[3];
 
 	TCanvas *cc = new TCanvas("cc","",1200,600);
 	cc->Divide(3,1);
@@ -93,6 +114,7 @@ void drawJetTrackProj(){
 	for(int tptBin=0; tptBin<5; tptBin+=2){
 	cc->cd(dummy);
 	cc->GetPad(dummy++)->SetLogy();
+	l1[dummy-1] = new TLatex(0,1.1,Form("%d < Trk pT < %d",trkPtBins[tptBin],trkPtBins[tptBin+1]));
 	//inclFG_nearPeak[0][0][tptBin]->Scale(1./(double)nEvents);
 	//inclBG[0][0][tptBin]->Scale(1./(double)nEvents);
 	inclFG_nearPeak[0][0][tptBin][collision]->SetXTitle("Jet #eta");
@@ -107,6 +129,8 @@ void drawJetTrackProj(){
 
 	bFG_nearPeak[0][0][tptBin][collision]->Divide(bBG[0][0][tptBin][collision]);
 	bFG_nearPeak[0][0][tptBin][collision]->SetMarkerStyle(24);
+	bFG_nearPeak[0][0][tptBin][collision]->SetMarkerColor(kRed);
+	bFG_nearPeak[0][0][tptBin][collision]->SetLineColor(kRed);
 	//bFG_nearPeak[0][0][tptBin][0]->Scale(bFrac);
 	bFG_nearPeak[0][0][tptBin][collision]->Draw("same");
 
@@ -116,6 +140,8 @@ void drawJetTrackProj(){
 	bFG_awayPeak[0][0][tptBin][collision]->Divide(bBG[0][0][tptBin][collision]);
 	//bFG_awayPeak[0][0][tptBin]->Scale(bFrac);
 	//bFG_awayPeak[0][0][tptBin][collision]->Draw("same");
+
+	l1[dummy-1]->Draw("Same");
 	}
 
 
