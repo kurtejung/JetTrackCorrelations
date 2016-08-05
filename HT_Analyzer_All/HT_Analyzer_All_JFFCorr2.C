@@ -18,6 +18,9 @@
 #include <TCut.h>
 #include <vector>
 #include "TCanvas.h"
+#include "TStopwatch.h"
+#include <list>
+
 //#include "Jan_24_pp_Iterative/getTrkCorr.h"
 #include "Jan18_PbPb/getTrkCorr.h"
 
@@ -119,7 +122,7 @@ void ReadFileList(std::vector<TString> &my_file_names, TString file_of_names, bo
 
 // arg1 = dataset type, arg2 = number of files
 
-void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFiles = 2){
+void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFiles = 1){
  
   dataset_type_code = datasetTypeCode;    //// pick datasets you want to run over
   
@@ -133,7 +136,7 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
     data_mc_type_code = 2;
   }
     
-  bool do_mixing = false;
+  bool do_mixing = true;
 
   std::cout<<"dataset_type_code is " <<dataset_type_code<<" "<<dataset_type_strs[dataset_type_code]<<endl;
   std::cout << "Running with trkPtCut " << trkPtCut << std::endl;
@@ -183,7 +186,7 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
   const double dphicut = 5.*(TMath::Pi())/6. ; 
   const double trketamaxcut = 2.4;
 
-  const bool doBjets = true;
+  const bool doBjets = false;
  
   
   //****************************************
@@ -191,7 +194,7 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 
   double cent, eta, pt, phi;
   //, rmin, r_reco, jeteta, jetphi, fake, eff, vz
-  double secondary, multrec, trkweight, trkweight_lead, trkweight_sub, deta, dphi, reco_eta, gen_eta, reco_phi, gen_phi, dr, closest_dr, jet_dir_eta, jet_dir_phi;
+  double secondary, multrec, trkweight, trkweight_lead, trkweight_sub, deta, dphi=0, reco_eta, gen_eta, reco_phi, gen_phi, dr, closest_dr, jet_dir_eta, jet_dir_phi;
   bool foundjet, foundjet_gen, founddijet, founddijet_gen, is_inclusive;
   int closest_j4i;
 	
@@ -212,6 +215,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 
     fit_vz = (TF1*)f_vertex_cent->Get((TString)("Fit_Vz_"+dataset_type_strs[dataset_type_code]))->Clone((TString)("Fit_Vz_"+dataset_type_strs[dataset_type_code]));
  
+  }
+  else{
+    fit_cen=NULL;
+    fit_vz=NULL;
   }
 
 
@@ -390,12 +397,18 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
     TFile  *me_file= new TFile(me_file_name,"READ");
     TTree *me_tree = (TTree*)me_file->Get("mixing_tree");
   
-    Long64_t nme = me_tree->GetEntriesFast();
-
     float me_vz;
     int me_hiBin;
     vector<double> *me_trkPt=0, *me_trkEta=0, *me_trkPhi=0;
     vector<bool> *me_highPurity=0;
+
+    me_tree->SetBranchStatus("*",0);
+    me_tree->SetBranchStatus("trkPt", 1);
+    me_tree->SetBranchStatus("trkEta", 1);
+    me_tree->SetBranchStatus("trkPhi", 1);
+    me_tree->SetBranchStatus("highPurity", 1);
+    me_tree->SetBranchStatus("vz", 1);  
+    me_tree->SetBranchStatus("hiBin", 1);
 
     me_tree->SetBranchAddress("trkPt", &me_trkPt);
     me_tree->SetBranchAddress("trkEta", &me_trkEta);
@@ -404,34 +417,64 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
     me_tree->SetBranchAddress("vz", &me_vz);	
 	me_tree->SetBranchAddress("hiBin", &me_hiBin);
 
-	cout << "mixing addresses set" << endl;
+	cout << "going through all mixed events normally..." << endl;
 
    
-    int meptrig = 40;
+    unsigned int meptrig = 40;
     
     gRandom->SetSeed(0);
-    Long64_t  me = gRandom->Rndm()*nme;
+    const int nCentMixBins=40;
+    const int nVzMixBins=30;
 
-    TH1D * centbins = new TH1D("centbins","centbins. JUST A DUMMY REALLY", 40, 0.0, 200.0);
-    TH1D * vzbins = new TH1D("vzbins","vzbins. JUST A DUMMY REALLY", 30, -15., 15.);
-    int jet_cent, jet_vzbin;
+    TH1D * centbins = new TH1D("centbins","centbins. JUST A DUMMY REALLY", nCentMixBins, 0.0, 200.0);
+    TH1D * vzbins = new TH1D("vzbins","vzbins. JUST A DUMMY REALLY", nVzMixBins, -15., 15.);
+    unsigned int jet_cent, jet_vzbin;
+    std::vector<std::vector<std::vector<int> > > mixing_lists;
+    for(int ivz=0; ivz<nVzMixBins; ivz++){
+      vector<vector<int> > dummyVect;
+      for(int icent=0; icent<nCentMixBins; icent++){
+        vector<int> dummyVect2;
+        dummyVect.push_back(dummyVect2);
+      }
+      mixing_lists.push_back(dummyVect);
+    }
+
+    if(do_mixing){
+      cout << "sorting events into vz and centrality categories..." << endl;
+      for(int me_evt=0; me_evt<me_tree->GetEntries(); me_evt++){
+
+        me_tree->GetEntry(me_evt);
+
+        if(abs(me_vz)>=15) continue;
+
+        unsigned int me_cent = 0;
+        if(!is_pp) me_cent = centbins->FindBin(me_hiBin)-1;
+        unsigned int me_vzbin = vzbins->FindBin(me_vz)-1;
+        mixing_lists.at(me_vzbin).at(me_cent).push_back(me_evt);
+
+      }
+      cout << "lists loaded!" << endl;
+    }
+
 
     ///==========================   Event Loop starts ===================================
     ///==========================   Event Loop starts ===================================
   
-    // n_evt = 1000;
+    n_evt = 10000;
     
     int genjet_count = 0;
     int genjet_fill_count = 0;
 
+    TStopwatch evtStopwatch;
 
     cout << "total Events: "<< n_evt << endl;
 
+    evtStopwatch.Start(1);
     for(int evi = 0; evi < n_evt; evi++) {
      
       mixing_tree->GetEntry(evi);
 
-      if (evi%1000==0) std::cout << " I am running on file " << fi+1 << " of " << ((int) file_names.size()) << ", evi: " << evi << " of " << n_evt << std::endl;
+      if (evi%100==0) std::cout << " I am running on file " << fi+1 << " of " << ((int) file_names.size()) << ", evi: " << evi << " of " << n_evt << std::endl;
 
       if(!is_data){data_mc_type_code = 2;}
 
@@ -444,15 +487,15 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 
     
       if(!is_data){
-	
-     	wvz = fit_vz->Eval(vz);
-	my_hists[data_mc_type_code]->Vz_new->Fill(vz,wvz);
-	
-	if(!is_pp){
-	  wcen = fit_cen->Eval(1.*hiBin);
-	  my_hists[data_mc_type_code]->Centrality_new->Fill(hiBin, wcen);
-	}		       
-      }
+
+        wvz = fit_vz->Eval(vz);
+        my_hists[data_mc_type_code]->Vz_new->Fill(vz,wvz);
+
+        if(!is_pp){
+          wcen = fit_cen->Eval(1.*hiBin);
+          my_hists[data_mc_type_code]->Centrality_new->Fill(hiBin, wcen);
+        }		       
+      } 
 
         
       int ibin2 = 0;  int ibin3=0;
@@ -1135,30 +1178,33 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 
 	      //	  cout << "mixing now " << me <<" "<<nme<<endl;
 
-	      int startovercheck = 0;
-	      int mevi = 0;
-	      while(mevi< meptrig &&startovercheck <2){  //
-	      	me++;
-	      	if(me>=nme){
-	      		me=0;
-	      		cout<<"starting over, startovercheck = "<<startovercheck<<" evi= "<<evi<<" jet_cent = "<<jet_cent<<" jet_vzbin = "<<jet_vzbin<<" mevi = "<<mevi<<" "<<me<<" "<<nme<<endl;  
-	      		assert(startovercheck<20);
-	      		startovercheck++; 
-	      	}
+	      unsigned int mevi = 0;
 
-	      	me_tree->GetEntry(me);
+             //randomize starting point of array to mix different events!
+        unsigned int pct = gRandom->Rndm()*mixing_lists.at(jet_vzbin-1).at(jet_cent-1).size();
+        bool circleCheck=false;
 
-	      	int me_cent= centbins->FindBin(me_hiBin);
-	      	int me_vzbin = vzbins->FindBin(me_vz);
+        for(mevi=pct; mevi<meptrig; mevi++){
+          if((int)mixing_lists[jet_vzbin-1][jet_cent-1].size()==0){
+            cout << "Warning! vzbin: "<< jet_vzbin-1 << ", cent bin: "<< jet_cent-1 << " is devoid of events!" << endl;
+            break;
+          }
+          if(mevi>mixing_lists[jet_vzbin-1][jet_cent-1].size()){ mevi=0; circleCheck=true; }
+          
+          if(mevi>=pct && circleCheck){
+            cout << "Warning! vzbin: "<< jet_vzbin-1 << ", cent bin: "<< jet_cent-1 << " has fewer than " << meptrig << " events! (Has " << mixing_lists[jet_vzbin-1][jet_cent-1].size() << " events)" << endl;
+            break;
+          }
+          if(mevi==0) mevi++; //prevent -1 access in next line
+	      	me_tree->GetEntry(mixing_lists.at(jet_vzbin-1).at(jet_cent-1).at(mevi-1));
 
-		//  Centrality matching
-	      	if (!is_pp&&(me_cent!=jet_cent)){ continue; }
+          unsigned int me_cent=0;
+          if(!is_pp){ me_cent = centbins->FindBin(me_hiBin);}
+          unsigned int me_vzbin = vzbins->FindBin(me_vz);
 
-		// Vz matching	   
-	      	if(jet_vzbin!= me_vzbin){ continue; }
-
-	      	mevi++;
-
+          //make sure i'm doing this thing correctly...
+          assert(me_vzbin==jet_vzbin);
+          assert(me_cent==jet_cent);
 
 	      	for(int tracks =0; tracks < (int) me_trkPt->size(); tracks++){
 	      		if(fabs(me_trkEta->at(tracks))>=trketamaxcut) continue;
@@ -1902,6 +1948,9 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	//    cout<<"here at end"<<endl;
 
     } ///we do EVERYTHING one event at a time.
+
+    evtStopwatch.Stop();
+    cout << "Avg event time: " << evtStopwatch.RealTime()/(double)n_evt << " sec/evt" << endl;
     
   }//FILE LOOP  (sort of a dummy, since we run on one file at a time).  
  
