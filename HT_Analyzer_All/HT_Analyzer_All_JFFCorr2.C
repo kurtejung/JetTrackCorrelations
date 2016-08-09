@@ -399,10 +399,13 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
   
     float me_vz;
     int me_hiBin;
-    vector<double> *me_trkPt=0, *me_trkEta=0, *me_trkPhi=0;
+    vector<double> *me_trkPt=0, *me_trkEta=0, *me_trkPhi=0, *me_jtpt=0, *me_jteta=0, *me_jtphi=0;
     vector<bool> *me_highPurity=0;
 
     me_tree->SetBranchStatus("*",0);
+    me_tree->SetBranchStatus("calo_jteta", 1);
+    me_tree->SetBranchStatus("calo_jtphi", 1);
+    me_tree->SetBranchStatus("calo_jtpt", 1);
     me_tree->SetBranchStatus("trkPt", 1);
     me_tree->SetBranchStatus("trkEta", 1);
     me_tree->SetBranchStatus("trkPhi", 1);
@@ -415,7 +418,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
     me_tree->SetBranchAddress("trkPhi", &me_trkPhi);
     me_tree->SetBranchAddress("highPurity", &me_highPurity);
     me_tree->SetBranchAddress("vz", &me_vz);	
-	me_tree->SetBranchAddress("hiBin", &me_hiBin);
+    me_tree->SetBranchAddress("hiBin", &me_hiBin);
+    me_tree->SetBranchAddress("calo_jteta", &me_jteta);
+    me_tree->SetBranchAddress("calo_jtphi", &me_jtphi);
+    me_tree->SetBranchAddress("calo_jtpt", &me_jtpt);
 
 	cout << "going through all mixed events normally..." << endl;
 
@@ -460,7 +466,7 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
     ///==========================   Event Loop starts ===================================
     ///==========================   Event Loop starts ===================================
   
-    n_evt = 10000;
+    n_evt = mixing_tree->GetEntries();
     
     int genjet_count = 0;
     int genjet_fill_count = 0;
@@ -1225,11 +1231,12 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 		        if(!is_pp){cent = me_hiBin;}
 
 		        float rmin = 999;
-		        for(unsigned int k = 0; k<jtpt->size(); k++)
+		        for(unsigned int k = 0; k<me_jtpt->size(); k++)
 		        {
-		        	if(jtpt->at(k)<50) break;
-                    if(/*TMath::Abs(chargedSum->at(k)/jtpt->at(k))<0.01 ||*/ jteta->at(k)>2) continue;//jet quality cut
-		        	float R = TMath::Power(jteta->at(k)-eta,2)+TMath::Power(jtphi->at(k)-phi,2);
+		        	if(me_jtpt->at(k)<50) break;
+              if(/*TMath::Abs(chargedSum->at(k)/jtpt->at(k))<0.01 ||*/ me_jteta->at(k)>2) continue;//jet quality cut
+		        	
+              float R = TMath::Power(me_jteta->at(k)-eta,2)+TMath::Power(me_jtphi->at(k)-phi,2);
 		        	if(rmin*rmin>R) rmin=TMath::Power(R,0.5);
 		        }
 
