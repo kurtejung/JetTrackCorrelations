@@ -2,5 +2,7 @@
 *.pdf
 
 *.root
+*_C.d
+*_C.so
 
 HT_Analyzer_All/.DS_Store
