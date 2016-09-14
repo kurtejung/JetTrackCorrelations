@@ -1,7 +1,7 @@
 
 
 class hist_class {
- public:
+public:
   hist_class(TString the_desc, bool is_it_data);
   void Delete();
   void NormalizeHists();
@@ -22,7 +22,6 @@ class hist_class {
   TH1F* dPhi_hist[nCBins];
   TH1F* Aj[nCBins];
 
-  
   TH1F* all_jets_corrpT[nCBins][nPtBins];
   TH1F* all_jets_phi[nCBins][nPtBins];
   TH1F* all_jets_eta[nCBins][nPtBins];
@@ -37,7 +36,20 @@ class hist_class {
   TH1F* only_nonleadingjets_phi[nCBins][nPtBins];
   TH1F* only_nonleadingjets_eta[nCBins][nPtBins];
 
- 
+  TH1F* all_bjets_corrpT[nCBins][nPtBins];
+  TH1F* all_bjets_phi[nCBins][nPtBins];
+  TH1F* all_bjets_eta[nCBins][nPtBins];
+  TH1F* only_leadingbjets_corrpT[nCBins][nPtBins];
+  TH1F* only_leadingbjets_phi[nCBins][nPtBins];
+  TH1F* only_leadingbjets_eta[nCBins][nPtBins];
+
+  TH1F* only_subleadingbjets_corrpT[nCBins][nPtBins];
+  TH1F* only_subleadingbjets_phi[nCBins][nPtBins];
+  TH1F* only_subleadingbjets_eta[nCBins][nPtBins];
+  TH1F* only_nonleadingbjets_corrpT[nCBins][nPtBins];
+  TH1F* only_nonleadingbjets_phi[nCBins][nPtBins];
+  TH1F* only_nonleadingbjets_eta[nCBins][nPtBins];
+
   TH1F* TrkPhi[nCBins][nPtBins][nTrkPtBins];
   TH1F* TrkPt[nCBins][nPtBins][nTrkPtBins];
   TH1F* TrkEta[nCBins][nPtBins][nTrkPtBins];
@@ -45,7 +57,7 @@ class hist_class {
   TH1F* TrkPhi_weighted[nCBins][nPtBins][nTrkPtBins];
   TH1F* TrkPt_weighted[nCBins][nPtBins][nTrkPtBins];
   TH1F* TrkEta_weighted[nCBins][nPtBins][nTrkPtBins];
- 
+
 
   TH1F* ME_TrkPhi[nCBins][nPtBins][nTrkPtBins];
   TH1F* ME_TrkPt[nCBins][nPtBins][nTrkPtBins];
@@ -54,36 +66,59 @@ class hist_class {
   TH1F* ME_TrkPhi_weighted[nCBins][nPtBins][nTrkPtBins];
   TH1F* ME_TrkPt_weighted[nCBins][nPtBins][nTrkPtBins];
   TH1F* ME_TrkEta_weighted[nCBins][nPtBins][nTrkPtBins];
- 
+
 
 
   TH2D* hJetTrackSignalBackground[nCBins][nPtBins][nTrkPtBins];
   TH2D* hJetTrackSignalBackground_notrkcorr[nCBins][nPtBins][nTrkPtBins];
- 
+
   TH2D* hJetTrackSignalBackgroundLeading[nCBins][nPtBins][nTrkPtBins];
   TH2D* hJetTrackSignalBackgroundLeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
-    
+
   TH2D* hJetTrackSignalBackgroundSubLeading[nCBins][nPtBins][nTrkPtBins];
   TH2D* hJetTrackSignalBackgroundSubLeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
-   
-   
+
   TH2D* hJetTrackSignalBackgroundNonLeading[nCBins][nPtBins][nTrkPtBins];
   TH2D* hJetTrackSignalBackgroundNonLeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
-   
+
+
+  TH2D* hbJetTrackSignalBackground[nCBins][nPtBins][nTrkPtBins];
+  TH2D* hbJetTrackSignalBackground_notrkcorr[nCBins][nPtBins][nTrkPtBins];
+
+  TH2D* hbJetTrackSignalBackgroundLeading[nCBins][nPtBins][nTrkPtBins];
+  TH2D* hbJetTrackSignalBackgroundLeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
+
+  TH2D* hbJetTrackSignalBackgroundSubLeading[nCBins][nPtBins][nTrkPtBins];
+  TH2D* hbJetTrackSignalBackgroundSubLeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
+
+  TH2D* hbJetTrackSignalBackgroundNonLeading[nCBins][nPtBins][nTrkPtBins];
+  TH2D* hbJetTrackSignalBackgroundNonLeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
+
 
 
   TH2D* hJetTrackME[nCBins][nPtBins][nTrkPtBins];
   TH2D* hJetTrackME_notrkcorr[nCBins][nPtBins][nTrkPtBins];
- 
+
   TH2D* hJetTrackMELeading[nCBins][nPtBins][nTrkPtBins];
   TH2D* hJetTrackMELeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
-    
+
   TH2D* hJetTrackMESubLeading[nCBins][nPtBins][nTrkPtBins];
   TH2D* hJetTrackMESubLeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
-   
-  
+
   TH2D* hJetTrackMENonLeading[nCBins][nPtBins][nTrkPtBins];
   TH2D* hJetTrackMENonLeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
+
+  TH2D* hbJetTrackME[nCBins][nPtBins][nTrkPtBins];
+  TH2D* hbJetTrackME_notrkcorr[nCBins][nPtBins][nTrkPtBins];
+
+  TH2D* hbJetTrackMELeading[nCBins][nPtBins][nTrkPtBins];
+  TH2D* hbJetTrackMELeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
+
+  TH2D* hbJetTrackMESubLeading[nCBins][nPtBins][nTrkPtBins];
+  TH2D* hbJetTrackMESubLeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
+
+  TH2D* hbJetTrackMENonLeading[nCBins][nPtBins][nTrkPtBins];
+  TH2D* hbJetTrackMENonLeading_notrkcorr[nCBins][nPtBins][nTrkPtBins];
   
 };
 
@@ -104,128 +139,157 @@ hist_class::hist_class(TString the_desc, bool is_it_data) {
 
   
   for (int ibin=0;ibin<nCBins;ibin++){
- 
-     dPhi_hist[ibin] = new TH1F((TString) (desc + "_dPhi_hist"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1]), "", 30, 0.,TMath::Pi());     dPhi_hist[ibin]->Sumw2();
-    Aj[ibin] = new TH1F((TString) (desc + "_Aj"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1]), "", 25,0.,1.25);     Aj[ibin]->Sumw2();
 
-    for (int ibin2=0;ibin2<nPtBins;ibin2++){ 
-      
-      all_jets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_all_jets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 50, 0., 500.);     all_jets_corrpT[ibin][ibin2]->Sumw2();
-      all_jets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_all_jets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 72, -TMath::Pi(), TMath::Pi());     all_jets_phi[ibin][ibin2]->Sumw2();
+   dPhi_hist[ibin] = new TH1F((TString) (desc + "_dPhi_hist"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1]), "", 30, 0.,TMath::Pi());     dPhi_hist[ibin]->Sumw2();
+   Aj[ibin] = new TH1F((TString) (desc + "_Aj"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1]), "", 25,0.,1.25);     Aj[ibin]->Sumw2();
 
-      all_jets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_all_jets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     all_jets_eta[ibin][ibin2]->Sumw2();
+   for (int ibin2=0;ibin2<nPtBins;ibin2++){ 
+
+    all_jets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_all_jets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 50, 0., 500.);     all_jets_corrpT[ibin][ibin2]->Sumw2();
+    all_jets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_all_jets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 72, -TMath::Pi(), TMath::Pi());     all_jets_phi[ibin][ibin2]->Sumw2();
+    all_jets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_all_jets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     all_jets_eta[ibin][ibin2]->Sumw2();
+
+    all_bjets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_all_bjets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 50, 0., 500.);     all_bjets_corrpT[ibin][ibin2]->Sumw2();
+    all_bjets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_all_bjets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 72, -TMath::Pi(), TMath::Pi());     all_bjets_phi[ibin][ibin2]->Sumw2();
+    all_bjets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_all_bjets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     all_bjets_eta[ibin][ibin2]->Sumw2();
 
       //// leading jet histograms
-      only_leadingjets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_only_leadingjets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, 0., 500.);     only_leadingjets_corrpT[ibin][ibin2]->Sumw2();
-      only_leadingjets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_only_leadingjets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 36, -TMath::Pi(),TMath::Pi());     only_leadingjets_phi[ibin][ibin2]->Sumw2();
-      only_leadingjets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_only_leadingjets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     only_leadingjets_eta[ibin][ibin2]->Sumw2();
+    only_leadingjets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_only_leadingjets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, 0., 500.);     only_leadingjets_corrpT[ibin][ibin2]->Sumw2();
+    only_leadingjets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_only_leadingjets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 36, -TMath::Pi(),TMath::Pi());     only_leadingjets_phi[ibin][ibin2]->Sumw2();
+    only_leadingjets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_only_leadingjets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     only_leadingjets_eta[ibin][ibin2]->Sumw2();
+
+    only_leadingbjets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_only_leadingbjets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, 0., 500.);     only_leadingbjets_corrpT[ibin][ibin2]->Sumw2();
+    only_leadingbjets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_only_leadingbjets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 36, -TMath::Pi(),TMath::Pi());     only_leadingbjets_phi[ibin][ibin2]->Sumw2();
+    only_leadingbjets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_only_leadingbjets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     only_leadingbjets_eta[ibin][ibin2]->Sumw2();
 
 
       //// subleading jet histograms
-      only_subleadingjets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_only_subleadingjets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, 0., 500.);     only_subleadingjets_corrpT[ibin][ibin2]->Sumw2();
-      only_subleadingjets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_only_subleadingjets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 36, -TMath::Pi(),TMath::Pi());     only_subleadingjets_phi[ibin][ibin2]->Sumw2();
-      only_subleadingjets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_only_subleadingjets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     only_subleadingjets_eta[ibin][ibin2]->Sumw2();
+    only_subleadingjets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_only_subleadingjets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, 0., 500.);     only_subleadingjets_corrpT[ibin][ibin2]->Sumw2();
+    only_subleadingjets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_only_subleadingjets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 36, -TMath::Pi(),TMath::Pi());     only_subleadingjets_phi[ibin][ibin2]->Sumw2();
+    only_subleadingjets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_only_subleadingjets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     only_subleadingjets_eta[ibin][ibin2]->Sumw2();
+
+    only_subleadingbjets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_only_subleadingbjets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, 0., 500.);     only_subleadingbjets_corrpT[ibin][ibin2]->Sumw2();
+    only_subleadingbjets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_only_subleadingbjets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 36, -TMath::Pi(),TMath::Pi());     only_subleadingbjets_phi[ibin][ibin2]->Sumw2();
+    only_subleadingbjets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_only_subleadingbjets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     only_subleadingbjets_eta[ibin][ibin2]->Sumw2();
 
 
+    only_nonleadingjets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_only_nonleadingjets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, 0., 500.);     only_nonleadingjets_corrpT[ibin][ibin2]->Sumw2();
+    only_nonleadingjets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_only_nonleadingjets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 36, -TMath::Pi(),TMath::Pi());     only_nonleadingjets_phi[ibin][ibin2]->Sumw2();
+    only_nonleadingjets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_only_nonleadingjets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     only_nonleadingjets_eta[ibin][ibin2]->Sumw2();
 
- only_nonleadingjets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_only_nonleadingjets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, 0., 500.);     only_nonleadingjets_corrpT[ibin][ibin2]->Sumw2();
-      only_nonleadingjets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_only_nonleadingjets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 36, -TMath::Pi(),TMath::Pi());     only_nonleadingjets_phi[ibin][ibin2]->Sumw2();
-      only_nonleadingjets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_only_nonleadingjets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     only_nonleadingjets_eta[ibin][ibin2]->Sumw2();
-
-
-
-
-
-
-      for (int ibin3=0;ibin3<nTrkPtBins;ibin3++){
-     
-	hJetTrackSignalBackground[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackground"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-TMath::Pi()/2,3*TMath::Pi()/2);     hJetTrackSignalBackground[ibin][ibin2][ibin3]->Sumw2();
-
-    
-	hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackground_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+    only_nonleadingbjets_corrpT[ibin][ibin2] = new TH1F((TString) (desc + "_only_nonleadingbjets_corrpT"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, 0., 500.);     only_nonleadingbjets_corrpT[ibin][ibin2]->Sumw2();
+    only_nonleadingbjets_phi[ibin][ibin2] = new TH1F((TString) (desc + "_only_nonleadingbjets_phi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 36, -TMath::Pi(),TMath::Pi());     only_nonleadingbjets_phi[ibin][ibin2]->Sumw2();
+    only_nonleadingbjets_eta[ibin][ibin2] = new TH1F((TString) (desc + "_only_nonleadingbjets_eta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]), "", 100, -5., 5.);     only_nonleadingbjets_eta[ibin][ibin2]->Sumw2();
 
 
-	hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Sumw2();
+    for (int ibin3=0;ibin3<nTrkPtBins;ibin3++){
 
-    	hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+     hJetTrackSignalBackground[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackground"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-TMath::Pi()/2,3*TMath::Pi()/2);     hJetTrackSignalBackground[ibin][ibin2][ibin3]->Sumw2();
 
+     hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackground_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
 
-	hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundSubLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Sumw2();
+     hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Sumw2();
 
-    
-	hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundSubLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+     hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
 
+     hbJetTrackSignalBackground[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackSignalBackground"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-TMath::Pi()/2,3*TMath::Pi()/2);     hbJetTrackSignalBackground[ibin][ibin2][ibin3]->Sumw2();
 
+     hbJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackSignalBackground_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
 
-	hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundNonLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Sumw2();
+     hbJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackSignalBackgroundLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Sumw2();
 
-    
-	hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundNonLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
-
-
-
+     hbJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackSignalBackgroundLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
 
 
-
-	TrkPt[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkPt"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 500, 0., 20.);     TrkPt[ibin][ibin2][ibin3]->Sumw2();
-
-	TrkEta[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkEta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -5., 5. );     TrkEta[ibin][ibin2][ibin3]->Sumw2();
-
-	TrkPhi[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkPhi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -0.5*TMath::Pi(), 1.5*TMath::Pi());     TrkPhi[ibin][ibin2][ibin3]->Sumw2();
+     //**//**//**//
 
 
+     hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundSubLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Sumw2();
 
-	TrkPt_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkPt_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 500, 0., 20.);     TrkPt_weighted[ibin][ibin2][ibin3]->Sumw2();
+     hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundSubLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
 
-	TrkEta_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkEta_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -5., 5.);     TrkEta_weighted[ibin][ibin2][ibin3]->Sumw2();
+     hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundNonLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Sumw2();
 
-	TrkPhi_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkPhi_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "",100, -0.5*TMath::Pi(), 1.5*TMath::Pi());     TrkPhi_weighted[ibin][ibin2][ibin3]->Sumw2();
+     hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackSignalBackgroundNonLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
 
+     hbJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackSignalBackgroundSubLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Sumw2();
 
+     hbJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackSignalBackgroundSubLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
 
+     hbJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackSignalBackgroundNonLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Sumw2();
 
-
-	ME_TrkPt[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkPt"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, 0., 100.);     ME_TrkPt[ibin][ibin2][ibin3]->Sumw2();
-
-	ME_TrkEta[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkEta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -5., 5. );     ME_TrkEta[ibin][ibin2][ibin3]->Sumw2();
-
-	ME_TrkPhi[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkPhi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -0.5*TMath::Pi(), 1.5*TMath::Pi());     ME_TrkPhi[ibin][ibin2][ibin3]->Sumw2();
-
+     hbJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackSignalBackgroundNonLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
 
 
-	ME_TrkPt_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkPt_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, 0., 100.);     ME_TrkPt_weighted[ibin][ibin2][ibin3]->Sumw2();
-
-	ME_TrkEta_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkEta_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -5., 5.);     ME_TrkEta_weighted[ibin][ibin2][ibin3]->Sumw2();
-
-	ME_TrkPhi_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkPhi_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "",100, -0.5*TMath::Pi(), 1.5*TMath::Pi());     ME_TrkPhi_weighted[ibin][ibin2][ibin3]->Sumw2();
+     //**//**//**//
 
 
+     TrkPt[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkPt"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 500, 0., 20.);     TrkPt[ibin][ibin2][ibin3]->Sumw2();
+
+     TrkEta[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkEta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -5., 5. );     TrkEta[ibin][ibin2][ibin3]->Sumw2();
+
+     TrkPhi[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkPhi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -0.5*TMath::Pi(), 1.5*TMath::Pi());     TrkPhi[ibin][ibin2][ibin3]->Sumw2();
 
 
+     TrkPt_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkPt_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 500, 0., 20.);     TrkPt_weighted[ibin][ibin2][ibin3]->Sumw2();
+
+     TrkEta_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkEta_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -5., 5.);     TrkEta_weighted[ibin][ibin2][ibin3]->Sumw2();
+
+     TrkPhi_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_TrkPhi_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "",100, -0.5*TMath::Pi(), 1.5*TMath::Pi());     TrkPhi_weighted[ibin][ibin2][ibin3]->Sumw2();
 
 
-	hJetTrackME[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackME"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-TMath::Pi()/2,3*TMath::Pi()/2);     hJetTrackME[ibin][ibin2][ibin3]->Sumw2();
+     ME_TrkPt[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkPt"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, 0., 100.);     ME_TrkPt[ibin][ibin2][ibin3]->Sumw2();
 
-    
-	hJetTrackME_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackME_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+     ME_TrkEta[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkEta"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -5., 5. );     ME_TrkEta[ibin][ibin2][ibin3]->Sumw2();
 
-
-	hJetTrackMELeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMELeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMELeading[ibin][ibin2][ibin3]->Sumw2();
-
-    	hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMELeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+     ME_TrkPhi[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkPhi"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -0.5*TMath::Pi(), 1.5*TMath::Pi());     ME_TrkPhi[ibin][ibin2][ibin3]->Sumw2();
 
 
-	hJetTrackMESubLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMESubLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMESubLeading[ibin][ibin2][ibin3]->Sumw2();
+     ME_TrkPt_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkPt_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, 0., 100.);     ME_TrkPt_weighted[ibin][ibin2][ibin3]->Sumw2();
 
-    
-	hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMESubLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+     ME_TrkEta_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkEta_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100, -5., 5.);     ME_TrkEta_weighted[ibin][ibin2][ibin3]->Sumw2();
+
+     ME_TrkPhi_weighted[ibin][ibin2][ibin3] = new TH1F((TString) (desc + "_ME_TrkPhi_weighted"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "",100, -0.5*TMath::Pi(), 1.5*TMath::Pi());     ME_TrkPhi_weighted[ibin][ibin2][ibin3]->Sumw2();
 
 
+     //**//**//**//
 
-	hJetTrackMENonLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMENonLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMENonLeading[ibin][ibin2][ibin3]->Sumw2();
 
-    
-	hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMENonLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+     hJetTrackME[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackME"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-TMath::Pi()/2,3*TMath::Pi()/2);     hJetTrackME[ibin][ibin2][ibin3]->Sumw2();
+
+     hJetTrackME_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackME_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+
+     hJetTrackMELeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMELeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMELeading[ibin][ibin2][ibin3]->Sumw2();
+
+     hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMELeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+
+     hbJetTrackME[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackME"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-TMath::Pi()/2,3*TMath::Pi()/2);     hbJetTrackME[ibin][ibin2][ibin3]->Sumw2();
+
+     hbJetTrackME_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackME_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+
+     hbJetTrackMELeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackMELeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackMELeading[ibin][ibin2][ibin3]->Sumw2();
+
+     hbJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackMELeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+
+
+     //**//**//**//
+
+
+     hJetTrackMESubLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMESubLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMESubLeading[ibin][ibin2][ibin3]->Sumw2();
+
+     hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMESubLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+
+     hJetTrackMENonLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMENonLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMENonLeading[ibin][ibin2][ibin3]->Sumw2();
+
+     hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hJetTrackMENonLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+
+     hbJetTrackMESubLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackMESubLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackMESubLeading[ibin][ibin2][ibin3]->Sumw2();
+
+     hbJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackMESubLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
+
+     hbJetTrackMENonLeading[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackMENonLeading"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackMENonLeading[ibin][ibin2][ibin3]->Sumw2();
+
+     hbJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3] = new TH2D((TString) (desc + "_hbJetTrackMENonLeading_notrkcorr"+ CBin_strs[ibin] + "_" + CBin_strs[ibin+1] + "_" + PtBin_strs[ibin2] + "_" + PtBin_strs[ibin2+1]+ "_" + TrkPtBin_strs[ibin3] + "_" + TrkPtBin_strs[ibin3+1]), "", 100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());     hbJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Sumw2();
 
      
      
@@ -241,7 +305,7 @@ void hist_class::AddHists(hist_class *more_hists, float wt)
 {
 
 
-  
+
   NEvents->Add(more_hists->NEvents, wt);
   NEvents_test->Add(more_hists->NEvents_test, wt);
   NEvents_after_noise->Add(more_hists->NEvents_after_noise, wt);
@@ -256,13 +320,13 @@ void hist_class::AddHists(hist_class *more_hists, float wt)
 
 
   for (int ibin=0;ibin<nCBins;ibin++){
-    
+
     dPhi_hist[ibin]->Add(more_hists->dPhi_hist[ibin],wt);
     Aj[ibin]->Add(more_hists->Aj[ibin],wt);
 
 
     for (int ibin2=0;ibin2<nPtBins;ibin2++){ 
-    
+
       all_jets_corrpT[ibin][ibin2]->Add(more_hists->all_jets_corrpT[ibin][ibin2], wt);
       all_jets_phi[ibin][ibin2]->Add(more_hists->all_jets_phi[ibin][ibin2], wt);
       all_jets_eta[ibin][ibin2]->Add(more_hists->all_jets_eta[ibin][ibin2], wt);
@@ -271,71 +335,71 @@ void hist_class::AddHists(hist_class *more_hists, float wt)
       only_leadingjets_corrpT[ibin][ibin2]->Add(more_hists->only_leadingjets_corrpT[ibin][ibin2], wt);
       only_leadingjets_phi[ibin][ibin2]->Add(more_hists->only_leadingjets_phi[ibin][ibin2], wt);
       only_leadingjets_eta[ibin][ibin2]->Add(more_hists->only_leadingjets_eta[ibin][ibin2], wt);
-     
+
       //// subleading jet histograms
       only_subleadingjets_corrpT[ibin][ibin2]->Add(more_hists->only_subleadingjets_corrpT[ibin][ibin2], wt);
       only_subleadingjets_phi[ibin][ibin2]->Add(more_hists->only_subleadingjets_phi[ibin][ibin2], wt);
       only_subleadingjets_eta[ibin][ibin2]->Add(more_hists->only_subleadingjets_eta[ibin][ibin2], wt);
-     
+
 
       //// nonleading jet histograms
       only_nonleadingjets_corrpT[ibin][ibin2]->Add(more_hists->only_nonleadingjets_corrpT[ibin][ibin2], wt);
       only_nonleadingjets_phi[ibin][ibin2]->Add(more_hists->only_nonleadingjets_phi[ibin][ibin2], wt);
       only_nonleadingjets_eta[ibin][ibin2]->Add(more_hists->only_nonleadingjets_eta[ibin][ibin2], wt);
-     
 
 
- 
+
+
       for (int ibin3=0;ibin3<nTrkPtBins;ibin3++){
 
 
-	TrkPt[ibin][ibin2][ibin3]->Add(more_hists->TrkPt[ibin][ibin2][ibin3], wt);
-	TrkEta[ibin][ibin2][ibin3]->Add(more_hists->TrkEta[ibin][ibin2][ibin3], wt);
-	TrkPhi[ibin][ibin2][ibin3]->Add(more_hists->TrkPhi[ibin][ibin2][ibin3], wt);
+       TrkPt[ibin][ibin2][ibin3]->Add(more_hists->TrkPt[ibin][ibin2][ibin3], wt);
+       TrkEta[ibin][ibin2][ibin3]->Add(more_hists->TrkEta[ibin][ibin2][ibin3], wt);
+       TrkPhi[ibin][ibin2][ibin3]->Add(more_hists->TrkPhi[ibin][ibin2][ibin3], wt);
 
-	TrkPt_weighted[ibin][ibin2][ibin3]->Add(more_hists->TrkPt_weighted[ibin][ibin2][ibin3], wt);
-	TrkEta_weighted[ibin][ibin2][ibin3]->Add(more_hists->TrkEta_weighted[ibin][ibin2][ibin3], wt);
-	TrkPhi_weighted[ibin][ibin2][ibin3]->Add(more_hists->TrkPhi_weighted[ibin][ibin2][ibin3], wt);
-
-
-	ME_TrkPt[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkPt[ibin][ibin2][ibin3], wt);
-	ME_TrkEta[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkEta[ibin][ibin2][ibin3], wt);
-	ME_TrkPhi[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkPhi[ibin][ibin2][ibin3], wt);
-
-	ME_TrkPt_weighted[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkPt_weighted[ibin][ibin2][ibin3], wt);
-	ME_TrkEta_weighted[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkEta_weighted[ibin][ibin2][ibin3], wt);
-	ME_TrkPhi_weighted[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkPhi_weighted[ibin][ibin2][ibin3], wt);
+       TrkPt_weighted[ibin][ibin2][ibin3]->Add(more_hists->TrkPt_weighted[ibin][ibin2][ibin3], wt);
+       TrkEta_weighted[ibin][ibin2][ibin3]->Add(more_hists->TrkEta_weighted[ibin][ibin2][ibin3], wt);
+       TrkPhi_weighted[ibin][ibin2][ibin3]->Add(more_hists->TrkPhi_weighted[ibin][ibin2][ibin3], wt);
 
 
+       ME_TrkPt[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkPt[ibin][ibin2][ibin3], wt);
+       ME_TrkEta[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkEta[ibin][ibin2][ibin3], wt);
+       ME_TrkPhi[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkPhi[ibin][ibin2][ibin3], wt);
 
-
-	hJetTrackSignalBackground[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackground[ibin][ibin2][ibin3], wt);
-	hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3], wt);
-
-	hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3], wt);
-	hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3], wt);
-
-	hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3], wt);
-	hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3], wt);
-
-	hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3], wt);
-	hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3], wt);
+       ME_TrkPt_weighted[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkPt_weighted[ibin][ibin2][ibin3], wt);
+       ME_TrkEta_weighted[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkEta_weighted[ibin][ibin2][ibin3], wt);
+       ME_TrkPhi_weighted[ibin][ibin2][ibin3]->Add(more_hists->ME_TrkPhi_weighted[ibin][ibin2][ibin3], wt);
 
 
 
 
-	hJetTrackME[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackME[ibin][ibin2][ibin3], wt);
-	hJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackME_notrkcorr[ibin][ibin2][ibin3], wt);
+       hJetTrackSignalBackground[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackground[ibin][ibin2][ibin3], wt);
+       hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3], wt);
 
-	hJetTrackMELeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMELeading[ibin][ibin2][ibin3], wt);
-	hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3], wt);
+       hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3], wt);
+       hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3], wt);
 
-	hJetTrackMESubLeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMESubLeading[ibin][ibin2][ibin3], wt);
-	hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3], wt);
+       hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3], wt);
+       hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3], wt);
+
+       hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3], wt);
+       hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3], wt);
 
 
-	hJetTrackMENonLeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMENonLeading[ibin][ibin2][ibin3], wt);
-	hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3], wt);
+
+
+       hJetTrackME[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackME[ibin][ibin2][ibin3], wt);
+       hJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackME_notrkcorr[ibin][ibin2][ibin3], wt);
+
+       hJetTrackMELeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMELeading[ibin][ibin2][ibin3], wt);
+       hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3], wt);
+
+       hJetTrackMESubLeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMESubLeading[ibin][ibin2][ibin3], wt);
+       hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3], wt);
+
+
+       hJetTrackMENonLeading[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMENonLeading[ibin][ibin2][ibin3], wt);
+       hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Add(more_hists->hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3], wt);
 
 
       } /// ibin3
@@ -369,7 +433,7 @@ void hist_class::Delete()
       delete only_leadingjets_corrpT[ibin][ibin2];
       delete only_leadingjets_phi[ibin][ibin2];
       delete only_leadingjets_eta[ibin][ibin2];
-   
+
       delete only_subleadingjets_corrpT[ibin][ibin2];
       delete only_subleadingjets_phi[ibin][ibin2];
       delete only_subleadingjets_eta[ibin][ibin2];
@@ -382,52 +446,52 @@ void hist_class::Delete()
 
       for (int ibin3=0;ibin3<nTrkPtBins;ibin3++){
 
-	delete hJetTrackSignalBackground[ibin][ibin2][ibin3];
-	delete hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3];
+       delete hJetTrackSignalBackground[ibin][ibin2][ibin3];
+       delete hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3];
 
-	delete hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3];
-	delete hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3];
+       delete hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3];
+       delete hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3];
 
-	delete hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3];
-	delete hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3];
-
-
-	delete hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3];
-	delete hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3];
+       delete hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3];
+       delete hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3];
 
 
-	delete hJetTrackME[ibin][ibin2][ibin3];
-	delete hJetTrackME_notrkcorr[ibin][ibin2][ibin3];
-
-	delete hJetTrackMELeading[ibin][ibin2][ibin3];
-	delete hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3];
-
-	delete hJetTrackMESubLeading[ibin][ibin2][ibin3];
-	delete hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3];
-
-	delete hJetTrackMENonLeading[ibin][ibin2][ibin3];
-	delete hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3];
+       delete hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3];
+       delete hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3];
 
 
+       delete hJetTrackME[ibin][ibin2][ibin3];
+       delete hJetTrackME_notrkcorr[ibin][ibin2][ibin3];
 
-	delete TrkPt[ibin][ibin2][ibin3];
-	delete TrkEta[ibin][ibin2][ibin3];
-	delete TrkPhi[ibin][ibin2][ibin3];
+       delete hJetTrackMELeading[ibin][ibin2][ibin3];
+       delete hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3];
 
-	delete TrkPt_weighted[ibin][ibin2][ibin3];
-	delete TrkEta_weighted[ibin][ibin2][ibin3];
-	delete TrkPhi_weighted[ibin][ibin2][ibin3];
+       delete hJetTrackMESubLeading[ibin][ibin2][ibin3];
+       delete hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3];
+
+       delete hJetTrackMENonLeading[ibin][ibin2][ibin3];
+       delete hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3];
 
 
 
+       delete TrkPt[ibin][ibin2][ibin3];
+       delete TrkEta[ibin][ibin2][ibin3];
+       delete TrkPhi[ibin][ibin2][ibin3];
 
-	delete ME_TrkPt[ibin][ibin2][ibin3];
-	delete ME_TrkEta[ibin][ibin2][ibin3];
-	delete ME_TrkPhi[ibin][ibin2][ibin3];
+       delete TrkPt_weighted[ibin][ibin2][ibin3];
+       delete TrkEta_weighted[ibin][ibin2][ibin3];
+       delete TrkPhi_weighted[ibin][ibin2][ibin3];
 
-	delete ME_TrkPt_weighted[ibin][ibin2][ibin3];
-	delete ME_TrkEta_weighted[ibin][ibin2][ibin3];
-	delete ME_TrkPhi_weighted[ibin][ibin2][ibin3];
+
+
+
+       delete ME_TrkPt[ibin][ibin2][ibin3];
+       delete ME_TrkEta[ibin][ibin2][ibin3];
+       delete ME_TrkPhi[ibin][ibin2][ibin3];
+
+       delete ME_TrkPt_weighted[ibin][ibin2][ibin3];
+       delete ME_TrkEta_weighted[ibin][ibin2][ibin3];
+       delete ME_TrkPhi_weighted[ibin][ibin2][ibin3];
 
       } /// ibin3
     } // ibin2
@@ -458,7 +522,7 @@ void hist_class::Write(int mc_type_i)
   else if( trkPtCut >= 3.5 && trkPtCut < 4.5 ) pT_str = "trkPtCut4";
   else assert(0);  
 
-  TString out_name = (TString) ("root_output/" + dataset_type_strs[dataset_type_code] + "_" + data_mc_type_strs[mc_type_i]+"_"+ parti_str + ".root");
+  TString out_name = (TString) (dataset_type_strs[dataset_type_code] + "_PbPb.root");
   TFile *out_file = new TFile(out_name, "RECREATE");
 
   NEvents->Write();
@@ -472,7 +536,7 @@ void hist_class::Write(int mc_type_i)
   Centrality_new->Write();
 
   for (int ibin=0;ibin<nCBins;ibin++){
-    
+
     dPhi_hist[ibin]->Write();
     Aj[ibin]->Write();
 
@@ -481,6 +545,11 @@ void hist_class::Write(int mc_type_i)
       all_jets_corrpT[ibin][ibin2]->Write();
       all_jets_phi[ibin][ibin2]->Write();
       all_jets_eta[ibin][ibin2]->Write();
+
+      all_bjets_corrpT[ibin][ibin2]->Write();
+      all_bjets_phi[ibin][ibin2]->Write();
+      all_bjets_eta[ibin][ibin2]->Write();
+
       only_leadingjets_corrpT[ibin][ibin2]->Write();
       only_leadingjets_phi[ibin][ibin2]->Write();
       only_leadingjets_eta[ibin][ibin2]->Write();
@@ -488,63 +557,89 @@ void hist_class::Write(int mc_type_i)
       only_subleadingjets_phi[ibin][ibin2]->Write();
       only_subleadingjets_eta[ibin][ibin2]->Write();
 
+      only_leadingbjets_corrpT[ibin][ibin2]->Write();
+      only_leadingbjets_phi[ibin][ibin2]->Write();
+      only_leadingbjets_eta[ibin][ibin2]->Write();
+      only_subleadingbjets_corrpT[ibin][ibin2]->Write();
+      only_subleadingbjets_phi[ibin][ibin2]->Write();
+      only_subleadingbjets_eta[ibin][ibin2]->Write();
+
       only_nonleadingjets_corrpT[ibin][ibin2]->Write();
       only_nonleadingjets_phi[ibin][ibin2]->Write();
       only_nonleadingjets_eta[ibin][ibin2]->Write();
 
+      only_nonleadingbjets_corrpT[ibin][ibin2]->Write();
+      only_nonleadingbjets_phi[ibin][ibin2]->Write();
+      only_nonleadingbjets_eta[ibin][ibin2]->Write();
+
       for (int ibin3=0;ibin3<nTrkPtBins;ibin3++){
 
-	hJetTrackSignalBackground[ibin][ibin2][ibin3]->Write();
-	hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Write();
+       hJetTrackSignalBackground[ibin][ibin2][ibin3]->Write();
+       hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Write();
+
+       hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Write();
+       hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
+
+       hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Write();
+       hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
+
+       hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Write();
+       hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
+
+       hbJetTrackSignalBackground[ibin][ibin2][ibin3]->Write();
+       hbJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Write();
+
+       hbJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Write();
+       hbJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
+
+       hbJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Write();
+       hbJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
+
+       hbJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Write();
+       hbJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
 
 
-	hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Write();
-	hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
+       hJetTrackME[ibin][ibin2][ibin3]->Write();
+       hJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Write();
 
+       hJetTrackMELeading[ibin][ibin2][ibin3]->Write();
+       hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Write();
 
-	hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Write();
-	hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
+       hJetTrackMESubLeading[ibin][ibin2][ibin3]->Write();
+       hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
 
+       hJetTrackMENonLeading[ibin][ibin2][ibin3]->Write();
+       hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
 
-	hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Write();
-	hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
+       hbJetTrackME[ibin][ibin2][ibin3]->Write();
+       hbJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Write();
 
+       hbJetTrackMELeading[ibin][ibin2][ibin3]->Write();
+       hbJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Write();
 
-	hJetTrackME[ibin][ibin2][ibin3]->Write();
-	hJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Write();
+       hbJetTrackMESubLeading[ibin][ibin2][ibin3]->Write();
+       hbJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
 
-
-	hJetTrackMELeading[ibin][ibin2][ibin3]->Write();
-	hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Write();
-
-
-	hJetTrackMESubLeading[ibin][ibin2][ibin3]->Write();
-	hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
-
-
-
-	hJetTrackMENonLeading[ibin][ibin2][ibin3]->Write();
-	hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
+       hbJetTrackMENonLeading[ibin][ibin2][ibin3]->Write();
+       hbJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Write();
 
 
 
+       TrkPt[ibin][ibin2][ibin3]->Write();
+       TrkEta[ibin][ibin2][ibin3]->Write();
+       TrkPhi[ibin][ibin2][ibin3]->Write();
 
-	TrkPt[ibin][ibin2][ibin3]->Write();
-	TrkEta[ibin][ibin2][ibin3]->Write();
-	TrkPhi[ibin][ibin2][ibin3]->Write();
+       TrkPt_weighted[ibin][ibin2][ibin3]->Write();
+       TrkEta_weighted[ibin][ibin2][ibin3]->Write();
+       TrkPhi_weighted[ibin][ibin2][ibin3]->Write();
 
-	TrkPt_weighted[ibin][ibin2][ibin3]->Write();
-	TrkEta_weighted[ibin][ibin2][ibin3]->Write();
-	TrkPhi_weighted[ibin][ibin2][ibin3]->Write();
+       ME_TrkPt[ibin][ibin2][ibin3]->Write();
+       ME_TrkEta[ibin][ibin2][ibin3]->Write();
+       ME_TrkPhi[ibin][ibin2][ibin3]->Write();
 
-
-	ME_TrkPt[ibin][ibin2][ibin3]->Write();
-	ME_TrkEta[ibin][ibin2][ibin3]->Write();
-	ME_TrkPhi[ibin][ibin2][ibin3]->Write();
-
-	ME_TrkPt_weighted[ibin][ibin2][ibin3]->Write();
-	ME_TrkEta_weighted[ibin][ibin2][ibin3]->Write();
-	ME_TrkPhi_weighted[ibin][ibin2][ibin3]->Write();
+       ME_TrkPt_weighted[ibin][ibin2][ibin3]->Write();
+       ME_TrkEta_weighted[ibin][ibin2][ibin3]->Write();
+       ME_TrkPhi_weighted[ibin][ibin2][ibin3]->Write();
 
 
       } /// ibin3

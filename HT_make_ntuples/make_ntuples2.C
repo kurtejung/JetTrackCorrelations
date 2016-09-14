@@ -32,7 +32,7 @@ int dataset_pthats[e_n_dataset_types+1] = {0,0,15,30,50,80,120,170,220,280,370,1
 int dataset_type_code = -999;
 
 //arg 1 = which data set, arg 2 = output file number
-void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_type_code = 0 , int output_file_num = 1)
+void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_type_code = 11 , int output_file_num = 1)
 {
 
 	bool is_data = false;
@@ -100,9 +100,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	}else if(is_data&&do_PbPb){
 		in_file_name = "PbPbForest_HiRun2015_MITForest.txt";
 	}else if(dataset_type_code > 10){
-		in_file_name = "/data/htrauger/Pythia_HiForest/HiForest_PYTHIA_pthat";
-		in_file_name+=dataset_pthats[dataset_type_code];
-		in_file_name+= ".root";
+		in_file_name = "Pythia6_PurdueList.txt";
 	}else if(dataset_type_code > 1&&dataset_type_code <11){
 		in_file_name = "/data/mzakaria/PythiaHydjet_OfficialProduction_20150211/HiForest_PYTHIA_HYDJET_pthat";
 		in_file_name+=dataset_pthats[dataset_type_code];
@@ -114,20 +112,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	cout << "trying a filelist named "<< in_file_name << endl;
 
 	//MC
-	TString output_file_base;
-
-	if(is_data && !do_PbPb){
-		output_file_base= "./";
-	}else if(is_data&&do_PbPb){
-		output_file_base= "./";
-	}else if(dataset_type_code > 1 &&dataset_type_code < 11){
-		output_file_base= "/data/htrauger/OfficialHydjet_6_10/";
-	}else if(dataset_type_code > 10){
-		output_file_base= "/data/htrauger/OfficialPythia_6_24/";
-	}else{
-		cerr<<"nope, we can't handle that data set"<<endl;
-		exit(0);
-	}
+	TString output_file_base = "./";
 
 	output_file_base +=dataset_type_strs[dataset_type_code];
 
@@ -139,6 +124,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 
 	vector<float> pf_jteta, pf_jtphi, pf_jtpt, pf_rawpt, pf_corrpt, pf_trackMax;
 	vector<float> calo_jteta, calo_jtphi, calo_jtpt, calo_rawpt, calo_corrpt, calo_trackMax;
+	vector<float> pf_refpt, calo_refpt;
 	vector<int> trkAlgo;
 	vector<bool> highPurity;
 	vector<float> trkDxy1, trkDxyError1, trkDz1, trkDzError1, trkPtError, pfEcal, pfHcal, trkMVALoose, trkMVATight, trkChi2, trkEta, trkPhi, trkPt;
@@ -214,7 +200,11 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	mixing_tree->Branch("calo_corrpt", &calo_corrpt);
 	mixing_tree->Branch("calo_trackMax", &calo_trackMax);
 
-	if(!is_data) mixing_tree->Branch("pthat", &pthat, "pthat/F");
+	if(!is_data){
+		mixing_tree->Branch("pf_refpt",&pf_refpt);
+		mixing_tree->Branch("calo_refpt",&calo_refpt);
+		mixing_tree->Branch("pthat", &pthat);
+	}
 	mixing_tree->Branch("trkDxy", &trkDxy1);
 	mixing_tree->Branch("trkDxyError", &trkDxyError1);
 	mixing_tree->Branch("trkDz", &trkDz1);
@@ -232,8 +222,8 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	if(!is_data){
 		//mixing_tree->Branch("mult", &mult, "mult/I");
 		mixing_tree->Branch("pt", &pt);
-		mixing_tree->Branch("phi",  &phi);
-		mixing_tree->Branch("eta",  &eta);
+		mixing_tree->Branch("phi", &phi);
+		mixing_tree->Branch("eta", &eta);
 		mixing_tree->Branch("chg", &chg);
 		mixing_tree->Branch("sube", &sube);
 		//mixing_tree->Branch("nParticle", &nParticle, "nParticle/I");
@@ -285,14 +275,19 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 	const int MAXJETS = 500;
 	Float_t t_pf_jtpt[MAXJETS], t_pf_jteta[MAXJETS], t_pf_jtphi[MAXJETS], t_pf_discr_ssvHighEff[MAXJETS], t_pf_discr_ssvHighPur[MAXJETS], t_pf_discr_csvV1[MAXJETS], t_pf_discr_prob[MAXJETS], t_pf_svtxm[MAXJETS], t_pf_svtxpt[MAXJETS], t_pf_svtxmcorr[MAXJETS], t_pf_svtxdl[MAXJETS], t_pf_svtxdls[MAXJETS], t_pf_rawpt[MAXJETS], t_pf_trackMax[MAXJETS];
 	Float_t t_calo_jtpt[MAXJETS], t_calo_jteta[MAXJETS], t_calo_jtphi[MAXJETS], t_calo_discr_ssvHighEff[MAXJETS], t_calo_discr_ssvHighPur[MAXJETS], t_calo_discr_csvV1[MAXJETS], t_calo_discr_prob[MAXJETS], t_calo_svtxm[MAXJETS], t_calo_svtxpt[MAXJETS], t_calo_svtxmcorr[MAXJETS], t_calo_svtxdl[MAXJETS], t_calo_svtxdls[MAXJETS], t_calo_rawpt[MAXJETS], t_calo_trackMax[MAXJETS];
+	Float_t t_calo_refpt[MAXJETS], t_pf_refpt[MAXJETS];
 
-	const int MAXPARTICLES = 60000;
+	const int MAXPARTICLES = 100000;
 	Float_t t_trkPt[MAXPARTICLES], t_trkEta[MAXPARTICLES], t_trkPhi[MAXPARTICLES], t_trkDxy1[MAXPARTICLES], t_trkDxyError1[MAXPARTICLES], t_trkDz1[MAXPARTICLES], t_trkDzError1[MAXPARTICLES], t_trkPtError[MAXPARTICLES], t_pfEcal[MAXPARTICLES], t_pfHcal[MAXPARTICLES], t_trkChi2[MAXPARTICLES];
 	Bool_t t_trkMVALoose[MAXPARTICLES], t_trkMVATight[MAXPARTICLES];
 	UChar_t t_trkAlgo[MAXPARTICLES], t_trkNHit[MAXPARTICLES], t_trkNlayer[MAXPARTICLES], t_trkNdof[MAXPARTICLES];
 	Bool_t t_highPurity[MAXPARTICLES];
 
-	Int_t nTrk, calo_nref, pf_nref;
+	vector<float> *t_pt=0, *t_phi=0, *t_eta=0, *t_chg=0, *t_sube=0;
+	Float_t t_pPt[MAXPARTICLES], t_pPhi[MAXPARTICLES], t_pEta[MAXPARTICLES];
+	Float_t t_geneta[MAXJETS], t_genphi[MAXJETS], t_genpt[MAXJETS];
+
+	Int_t nTrk, ngen, mult, calo_nref, pf_nref;
 
 	while(instr>>filename && ifile<endfile){
 		filename.erase(std::remove(filename.begin(), filename.end(), '"'), filename.end());
@@ -369,6 +364,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 		inp_tree->SetBranchAddress("jtphi",t_calo_jtphi);
 		inp_tree->SetBranchAddress("rawpt",t_calo_rawpt);
 		inp_tree->SetBranchAddress("trackMax",t_calo_trackMax);
+		if(!is_data) inp_tree->SetBranchAddress("refpt",t_calo_refpt);
 
 		pftree->SetBranchAddress("nref",&pf_nref);
 		pftree->SetBranchAddress("jtpt",t_pf_jtpt);
@@ -376,6 +372,8 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 		pftree->SetBranchAddress("jtphi",t_pf_jtphi);
 		pftree->SetBranchAddress("rawpt",t_pf_rawpt);
 		pftree->SetBranchAddress("trackMax",t_pf_trackMax);
+		if(!is_data) pftree->SetBranchAddress("refpt",t_pf_refpt);
+		if(!is_data) pftree->SetBranchAddress("pthat",&pthat);
 
 		inp_tree->SetBranchAddress("nTrk",&nTrk);
 		inp_tree->SetBranchAddress("trkDxy1",t_trkDxy1);
@@ -446,15 +444,33 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 			inp_tree->SetBranchAddress("phfCoincFilter5",&phfCoincFilter5);
 		}
 
-		if(!do_PbPb){ 
-			inp_tree->SetBranchAddress("HLT_AK4PFJet80_Eta5p1_v1", &HLT_Jet80);
-			inp_tree->SetBranchAddress("HLT_AK4PFJet100_Eta5p1_v1", &HLT_Jet100);
+		if(is_data){
+			if(!do_PbPb){ 
+				inp_tree->SetBranchAddress("HLT_AK4PFJet80_Eta5p1_v1", &HLT_Jet80);
+				inp_tree->SetBranchAddress("HLT_AK4PFJet100_Eta5p1_v1", &HLT_Jet100);
+			}
+			else{
+				inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet80_Eta5p1_v1", &HLT_Jet80);
+				inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet100_Eta5p1_v1", &HLT_Jet100);
+				inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet80_Eta5p1_v1_Prescl", &HLT_Jet80_ps);
+				inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet100_Eta5p1_v1_Prescl", &HLT_Jet100_ps);
+			}
 		}
-		else{
-			inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet80_Eta5p1_v1", &HLT_Jet80);
-			inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet100_Eta5p1_v1", &HLT_Jet100);
-			inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet80_Eta5p1_v1_Prescl", &HLT_Jet80_ps);
-			inp_tree->SetBranchAddress("HLT_HIPuAK4CaloJet100_Eta5p1_v1_Prescl", &HLT_Jet100_ps);
+
+		if(!is_data){
+			inp_tree->SetBranchAddress("mult",&mult);
+			inp_tree->SetBranchAddress("ngen",&ngen);
+			inp_tree->SetBranchAddress("pt", &t_pt);
+			inp_tree->SetBranchAddress("phi", &t_phi);
+			inp_tree->SetBranchAddress("eta", &t_eta);
+			inp_tree->SetBranchAddress("chg", &t_chg);
+			inp_tree->SetBranchAddress("sube", &t_sube);
+			/*inp_tree->SetBranchAddress("pPt", t_pPt);
+			inp_tree->SetBranchAddress("pPhi", t_pPhi);
+			inp_tree->SetBranchAddress("pEta", t_pEta);*/
+			inp_tree->SetBranchAddress("geneta", t_geneta);
+			inp_tree->SetBranchAddress("genphi", t_genphi);
+			inp_tree->SetBranchAddress("genpt", t_genpt);
 		}
 
 
@@ -466,13 +482,13 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 			inp_tree->GetEntry(evi);
 			pftree->GetEntry(evi);
 
-			if(!HLT_Jet80 && !HLT_Jet100) continue;
+			if(is_data && !HLT_Jet80 && !HLT_Jet100) continue;
 			if(!do_PbPb && (!pvFilter || !HBHENoiseFilter)) continue;
 
 			// Removing event selection for PbPb skims so we can test various selection criteria
 			//if(do_PbPb && (!pvFilter || !HBHENoiseFilter || !eventSelection)) continue;
 
-			//if( evi % 1000 == 0 ) std::cout << "Filled successfully" << std::endl;
+			if( evi % 1000 == 0 ) std::cout << "Filled successfully" << std::endl;
 
 			//start calo jet loop
 			for(int j4i = 0; j4i < calo_nref ; j4i++) {
@@ -525,6 +541,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 				calo_jtpt.push_back(reco_pt);
 				calo_corrpt.push_back(reco_pt); //residual_corrected_pt);
 				calo_rawpt.push_back(t_calo_rawpt[j4i]);
+				if(!is_data) calo_refpt.push_back(t_calo_refpt[j4i]);
 
 				calo_discr_ssvHighEff.push_back(t_calo_discr_ssvHighEff[j4i]);
 				calo_discr_ssvHighPur.push_back(t_calo_discr_ssvHighPur[j4i]);
@@ -592,6 +609,7 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 				pf_jtpt.push_back(reco_pt);
 				pf_corrpt.push_back(reco_pt); //residual_corrected_pt);
 				pf_rawpt.push_back(t_pf_rawpt[j4i]);
+				if(!is_data) pf_refpt.push_back(t_pf_refpt[j4i]);
 
 				pf_discr_ssvHighEff.push_back(t_pf_discr_ssvHighEff[j4i]);
 				pf_discr_ssvHighPur.push_back(t_pf_discr_ssvHighPur[j4i]);
@@ -611,16 +629,16 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 			if(!is_data){
 
 
-				/* for(int j4i_gen = 0; j4i_gen < ngen ; j4i_gen++) {
+				for(int j4i_gen = 0; j4i_gen < ngen ; j4i_gen++) {
 
-				   if( fabs(geneta[j4i_gen]) > 2 ) continue;
-				   if( genpt[j4i_gen] < 30 ) continue;
+					if( fabs(geneta[j4i_gen]) > 2 ) continue;
+					if( genpt[j4i_gen] < 30 ) continue;
 
-				   geneta.push_back(geneta[j4i_gen]);
-				   genphi.push_back(genphi[j4i_gen]);
-				   genpt.push_back(genpt[j4i_gen]);
+					geneta.push_back(t_geneta[j4i_gen]);
+					genphi.push_back(t_genphi[j4i_gen]);
+					genpt.push_back(t_genpt[j4i_gen]);
 
-				   } /// genjet loop*/
+				} /// genjet loop
 
 			}
 
@@ -639,12 +657,12 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 
 				// reco track quantities
 
-				if(!is_data){
-					/* pEta.push_back(.pEta[itrk]);
-					   pPhi.push_back(.pPhi[itrk]);
-					   pPt.push_back(.pPt[itrk]);*/
+				/*if(!is_data){
+					pEta.push_back(t_pEta[itrk]);
+					pPhi.push_back(t_pPhi[itrk]);
+					pPt.push_back(t_pPt[itrk]);
 
-				}
+				}*/
 
 				trkEta.push_back(t_trkEta[itrk]);
 				trkPhi.push_back(t_trkPhi[itrk]);
@@ -672,26 +690,24 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 			if(!is_data){
 
 				//gen particles loop
-				/* for(int ipart=0;ipart<mult;ipart++){
+				for(unsigned int ipart=0;ipart<t_pt->size();ipart++){
 
-				   float temp_eta=t_eta[ipart];
+					float temp_eta=t_eta->at(ipart);
 				   if(fabs(temp_eta)>2.4) continue; //acceptance of the tracker   
 
-				   float temp_pt= t_pt[ipart];
+				   float temp_pt= t_pt->at(ipart);
 				   if(temp_pt < 0.5) continue; //acceptance of the tracker
 
 				// reco track quantities
 
-				eta.push_back(t_eta[ipart]);
-				phi.push_back(t_phi[ipart]);
-				pt.push_back(t_pt[ipart]);
-				chg.push_back(t_chg[ipart]);
-				sube.push_back(t_sube[ipart]);
+				   eta.push_back(t_eta->at(ipart));
+				   phi.push_back(t_phi->at(ipart));
+				   pt.push_back(t_pt->at(ipart));
+				   chg.push_back(t_chg->at(ipart));
+				   sube.push_back(t_sube->at(ipart));
 
-				}*/
+				}
 			}
-
-			//pthat = pthat;
 
 			///// Fill it
 			mixing_tree->Fill();
@@ -758,16 +774,18 @@ void make_ntuples2(bool doCrab=0, int jobID=0, int endfile = 999, int dataset_ty
 			pf_svtxdls.clear();
 
 			if(!is_data){
+				calo_refpt.clear();
+				pf_refpt.clear();
+
 				pt.clear();
 				phi.clear();
 				eta.clear();
 				chg.clear();
 				sube.clear();
 
-				pPt.clear();
+				/*pPt.clear();
 				pPhi.clear();
-				pEta.clear();
-
+				pEta.clear();*/
 
 				geneta.clear();
 				genphi.clear();

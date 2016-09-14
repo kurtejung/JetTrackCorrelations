@@ -19,10 +19,9 @@
 #include <vector>
 #include "TCanvas.h"
 #include "TStopwatch.h"
-#include <list>
 
-//#include "Jan_24_pp_Iterative/getTrkCorr.h"
-#include "Jan18_PbPb/getTrkCorr.h"
+#include "TrkCorr_July22_Iterative_pp_eta2p4/getTrkCorr.h"
+//#include "TrkCorr_Jun7_Iterative_PbPb_etaLT2p4/getTrkCorr.h"
 
 using namespace std;
 
@@ -38,11 +37,11 @@ bool is_data = false;
 enum enum_dataset_types {e_Data2011,e_Data_pp,e_HydJet15,e_HydJet30,e_HydJet50, e_HydJet80, e_HydJet120,e_HydJet170,e_HydJet220,e_HydJet280, e_HydJet370,e_Pythia15,e_Pythia30,e_Pythia50, e_Pythia80, e_Pythia120,e_Pythia170,e_Pythia220,e_Pythia280, e_Pythia370, e_n_dataset_types};
 int dataset_type_code = -999;
 
-TString dataset_type_strs[e_n_dataset_types] = {"Data2015","Data_pp","HydJet15","HydJet30","HydJet50","HydJet80", "HydJet120", "HydJet170","HydJet220","HydJet280","HydJet370","Pythia15","Pythia30","Pythia50","Pythia80", "Pythia120", "Pythia170","Pythia220","Pythia280","Pythia370"};
+TString dataset_type_strs[e_n_dataset_types] = {"Data2015","Data2015","HydJet15","HydJet30","HydJet50","HydJet80", "HydJet120", "HydJet170","HydJet220","HydJet280","HydJet370","Pythia15","Pythia30","Pythia50","Pythia80", "Pythia120", "Pythia170","Pythia220","Pythia280","Pythia370"};
 //Hydjet80 = 5
 //Pythia80 = 14
 
-TString dataset_type_file_names[e_n_dataset_types] = {"PbPb_5TeV_skims.txt","ClusterData_pp.txt","Hydjet15.txt","Hydjet30.txt","Hydjet50.txt","Hydjet80.txt", "Hydjet120.txt", "Hydjet170.txt","Hydjet220.txt","Hydjet280.txt","Hydjet370.txt","Pythia15.txt","Pythia30.txt","Pythia50.txt","Pythia80.txt", "Pythia120.txt", "Pythia170.txt","Pythia220.txt","Pythia280.txt","Pythia370.txt"};
+std::string dataset_type_file_names[e_n_dataset_types] = {"PbPb_5TeV_skims.txt","Data2015_pp_looseMerge.txt","Hydjet15.txt","Hydjet30.txt","Hydjet50.txt","Hydjet80.txt", "Hydjet120.txt", "Hydjet170.txt","Hydjet220.txt","Hydjet280.txt","Hydjet370.txt","Pythia15.txt","Pythia30.txt","Pythia50.txt","Pythia80.txt", "Pythia120.txt", "Pythia170.txt","Pythia220.txt","Pythia280.txt","Pythia370.txt"};
 
 int dataset_pthats[e_n_dataset_types+1] = {0,0,15,30,50,80,120,170,220,280,370,15,30,50,80,120,170,220,280,370,999};
 
@@ -113,8 +112,40 @@ vector <double> dijet_cent;
 
 #include "hist_class_def_HT.h"
 
+  //****************************************
+  //        ALL CUTS ARE HERE!
+  //****************************************
+ 
+  const double etacut = 1.6;
+  const double searchetacut = 2.0;
+  const double pTmaxcut = 1000.;
+  const double pTmincut = 120.;
+  const double leadingjetcut = 120. ;
+  const double subleadingjetcut = 50. ;
+  const double dphicut = 5.*(TMath::Pi())/6. ; 
+  const double trketamaxcut = 2.4;
+
+  const bool doBjets = true;
+ 
+  
+  //****************************************
+
 //Auxillary functions defined below
-void ReadFileList(std::vector<TString> &my_file_names, TString file_of_names, bool debug=false);
+void ReadFileList(std::vector<std::string> &my_file_names, TString file_of_names, bool debug=false);
+
+bool passTrackCuts(float trkPt, float trkEta, bool highPurity, float trkChi2, int trkNdof, int trkNlayer, int trkNHit, float pfHcal, float pfEcal){
+  if(abs(trkEta)>=trketamaxcut) return false;
+  if(!highPurity) return false;
+  if((float)trkChi2/(float)trkNdof/(float)trkNlayer > 0.15) return false;
+  if(trkNHit<11 && trkPt > 0.7) return false;
+
+  float Et = (pfHcal+pfEcal)/TMath::CosH(trkEta);
+  if(!(trkPt<20 || Et > 0.5*trkPt)) return false;
+  if(trkPt<=trkPtCut || trkPt > 400) return false;
+
+  return true;
+
+}
 
 ///***************************************************************
 //     MAIN LOOP STARTS HERE!  
@@ -122,7 +153,7 @@ void ReadFileList(std::vector<TString> &my_file_names, TString file_of_names, bo
 
 // arg1 = dataset type, arg2 = number of files
 
-void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFiles = 1){
+void HT_Analyzer_All_JFFCorr2(bool doCrab = 0, int jobID=0, int datasetTypeCode = 1, int startfile=0, int nFiles = 1){
  
   dataset_type_code = datasetTypeCode;    //// pick datasets you want to run over
   
@@ -138,12 +169,15 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
     
   bool do_mixing = true;
 
+  std::cout << "WARNING !!!  Running with DR-dependent tracking corrections TURNED OFF!!" << endl;
+
   std::cout<<"dataset_type_code is " <<dataset_type_code<<" "<<dataset_type_strs[dataset_type_code]<<endl;
   std::cout << "Running with trkPtCut " << trkPtCut << std::endl;
     
-  std::vector<TString> file_names;   file_names.clear();
+  std::vector<std::string> file_names;   file_names.clear();
 
-  ReadFileList( file_names, dataset_type_file_names[dataset_type_code], true);
+  if(doCrab) ReadFileList( file_names, Form("job_input_file_list_%d.txt",jobID), true);
+  else ReadFileList( file_names, dataset_type_file_names[dataset_type_code], true);
   
   cout<<"got file"<<endl;
 
@@ -169,40 +203,18 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 
     data_mc_type_code = 2;
   }
-   
-  cout<<"made hist classes"<<endl;
-  
-  
-  //****************************************
-  //        ALL CUTS ARE HERE!
-  //****************************************
- 
-  const double etacut = 1.6;
-  const double searchetacut = 2.0;
-  const double pTmaxcut = 1000.;
-  const double pTmincut = 120.;
-  const double leadingjetcut = 120. ;
-  const double subleadingjetcut = 50. ;
-  const double dphicut = 5.*(TMath::Pi())/6. ; 
-  const double trketamaxcut = 2.4;
-
-  const bool doBjets = false;
- 
-  
-  //****************************************
-
 
   double cent, eta, pt, phi;
   //, rmin, r_reco, jeteta, jetphi, fake, eff, vz
-  double secondary, multrec, trkweight, trkweight_lead, trkweight_sub, deta, dphi=0, reco_eta, gen_eta, reco_phi, gen_phi, dr, closest_dr, jet_dir_eta, jet_dir_phi;
-  bool foundjet, foundjet_gen, founddijet, founddijet_gen, is_inclusive;
-  int closest_j4i;
+  double secondary, multrec, trkweight=1, trkweight_lead=1, trkweight_sub=1, deta, dphi=0, reco_eta, gen_eta, reco_phi, gen_phi, dr, closest_dr, jet_dir_eta, jet_dir_phi;
+  bool foundjet=false, foundjet_gen, founddijet, founddijet_gen, is_inclusive;
+  int closest_j4i=-1;
 	
 
   double wvz = 1.;
   double wcen = 1.;
  
-  TF1 *fit_cen, *fit_vz;
+  TF1 *fit_cen=NULL, *fit_vz=NULL;
 
   int unmatched_counter = 0;
 
@@ -227,8 +239,8 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
   //-------------------------------------------------------------
 
   TrkCorr* trkCorr;
-  if(is_pp) trkCorr = new TrkCorr("Jan_24_pp_Iterative/");
-  else trkCorr = new TrkCorr("Jan18_PbPb/");
+  if(is_pp) trkCorr = new TrkCorr("TrkCorr_July22_Iterative_pp_eta2p4/");
+  else trkCorr = new TrkCorr("TrkCorr_Jun7_Iterative_PbPb_etaLT2p4/");
 
   
  
@@ -236,7 +248,7 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
   //    Obtain reference PbPb Jet Spectra
   //-------------------------------------------------------------
   int pt_weight_bin;
-  double pbpb_pt, pp_pt, pt_weight,  pt_weight_lead,  pt_weight_sub; 
+  double pbpb_pt, pp_pt, pt_weight,  pt_weight_lead=1,  pt_weight_sub=1; 
  
   TFile *f_ref_pbpb_spectra = new TFile("./PbPb_JetSpectra_JFFCorr.root","READ");
   TFile *f_ref_pp_spectra = new TFile("./pp_JetSpectra_JFFCorr.root","READ");
@@ -287,12 +299,182 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
   //assert(parti <= (int) file_names.size() );
     cout << "file_names size: "<< file_names.size() << endl;
 
-  for(int fi = startfile; fi < (int) file_names.size() && fi<parti; fi++) {
-    TFile *my_file = TFile::Open(file_names.at(fi));
-    std::cout << "Current file: " << ", file_name: " << file_names.at(fi) << ", number " << fi << " of " << file_names.size() << std::endl;
-    if(my_file->IsZombie()) {
-      std::cout << "Is zombie" << std::endl;
+    //-----------------------------------------------------------------------
+    //  START FILLING MIXING OBJECTS!
+    //-----------------------------------------------------------------------
+
+    unsigned int meptrig = 40;
+    
+    gRandom->SetSeed(0);
+    const int nCentMixBins=40;
+    const int nVzMixBins=30;
+
+    TH1D * centbins = new TH1D("centbins","centbins. JUST A DUMMY REALLY", nCentMixBins, 0.0, 200.0);
+    TH1D * vzbins = new TH1D("vzbins","vzbins. JUST A DUMMY REALLY", nVzMixBins, -15., 15.);
+
+    TChain *me_tree = new TChain("mixing_tree");
+    TFile *fin;
+
+    TStopwatch *mixingWatch = new TStopwatch();
+    std::string me_file_name;
+    int nmixingFiles = 2;
+    if(!doCrab){
+        int imix=0;
+        for(int ifile=0; imix<nmixingFiles; ifile++, imix++){
+            //if(ifile >=startfile && ifile < parti) continue;
+            if(ifile>=(int)file_names.size()) ifile=0;
+            cout << "for mixing, adding file " << ifile << endl;
+            me_tree->Add(file_names.at(ifile).c_str());
+            //me_file_name = file_names.at(ifile);
+            //fin = new TFile(me_file_name.c_str());
+        }
     }
+    else{
+        if(!is_pp){
+            me_tree->Add("/mnt/hadoop/store/user/kjung/PbPb_5TeV_MergedData/outputWithPF_1_0.root");
+            me_tree->Add("/mnt/hadoop/store/user/kjung/PbPb_5TeV_MergedData/outputWithPF_1_1.root");
+        }
+        else{
+            me_tree->Add("/mnt/hadoop/store/user/kjung/pp_5TeV_skimJetTrack_Sept2015_looseMerge/pp_5TeV_JetTrackCorrCrabSkim/crab_pp_5TeV_skimJetTrack_Sept2015_looseMerge/160913_200136/0000/Data_pp_1.root");
+            me_tree->Add("/mnt/hadoop/store/user/kjung/pp_5TeV_skimJetTrack_Sept2015_looseMerge/pp_5TeV_JetTrackCorrCrabSkim/crab_pp_5TeV_skimJetTrack_Sept2015_looseMerge/160913_200136/0000/Data_pp_2.root");
+            me_tree->Add("/mnt/hadoop/store/user/kjung/pp_5TeV_skimJetTrack_Sept2015_looseMerge/pp_5TeV_JetTrackCorrCrabSkim/crab_pp_5TeV_skimJetTrack_Sept2015_looseMerge/160913_200136/0000/Data_pp_3.root");
+        }
+      //me_file_name = file_names.at(startfile);
+      //cout << "using file " << me_file_name << " for mixing now" << endl;
+      //fin = new TFile(me_file_name.c_str());
+    }
+
+      float me_vz;
+      int me_hiBin;
+      vector<float> *me_trkPt=0, *me_trkEta=0, *me_trkPhi=0, *me_jtpt=0, *me_jteta=0, *me_jtphi=0, *me_trkChi2=0, *me_pfHcal=0, *me_pfEcal=0;
+      vector<bool> *me_highPurity=0;
+      vector<int> *me_trkNlayer=0, *me_trkNHit=0, *me_trkNdof=0;
+
+      me_tree->SetBranchStatus("*",0);
+      me_tree->SetBranchStatus("calo_jteta", 1);
+      me_tree->SetBranchStatus("calo_jtphi", 1);
+      me_tree->SetBranchStatus("calo_jtpt", 1);
+      me_tree->SetBranchStatus("trkPt", 1);
+      me_tree->SetBranchStatus("trkEta", 1);
+      me_tree->SetBranchStatus("trkPhi", 1);
+      me_tree->SetBranchStatus("highPurity", 1);
+      me_tree->SetBranchStatus("trkChi2", 1);
+      me_tree->SetBranchStatus("trkNdof", 1);
+      me_tree->SetBranchStatus("trkNlayer", 1);
+      me_tree->SetBranchStatus("trkNHit", 1);
+      me_tree->SetBranchStatus("pfHcal", 1);
+      me_tree->SetBranchStatus("pfEcal", 1);
+      me_tree->SetBranchStatus("vz", 1);  
+      me_tree->SetBranchStatus("hiBin", 1);
+
+      me_tree->SetBranchAddress("trkPt", &me_trkPt);
+      me_tree->SetBranchAddress("trkEta", &me_trkEta);
+      me_tree->SetBranchAddress("trkPhi", &me_trkPhi);
+      me_tree->SetBranchAddress("highPurity", &me_highPurity);
+      me_tree->SetBranchAddress("trkChi2", &me_trkChi2);
+      me_tree->SetBranchAddress("trkNdof", &me_trkNdof);
+      me_tree->SetBranchAddress("trkNlayer", &me_trkNlayer);
+      me_tree->SetBranchAddress("trkNHit", &me_trkNHit);
+      me_tree->SetBranchAddress("pfHcal", &me_pfHcal);
+      me_tree->SetBranchAddress("pfEcal", &me_pfEcal);
+      me_tree->SetBranchAddress("vz", &me_vz);  
+      me_tree->SetBranchAddress("hiBin", &me_hiBin);
+      me_tree->SetBranchAddress("calo_jteta", &me_jteta);
+      me_tree->SetBranchAddress("calo_jtphi", &me_jtphi);
+      me_tree->SetBranchAddress("calo_jtpt", &me_jtpt);
+
+      unsigned int jet_cent, jet_vzbin;
+      std::vector<std::vector<std::vector<int> > > mixing_lists;
+      for(int ivz=0; ivz<nVzMixBins; ivz++){
+        vector<vector<int> > dummyVect;
+        for(int icent=0; icent<nCentMixBins; icent++){
+          vector<int> dummyVect2;
+          dummyVect.push_back(dummyVect2);
+        }
+        mixing_lists.push_back(dummyVect);
+      }
+
+      if(do_mixing){
+        cout << "sorting events into vz and centrality categories..." << endl;
+        int totalEntries = me_tree->GetEntries();
+        for(int me_evt=0; me_evt<totalEntries; me_evt++){
+        if(me_evt && me_evt%5000==0) cout << "me_evt: "<< me_evt << " of " << me_tree->GetEntries() << endl;
+          me_tree->GetEntry(me_evt);
+          if(abs(me_vz)>=15) continue;
+
+          unsigned int me_cent = 0;
+          if(!is_pp) me_cent = centbins->FindBin(me_hiBin)-1;
+          unsigned int me_vzbin = vzbins->FindBin(me_vz)-1;
+          //cout << "centrality: "<< me_hiBin << " vz: "<< me_vz << " cent bin: "<< me_cent << " vz bin: " << me_vzbin << endl;
+          //cout << "cent bin range: "<< centbins->GetBinLowEdge(me_cent+1) << " " << centbins->GetBinLowEdge(me_cent+2) << endl;
+          mixing_lists.at(me_vzbin).at(me_cent).push_back(me_evt);
+
+        }
+        cout << "lists loaded!" << endl;
+      }
+    
+      mixingWatch->Stop();
+      cout << "Mixing load time: "<< mixingWatch->RealTime() << endl;
+
+    //-----------------------------------------------------------------------
+    //  Now start reading the signal files
+    //-----------------------------------------------------------------------
+
+  for(int fi = startfile; fi < (int) file_names.size() && fi<parti; fi++) {
+   
+      std::string filename = file_names.at(fi);
+      TFile *my_file = TFile::Open(filename.c_str());
+      std::cout << "Current file: " << ", file_name: " << filename << ", number " << fi << " of " << file_names.size() << std::endl;
+      if(my_file->IsZombie()) {
+          std::cout << "file " << filename << " is zombie" << std::endl;
+          exit(0);
+      }
+
+    //reload the mixed events to properly deal with crab's truncated file lists
+    /*if(doCrab){
+      if(fi>startfile+nmixingFiles){
+        fin->Close();
+        TFile *fin2 = new TFile(file_names.at(startfile).c_str());
+        cout << "using file " << file_names.at(startfile) << " for mixing now" << endl;
+        me_tree->Reset();
+        me_tree->Add(file_names.at(startfile).c_str());
+        for(int ivz=0; ivz<nVzMixBins; ivz++){
+          for(int icent=0; icent<nCentMixBins; icent++){
+            mixing_lists.at(ivz).at(icent).clear();  
+          }
+        }
+        me_tree->SetBranchAddress("trkPt", &me_trkPt);
+        me_tree->SetBranchAddress("trkEta", &me_trkEta);
+        me_tree->SetBranchAddress("trkPhi", &me_trkPhi);
+        me_tree->SetBranchAddress("highPurity", &me_highPurity);
+        me_tree->SetBranchAddress("trkChi2", &me_trkChi2);
+        me_tree->SetBranchAddress("trkNdof", &me_trkNdof);
+        me_tree->SetBranchAddress("trkNlayer", &me_trkNlayer);
+        me_tree->SetBranchAddress("trkNHit", &me_trkNHit);
+        me_tree->SetBranchAddress("pfHcal", &me_pfHcal);
+        me_tree->SetBranchAddress("pfEcal", &me_pfEcal);
+        me_tree->SetBranchAddress("vz", &me_vz);  
+        me_tree->SetBranchAddress("hiBin", &me_hiBin);
+        me_tree->SetBranchAddress("calo_jteta", &me_jteta);
+        me_tree->SetBranchAddress("calo_jtphi", &me_jtphi);
+        me_tree->SetBranchAddress("calo_jtpt", &me_jtpt);
+        cout << "resorting events into vz and centrality categories again..." << endl;
+        for(int me_evt=0; me_evt<me_tree->GetEntries(); me_evt++){
+
+          if(me_evt && me_evt%5000==0) cout << "me_evt: "<< me_evt << " of " << me_tree->GetEntries() << endl;
+          me_tree->GetEntry(me_evt);
+
+          if(abs(me_vz)>=15) continue;
+
+          unsigned int me_cent = 0;
+          if(!is_pp) me_cent = centbins->FindBin(me_hiBin)-1;
+          unsigned int me_vzbin = vzbins->FindBin(me_vz)-1;
+          mixing_lists.at(me_vzbin).at(me_cent).push_back(me_evt);
+
+        }
+        cout << "lists reloaded!" << endl;
+      }
+    }*/
     
   
     TTree *mixing_tree = (TTree*)my_file->Get("mixing_tree");
@@ -316,12 +498,17 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 
 	/// higenparticles
 
-	//mixing_tree->Branch("nTrk", &nTrk, "nTrk/I");
-	mixing_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
-	mixing_tree->SetBranchAddress("pcollisionEventSelection",&collisionEventSelection);
-	mixing_tree->SetBranchAddress("phfCoincFilter3",&phfCoincFilter);
-
-	mixing_tree->SetBranchAddress("trkPt", &trkPt);
+        //mixing_tree->Branch("nTrk", &nTrk, "nTrk/I");
+        if(!is_pp){
+            mixing_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
+            mixing_tree->SetBranchAddress("pcollisionEventSelection",&collisionEventSelection);
+            mixing_tree->SetBranchAddress("phfCoincFilter3",&phfCoincFilter);
+        }
+        else{
+            mixing_tree->SetBranchAddress("pPAprimaryVertexFilter",&collisionEventSelection);
+            mixing_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
+        }
+        mixing_tree->SetBranchAddress("trkPt", &trkPt);
 	mixing_tree->SetBranchAddress("trkEta", &trkEta);
 	mixing_tree->SetBranchAddress("trkPhi", &trkPhi);
 	mixing_tree->SetBranchAddress("trkAlgo", &trkAlgo);
@@ -385,84 +572,6 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	mixing_tree->SetBranchAddress("calo_svtxdls", &svtxdls);
 
 
-    TString me_file_name;
-    if( fi < (int) file_names.size()-1){
-    	me_file_name = file_names.at(fi+1);
-    }else{
-    	me_file_name = file_names.at(0);
-    }
-    
-    cout<<"file for mixing: "<< me_file_name<<endl;
-    
-    TFile  *me_file= new TFile(me_file_name,"READ");
-    TTree *me_tree = (TTree*)me_file->Get("mixing_tree");
-  
-    float me_vz;
-    int me_hiBin;
-    vector<double> *me_trkPt=0, *me_trkEta=0, *me_trkPhi=0, *me_jtpt=0, *me_jteta=0, *me_jtphi=0;
-    vector<bool> *me_highPurity=0;
-
-    me_tree->SetBranchStatus("*",0);
-    me_tree->SetBranchStatus("calo_jteta", 1);
-    me_tree->SetBranchStatus("calo_jtphi", 1);
-    me_tree->SetBranchStatus("calo_jtpt", 1);
-    me_tree->SetBranchStatus("trkPt", 1);
-    me_tree->SetBranchStatus("trkEta", 1);
-    me_tree->SetBranchStatus("trkPhi", 1);
-    me_tree->SetBranchStatus("highPurity", 1);
-    me_tree->SetBranchStatus("vz", 1);  
-    me_tree->SetBranchStatus("hiBin", 1);
-
-    me_tree->SetBranchAddress("trkPt", &me_trkPt);
-    me_tree->SetBranchAddress("trkEta", &me_trkEta);
-    me_tree->SetBranchAddress("trkPhi", &me_trkPhi);
-    me_tree->SetBranchAddress("highPurity", &me_highPurity);
-    me_tree->SetBranchAddress("vz", &me_vz);	
-    me_tree->SetBranchAddress("hiBin", &me_hiBin);
-    me_tree->SetBranchAddress("calo_jteta", &me_jteta);
-    me_tree->SetBranchAddress("calo_jtphi", &me_jtphi);
-    me_tree->SetBranchAddress("calo_jtpt", &me_jtpt);
-
-	cout << "going through all mixed events normally..." << endl;
-
-   
-    unsigned int meptrig = 40;
-    
-    gRandom->SetSeed(0);
-    const int nCentMixBins=40;
-    const int nVzMixBins=30;
-
-    TH1D * centbins = new TH1D("centbins","centbins. JUST A DUMMY REALLY", nCentMixBins, 0.0, 200.0);
-    TH1D * vzbins = new TH1D("vzbins","vzbins. JUST A DUMMY REALLY", nVzMixBins, -15., 15.);
-    unsigned int jet_cent, jet_vzbin;
-    std::vector<std::vector<std::vector<int> > > mixing_lists;
-    for(int ivz=0; ivz<nVzMixBins; ivz++){
-      vector<vector<int> > dummyVect;
-      for(int icent=0; icent<nCentMixBins; icent++){
-        vector<int> dummyVect2;
-        dummyVect.push_back(dummyVect2);
-      }
-      mixing_lists.push_back(dummyVect);
-    }
-
-    if(do_mixing){
-      cout << "sorting events into vz and centrality categories..." << endl;
-      for(int me_evt=0; me_evt<me_tree->GetEntries(); me_evt++){
-
-        me_tree->GetEntry(me_evt);
-
-        if(abs(me_vz)>=15) continue;
-
-        unsigned int me_cent = 0;
-        if(!is_pp) me_cent = centbins->FindBin(me_hiBin)-1;
-        unsigned int me_vzbin = vzbins->FindBin(me_vz)-1;
-        mixing_lists.at(me_vzbin).at(me_cent).push_back(me_evt);
-
-      }
-      cout << "lists loaded!" << endl;
-    }
-
-
     ///==========================   Event Loop starts ===================================
     ///==========================   Event Loop starts ===================================
   
@@ -506,7 +615,8 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
         
       int ibin2 = 0;  int ibin3=0;
 
-      if(!HBHEFilter || !collisionEventSelection || !phfCoincFilter) continue;
+      if(!is_pp && (!HBHEFilter || !collisionEventSelection || !phfCoincFilter)) continue;
+      if(is_pp && !collisionEventSelection && !HBHEFilter) continue;
       if(fabs(vz) > 15.) continue;      
 
       my_hists[data_mc_type_code]->NEvents_after_noise->Fill(hiBin/2.0);
@@ -521,13 +631,12 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
       double sublead_pt=0. ;
       int second_highest_idx=-1 ;
       int highest_idx=-1 ;
-
+	
       //search for leading jet
       for(int j4i = 0; j4i < (int) corrpt->size() ; j4i++) {
       	double jet_pt= corrpt->at(j4i);
       	if(TMath::Abs(jteta->at(j4i))>=searchetacut) continue ;
       	if(jet_pt<=leadingjetcut) continue ;
-      	if(doBjets && discr_csvV1->at(j4i) < 0.9) continue;
       	if(jet_pt >lead_pt){
       		lead_pt=jet_pt;
       		highest_idx=j4i;
@@ -664,7 +773,8 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 
 	  if(!is_data){ data_mc_type_code = 2; } //General event info we put in RecoGen, since we use this for nominal...Setting this here is actually redundant.
 	
-
+    bool foundBjet = false;
+    if(doBjets && discr_csvV1->at(j4i) >= 0.9) foundBjet=true;
 
 	  foundjet = kFALSE;
 	  is_inclusive = kFALSE;
@@ -719,42 +829,68 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	  if(is_inclusive == kTRUE){
 	    my_hists[data_mc_type_code]->all_jets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen); 
 	    my_hists[data_mc_type_code]->all_jets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen); 
-	    my_hists[data_mc_type_code]->all_jets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen); 
-	  }
+	    my_hists[data_mc_type_code]->all_jets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+
+      if(foundBjet){
+        my_hists[data_mc_type_code]->all_bjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
+        my_hists[data_mc_type_code]->all_bjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
+        my_hists[data_mc_type_code]->all_bjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+      }     
+    }
 
 	  if(is_inclusive == kTRUE &&j4i!=highest_idx){
 	    my_hists[data_mc_type_code]->only_nonleadingjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen); 
 	    my_hists[data_mc_type_code]->only_nonleadingjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen); 
-	    my_hists[data_mc_type_code]->only_nonleadingjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen); 
+	    my_hists[data_mc_type_code]->only_nonleadingjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+      if(foundBjet){
+        my_hists[data_mc_type_code]->only_nonleadingbjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen); 
+        my_hists[data_mc_type_code]->only_nonleadingbjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen); 
+        my_hists[data_mc_type_code]->only_nonleadingbjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+      }
 	  }
 
 	  if(j4i==highest_idx){
 	    my_hists[data_mc_type_code]->only_leadingjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
 	    my_hists[data_mc_type_code]->only_leadingjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
 	    my_hists[data_mc_type_code]->only_leadingjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+      if(foundBjet){
+        my_hists[data_mc_type_code]->only_leadingbjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
+        my_hists[data_mc_type_code]->only_leadingbjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
+        my_hists[data_mc_type_code]->only_leadingbjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+      }
 	    
-	    if(!is_data){
-	      if(closest_j4i==highest_idx_gen){
-		data_mc_type_code=15;
-	      }else if(closest_j4i==second_highest_idx_gen){
-		data_mc_type_code=17;
-	      }else{
-		data_mc_type_code = 19;
-	      }
+      if(!is_data){
+        if(closest_j4i==highest_idx_gen){
+          data_mc_type_code=15;
+        }else if(closest_j4i==second_highest_idx_gen){
+          data_mc_type_code=17;
+        }else{
+          data_mc_type_code = 19;
+        }
 
-	      my_hists[data_mc_type_code]->only_leadingjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
-	      my_hists[data_mc_type_code]->only_leadingjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
-	      my_hists[data_mc_type_code]->only_leadingjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+        my_hists[data_mc_type_code]->only_leadingjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
+        my_hists[data_mc_type_code]->only_leadingjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
+        my_hists[data_mc_type_code]->only_leadingjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+        if(foundBjet){
+          my_hists[data_mc_type_code]->only_leadingbjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
+          my_hists[data_mc_type_code]->only_leadingbjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
+          my_hists[data_mc_type_code]->only_leadingbjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+        }
 
-	      data_mc_type_code = 2;
-	    }
-	  }
+        data_mc_type_code = 2;
+      }
+    }
 
-	  if(j4i==second_highest_idx){
+  if(j4i==second_highest_idx){
 
 	    my_hists[data_mc_type_code]->only_subleadingjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
 	    my_hists[data_mc_type_code]->only_subleadingjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
 	    my_hists[data_mc_type_code]->only_subleadingjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+      if(foundBjet){
+        my_hists[data_mc_type_code]->only_subleadingbjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
+        my_hists[data_mc_type_code]->only_subleadingbjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
+        my_hists[data_mc_type_code]->only_subleadingbjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+      }
 
 	    if(!is_data){
 	      if(closest_j4i==second_highest_idx_gen){
@@ -768,6 +904,11 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	      my_hists[data_mc_type_code]->only_subleadingjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
 	      my_hists[data_mc_type_code]->only_subleadingjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
 	      my_hists[data_mc_type_code]->only_subleadingjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+        if(foundBjet){
+          my_hists[data_mc_type_code]->only_subleadingbjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
+          my_hists[data_mc_type_code]->only_subleadingbjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
+          my_hists[data_mc_type_code]->only_subleadingbjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+        }
 
 	      data_mc_type_code = 2;
 	    }
@@ -808,18 +949,9 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	  if(!is_pp) {cent = hiBin; }
 	  if(!is_data){data_mc_type_code = 1; }
 
-
 	  for(int tracks =0; tracks < (int) trkPt->size(); tracks++){
-	    if(fabs(trkEta->at(tracks))>=trketamaxcut) continue;
-	    if (highPurity->at(tracks)!=1) continue;
-	    if(trkChi2->at(tracks)/(float)trkNdof->at(tracks)/(float)trkNlayer->at(tracks)>0.15) continue;
-	    if(trkNHit->at(tracks)<11 && trkPt->at(tracks)>0.7) continue;
+	    if(!passTrackCuts(trkPt->at(tracks), trkEta->at(tracks), highPurity->at(tracks), trkChi2->at(tracks), trkNdof->at(tracks), trkNlayer->at(tracks), trkNHit->at(tracks), pfHcal->at(tracks), pfEcal->at(tracks))) continue;
 
-	    float Et = (pfHcal->at(tracks)+pfEcal->at(tracks))/TMath::CosH(trkEta->at(tracks));
-	    if(!(trkPt->at(tracks)<20 || (Et>0.5*trkPt->at(tracks)))) continue;
-	    if(trkPt->at(tracks)<=trkPtCut || trkPt->at(tracks)>300.) continue;
-
-	  
 	    for(int trkpti = 0; trkpti < nTrkPtBins; trkpti++) {
 	      if (trkPt->at(tracks) >=TrkPtBins[trkpti] && trkPt->at(tracks) < TrkPtBins[trkpti+1])  ibin3 = trkpti;
 	    } /// trkpti loop
@@ -831,13 +963,13 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    pt= trkPt->at(tracks);
 	    phi= trkPhi->at(tracks);
      float rmin = 999;
-     for(unsigned int k = 0; k<jtpt->size(); k++)
+     /*for(unsigned int k = 0; k<jtpt->size(); k++)
      {
       if(jtpt->at(k)<50) break;
-        if(/*TMath::Abs(chargedSum->at(k)/jtpt->at(k))<0.01 ||*/ jteta->at(k)>2) continue;//jet quality cut
-        float R = TMath::Power(jteta->at(k)-eta,2)+TMath::Power(jtphi->at(k)-phi,2);
-        if(rmin*rmin>R) rmin=TMath::Power(R,0.5);
-      }
+      if(TMath::Abs(chargedSum->at(k)/jtpt->at(k))<0.01 || jteta->at(k)>2) continue;//jet quality cut
+      float R = TMath::Power(jteta->at(k)-eta,2)+TMath::Power(jtphi->at(k)-phi,2);
+      if(rmin*rmin>R) rmin=TMath::Power(R,0.5);
+     }*/
 
       double trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 0, rmin);
 
@@ -881,6 +1013,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    
 	      my_hists[data_mc_type_code]->hJetTrackSignalBackground[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
 	      my_hists[data_mc_type_code]->hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        if(foundBjet){
+          my_hists[data_mc_type_code]->hbJetTrackSignalBackground[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
+          my_hists[data_mc_type_code]->hbJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        }
 
 	    }
 	  
@@ -893,6 +1029,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    
 	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_lead*wvz*wcen);
 	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        if(foundBjet){
+          my_hists[data_mc_type_code]->hbJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_lead*wvz*wcen);
+          my_hists[data_mc_type_code]->hbJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        }
 
 
 	    }
@@ -905,6 +1045,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    
 	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_sub*wvz*wcen);
 	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        if(foundBjet){
+          my_hists[data_mc_type_code]->hbJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_sub*wvz*wcen);
+          my_hists[data_mc_type_code]->hbJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        }
 	    }
 	    
 	    if(is_inclusive && j4i!=highest_idx){
@@ -915,6 +1059,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    
 	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
 	      my_hists[data_mc_type_code]->hJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        if(foundBjet){
+          my_hists[data_mc_type_code]->hbJetTrackSignalBackgroundNonLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
+          my_hists[data_mc_type_code]->hbJetTrackSignalBackgroundNonLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        }
 	    }
 	    
 	  } // Track loop
@@ -935,25 +1083,25 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 
 	  
 	      for(int trkpti = 0; trkpti < nTrkPtBins; trkpti++) {
-		if (gpt->at(tracks) >=TrkPtBins[trkpti] && gpt->at(tracks) < TrkPtBins[trkpti+1])  ibin3 = trkpti ;
+          if (gpt->at(tracks) >=TrkPtBins[trkpti] && gpt->at(tracks) < TrkPtBins[trkpti+1])  ibin3 = trkpti ;
 	      } /// trkpti loop
-	  
+
 	      my_hists[data_mc_type_code]->TrkPt[ibin][ibin2][ibin3]->Fill(gpt->at(tracks),wvz*wcen);
 	      my_hists[data_mc_type_code]->TrkEta[ibin][ibin2][ibin3]->Fill(geta->at(tracks),wvz*wcen);
 	      my_hists[data_mc_type_code]->TrkPhi[ibin][ibin2][ibin3]->Fill(gphi->at(tracks),wvz*wcen);
-	    
+
 	      if(is_inclusive == kTRUE){
-	   
-	    
-		deta = jteta->at(j4i) - geta->at(tracks);
-		dphi = jtphi->at(j4i) - gphi->at(tracks);
-	 
-		while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
-		while(dphi<(-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
-	    
-		my_hists[data_mc_type_code]->hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
-	    
-	      }
+
+
+          deta = jteta->at(j4i) - geta->at(tracks);
+          dphi = jtphi->at(j4i) - gphi->at(tracks);
+
+          while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
+          while(dphi<(-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
+
+          my_hists[data_mc_type_code]->hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+
+        }
 
 	      if(j4i==highest_idx){
 		deta = jteta->at(highest_idx) - geta->at(tracks);
@@ -1175,47 +1323,47 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    //-----------------------------------------------------
        
 	  if(is_data&&do_mixing){
-
+	
 	    jet_cent = 0;
-	    if(!is_pp){ jet_cent = centbins->FindBin(hiBin);}
-	    jet_vzbin = vzbins->FindBin(vz);
+	    if(!is_pp){ jet_cent = centbins->FindBin(hiBin)-1;}
+	    jet_vzbin = vzbins->FindBin(vz)-1;
 
 	    if(is_inclusive||j4i==highest_idx||j4i==second_highest_idx){  //only if we've got a trigger according to some criteria  AND we're not pp
 
-	      //	  cout << "mixing now " << me <<" "<<nme<<endl;
-
-	      unsigned int mevi = 0;
-
              //randomize starting point of array to mix different events!
-        unsigned int pct = gRandom->Rndm()*mixing_lists.at(jet_vzbin-1).at(jet_cent-1).size();
+        unsigned int pct = gRandom->Rndm()*mixing_lists.at(jet_vzbin).at(jet_cent).size();
+
         bool circleCheck=false;
 
-        for(mevi=pct; mevi<meptrig; mevi++){
-          if((int)mixing_lists[jet_vzbin-1][jet_cent-1].size()==0){
-            cout << "Warning! vzbin: "<< jet_vzbin-1 << ", cent bin: "<< jet_cent-1 << " is devoid of events!" << endl;
+        unsigned int mevi = pct;
+        unsigned int dummy=0;
+        while(dummy < meptrig){
+            if((int)mixing_lists[jet_vzbin][jet_cent].size()<2){
+            cout << "Warning! vzbin: "<< jet_vzbin-1 << ", cent bin: "<< jet_cent-1 << " is devoid of mixing events!" << endl;
             break;
           }
-          if(mevi>mixing_lists[jet_vzbin-1][jet_cent-1].size()){ mevi=0; circleCheck=true; }
+          if(mevi>mixing_lists.at(jet_vzbin).at(jet_cent).size()){ mevi=1; circleCheck=true; }
+         
+          if(mevi==0) mevi++;
+
+          if(mixing_lists.at(jet_vzbin).at(jet_cent).at(mevi-1) == evi){ 
+              mevi++; continue; 
+          }
           
-          if(mevi>=pct && circleCheck){
-            cout << "Warning! vzbin: "<< jet_vzbin-1 << ", cent bin: "<< jet_cent-1 << " has fewer than " << meptrig << " events! (Has " << mixing_lists[jet_vzbin-1][jet_cent-1].size() << " events)" << endl;
-            break;
-          }
-          if(mevi==0) mevi++; //prevent -1 access in next line
-	      	me_tree->GetEntry(mixing_lists.at(jet_vzbin-1).at(jet_cent-1).at(mevi-1));
+          me_tree->GetEntry(mixing_lists.at(jet_vzbin).at(jet_cent).at(mevi-1));
+          dummy++; mevi++;
 
           unsigned int me_cent=0;
           if(!is_pp){ me_cent = centbins->FindBin(me_hiBin);}
-          unsigned int me_vzbin = vzbins->FindBin(me_vz);
+          unsigned int me_vzbin = vzbins->FindBin(me_vz)-1;
 
+          //cout << "vzbin : "<< jet_vzbin << " me vzbin: "<< me_vzbin << endl;
           //make sure i'm doing this thing correctly...
           assert(me_vzbin==jet_vzbin);
           assert(me_cent==jet_cent);
 
-	      	for(int tracks =0; tracks < (int) me_trkPt->size(); tracks++){
-	      		if(fabs(me_trkEta->at(tracks))>=trketamaxcut) continue;
-	      		if (me_highPurity->at(tracks)!=1) continue;
-	      		if(me_trkPt->at(tracks)<=trkPtCut) continue;
+          for(int tracks =0; tracks < (int) me_trkPt->size(); tracks++){
+	      		if(!passTrackCuts(me_trkPt->at(tracks), me_trkEta->at(tracks), me_highPurity->at(tracks), me_trkChi2->at(tracks), me_trkNdof->at(tracks), me_trkNlayer->at(tracks), me_trkNHit->at(tracks), me_pfHcal->at(tracks), me_pfEcal->at(tracks))) continue;
 
 
 	      		for(int trkpti = 0; trkpti < nTrkPtBins; trkpti++) {
@@ -1231,14 +1379,14 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 		        if(!is_pp){cent = me_hiBin;}
 
 		        float rmin = 999;
-		        for(unsigned int k = 0; k<me_jtpt->size(); k++)
+		        /*for(unsigned int k = 0; k<me_jtpt->size(); k++)
 		        {
 		        	if(me_jtpt->at(k)<50) break;
-              if(/*TMath::Abs(chargedSum->at(k)/jtpt->at(k))<0.01 ||*/ me_jteta->at(k)>2) continue;//jet quality cut
+              if(TMath::Abs(chargedSum->at(k)/jtpt->at(k))<0.01 || me_jteta->at(k)>2) continue;//jet quality cut
 		        	
               float R = TMath::Power(me_jteta->at(k)-eta,2)+TMath::Power(me_jtphi->at(k)-phi,2);
 		        	if(rmin*rmin>R) rmin=TMath::Power(R,0.5);
-		        }
+		        }*/
 
 		        double trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 0, rmin);
 
@@ -1279,6 +1427,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    
 		    my_hists[data_mc_type_code]->hJetTrackME[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
 		    my_hists[data_mc_type_code]->hJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        if(foundBjet){
+          my_hists[data_mc_type_code]->hbJetTrackME[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
+          my_hists[data_mc_type_code]->hbJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        }
 	    
 		  }
 	  
@@ -1291,6 +1443,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    
 		    my_hists[data_mc_type_code]->hJetTrackMELeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_lead*wvz*wcen);
 		    my_hists[data_mc_type_code]->hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        if(foundBjet){
+          my_hists[data_mc_type_code]->hbJetTrackMELeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_lead*wvz*wcen);
+          my_hists[data_mc_type_code]->hbJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        }
 		  }
 	  
 		  if(j4i==second_highest_idx){
@@ -1301,6 +1457,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    
 		    my_hists[data_mc_type_code]->hJetTrackMESubLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_sub*wvz*wcen);
 		    my_hists[data_mc_type_code]->hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        if(foundBjet){
+          my_hists[data_mc_type_code]->hbJetTrackMESubLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_sub*wvz*wcen);
+          my_hists[data_mc_type_code]->hbJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        }
 		  }
 
  
@@ -1312,6 +1472,10 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    
 		    my_hists[data_mc_type_code]->hJetTrackMENonLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
 		    my_hists[data_mc_type_code]->hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        if(foundBjet){
+          my_hists[data_mc_type_code]->hJetTrackMENonLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
+          my_hists[data_mc_type_code]->hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+        }
 		  }
 
 		}  //track mixed event for data
@@ -1434,9 +1598,8 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	  if(!is_pp) {cent = hiBin; }
 
 	  for(int tracks =0; tracks < (int) trkPt->size(); tracks++){
-	    if(fabs(trkEta->at(tracks))>=trketamaxcut) continue;
-	    if (highPurity->at(tracks)!=1) continue;
-	    if(trkPt->at(tracks)<=trkPtCut) continue;
+
+      if(!passTrackCuts(trkPt->at(tracks), trkEta->at(tracks), highPurity->at(tracks), trkChi2->at(tracks), trkNdof->at(tracks), trkNlayer->at(tracks), trkNHit->at(tracks), pfHcal->at(tracks), pfEcal->at(tracks))) continue;
 
 	  
 	    for(int trkpti = 0; trkpti < nTrkPtBins; trkpti++) {
@@ -1450,21 +1613,19 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 	    pt= trkPt->at(tracks);
 	    phi= trkPhi->at(tracks);
 	    float rmin = 999;
-     for(unsigned int k = 0; k<jtpt->size(); k++)
+     /*for(unsigned int k = 0; k<jtpt->size(); k++)
      {
       if(jtpt->at(k)<50) break;
-        if(/*TMath::Abs(chargedSum->at(k)/jtpt->at(k))<0.01 ||*/ jteta->at(k)>2) continue;//jet quality cut
+        if(TMath::Abs(chargedSum->at(k)/jtpt->at(k))<0.01 || jteta->at(k)>2) continue;//jet quality cut
         float R = TMath::Power(jteta->at(k)-eta,2)+TMath::Power(jtphi->at(k)-phi,2);
         if(rmin*rmin>R) rmin=TMath::Power(R,0.5);
-      }
+      }*/
 
       double trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 0, rmin);
 
 	    if(!is_pp){
 	      secondary = 0.;
 	      pt_weight = 1.;
-	      pt_weight_sub = 1.;
-	      pt_weight_lead = 1.;
 	      multrec = 0.;
 	    }  //just in case 
 	  
@@ -1958,6 +2119,7 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 
     evtStopwatch.Stop();
     cout << "Avg event time: " << evtStopwatch.RealTime()/(double)n_evt << " sec/evt" << endl;
+    my_file->Close();
     
   }//FILE LOOP  (sort of a dummy, since we run on one file at a time).  
  
@@ -1981,7 +2143,7 @@ void HT_Analyzer_All_JFFCorr2(int datasetTypeCode = 0, int startfile=0, int nFil
 } // end main
 
 
-void ReadFileList(std::vector<TString> &my_file_names, TString file_of_names, bool debug)
+void ReadFileList(std::vector<std::string> &my_file_names, TString file_of_names, bool debug)
 {
   ifstream file_stream(file_of_names);
   std::string line;
@@ -1992,8 +2154,12 @@ void ReadFileList(std::vector<TString> &my_file_names, TString file_of_names, bo
     int line_num = 0;
     while( file_stream >> line ) {
       if( debug ) std::cout << line_num << ": " << line << std::endl;
-      TString tstring_line(line);
-      if( tstring_line.CompareTo("", TString::kExact) != 0 ) my_file_names.push_back(tstring_line);
+      std::string tstring_line(line);
+      tstring_line.erase(std::remove(tstring_line.begin(), tstring_line.end(), '"'), tstring_line.end());
+      tstring_line.erase(std::remove(tstring_line.begin(), tstring_line.end(), ','), tstring_line.end());
+      tstring_line.erase(std::remove(tstring_line.begin(), tstring_line.end(), '['), tstring_line.end());
+      tstring_line.erase(std::remove(tstring_line.begin(), tstring_line.end(), ']'), tstring_line.end());
+      if( tstring_line != "" ) my_file_names.push_back(tstring_line);
       line_num++;
     }
   } else {
