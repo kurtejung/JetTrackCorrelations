@@ -522,9 +522,6 @@ void hist_class::Write(int mc_type_i)
   else if( trkPtCut >= 3.5 && trkPtCut < 4.5 ) pT_str = "trkPtCut4";
   else assert(0);  
 
-  TString out_name = (TString) (dataset_type_strs[dataset_type_code] + "_PbPb.root");
-  TFile *out_file = new TFile(out_name, "RECREATE");
-
   NEvents->Write();
   NEvents_test->Write();
   NEvents_after_noise->Write();
@@ -645,7 +642,6 @@ void hist_class::Write(int mc_type_i)
       } /// ibin3
     } /// ptbin
   }  //centralitybin
-  out_file->Close();
 } 
 
 
