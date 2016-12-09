@@ -12,7 +12,7 @@ using namespace std;
 
 void add2DBin(int ixbin, int iybin, int ixToAdd, int iyToAdd, TH2D *histo){
 	histo->SetBinContent(ixbin,iybin,histo->GetBinContent(ixbin,iybin)+histo->GetBinContent(ixToAdd,iyToAdd));
-	histo->SetBinError(ixbin,iybin,sqrt(pow(histo->GetBinContent(ixbin,iybin),2)*pow(histo->GetBinError(ixbin,iybin),2) + pow(histo->GetBinContent(ixToAdd,iyToAdd),2)*pow(histo->GetBinError(ixToAdd,iyToAdd),2)));
+	histo->SetBinError(ixbin,iybin,sqrt(pow(histo->GetBinError(ixbin,iybin),2) + pow(histo->GetBinError(ixToAdd,iyToAdd),2)));
 }
 
 double ReturnDivError(double num, double numErr, double den, double denErr){
@@ -26,7 +26,7 @@ double ReturnSubError(double first, double firstErr, double sec, double secErr){
 	return sqrt(err2);
 }
 
-TH2D* backgroundSubtract(TH2D *signal, TH2D *background, TH1F *nJets){
+TH2D* backgroundSubtract(TH2D *signal, TH2D *background, TH1F *nJets, bool doBGsub){
 	
 	double sidebandlow = 1.5;
 	double sidebandhigh = 2.5;
@@ -76,11 +76,13 @@ TH2D* backgroundSubtract(TH2D *signal, TH2D *background, TH1F *nJets){
 	inclPhiFG->Scale(1./inclPhiFG->GetNbinsX());
 	assert(signal->GetNbinsY() == inclPhiBG->GetNbinsX());
 	
-	for(int ixbin=1; ixbin<=signal->GetNbinsX(); ixbin++){
-		for(int iybin=1; iybin<=signal->GetNbinsY(); iybin++){
-			//if(inclPhiBG->GetBinContent(iybin)) signal->SetBinContent(ixbin,iybin, signal->GetBinContent(ixbin,iybin) - inclPhiBG->GetBinContent(iybin));
-			//else signal->SetBinContent(ixbin,iybin,0);
-			//if(inclPhiBG->GetBinContent(iybin)) signal->SetBinError(ixbin,iybin, sqrt(inclPhiBG->GetNbinsX())*ReturnSubError(signal->GetBinContent(ixbin,iybin), signal->GetBinError(ixbin,iybin), inclPhiBG->GetBinContent(iybin), inclPhiBG->GetBinError(iybin)));
+	if(doBGsub){
+		for(int ixbin=1; ixbin<=signal->GetNbinsX(); ixbin++){
+			for(int iybin=1; iybin<=signal->GetNbinsY(); iybin++){
+				if(inclPhiBG->GetBinContent(iybin)) signal->SetBinContent(ixbin,iybin, signal->GetBinContent(ixbin,iybin) - inclPhiBG->GetBinContent(iybin));
+				else signal->SetBinContent(ixbin,iybin,0);
+				if(inclPhiBG->GetBinContent(iybin)) signal->SetBinError(ixbin,iybin, sqrt(inclPhiBG->GetNbinsX())*ReturnSubError(signal->GetBinContent(ixbin,iybin), signal->GetBinError(ixbin,iybin), inclPhiBG->GetBinContent(iybin), inclPhiBG->GetBinError(iybin)));
+			}
 		}
 	}
 	
@@ -88,10 +90,18 @@ TH2D* backgroundSubtract(TH2D *signal, TH2D *background, TH1F *nJets){
 }
 
 
-void drawTrackDensity(){
+void drawTrackDensity(string jet="Gen", string track="Reco", string jetDiv="Gen", string trackDiv="Gen", bool doBGsub=true){
 	
 	bool doJFFCorrs = false;
+	bool applyJFFcorrs = false;
 	
+	string trkCorr = "_notrkcorr";
+	string trkCorrDiv = "_notrkcorr";
+	if(track=="Reco") trkCorr = "";
+	if(trackDiv=="Reco")trkCorrDiv = "";
+	if(jet=="Reco") applyJFFcorrs = true;
+	//if(jet=="Reco" && jetDiv=="Reco") applyJFFcorrs = false;
+		
 	TH1::SetDefaultSumw2();
 	TH2::SetDefaultSumw2();
 	
@@ -106,8 +116,8 @@ void drawTrackDensity(){
 	const string xCentBins[nCentBins+1] = {"Cent0", "Cent10", "Cent30","Cent50", "Cent100"};
 	
 	TFile *fJFFs = new TFile("JFFcorrs_static.root");
-	TFile *fGenGen = new TFile("root_output/PbPb_5TeV_MC_PythiaHydjet_MixHistos_Merged_GenGenReduced_fineBin.root");
-	TFile *fGenReco = new TFile("root_output/PbPb_5TeV_MC_PythiaHydjet_MixHistos_Merged_RecoGenReduced_fineBin.root");
+	TFile *fGenGen = new TFile(Form("root_output/PbPb_5TeV_MC_PythiaHydjet_MixHistos_Merged_%s%sReduced_fineBin.root",jet.c_str(),track.c_str()));
+	TFile *fGenReco = new TFile(Form("root_output/PbPb_5TeV_MC_PythiaHydjet_MixHistos_Merged_%s%sReduced_fineBin.root",jetDiv.c_str(),trackDiv.c_str()));
 	
 	TH2D *GenGenSignals[trackPtBins][nCentBins];
 	TH2D *GenRecoSignals[trackPtBins][nCentBins];
@@ -127,6 +137,7 @@ void drawTrackDensity(){
 	TH1D *GenRecoEtaProj[trackPtBins][nCentBins];
 	
 	TH2D *JFFcorrs[trackPtBins];
+	TH2D *JFFcorrsToApply[trackPtBins];
 	
 	THStack *drGenGenDensity[nCentBins];
 	THStack *drGenRecoDensity[nCentBins];
@@ -135,19 +146,23 @@ void drawTrackDensity(){
 	TH1F *nJetsReco[nCentBins];
 	
 	for(int i=0; i<trackPtBins; i++){
+		
+		string toGet = Form("JFFcorrs_pt%d",i);
+		JFFcorrsToApply[i] = (TH2D*)fJFFs->Get(toGet.c_str())->Clone(toGet.c_str());
+		//JFFcorrsToApply[i]->Scale(0.5);
+		
 		for(int j=0; j<nCentBins; j++){
-			string toGet = Form("GenJet_GenTrack_hJetTrackSignalBackground_notrkcorr%s_%s_Pt100_Pt300_%s_%s",xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
+			toGet = Form("%sJet_%sTrack_hJetTrackSignalBackground%s%s_%s_Pt100_Pt300_%s_%s",jet.c_str(),track.c_str(),trkCorr.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			cout << "getting " << toGet << endl;
 			GenGenSignals[i][j] = (TH2D*)fGenGen->Get(toGet.c_str())->Clone(toGet.c_str());
-			GenGenSignals[i][j]->Scale(0.5);
 			
-			toGet = Form("RecoJet_GenTrack_hJetTrackSignalBackground_notrkcorr%s_%s_Pt100_Pt300_%s_%s",xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
+			toGet = Form("%sJet_%sTrack_hJetTrackSignalBackground%s%s_%s_Pt100_Pt300_%s_%s",jetDiv.c_str(),trackDiv.c_str(),trkCorrDiv.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			GenRecoSignals[i][j] = (TH2D*)fGenReco->Get(toGet.c_str())->Clone(toGet.c_str());
 			
-			toGet = Form("GenJet_GenTrack_hJetTrackME_notrkcorr%s_%s_Pt100_Pt300_%s_%s",xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
+			toGet = Form("%sJet_%sTrack_hJetTrackME%s%s_%s_Pt100_Pt300_%s_%s",jet.c_str(),track.c_str(),trkCorr.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			GenGenBG[i][j] = (TH2D*)fGenGen->Get(toGet.c_str())->Clone(toGet.c_str());
 			
-			toGet = Form("RecoJet_GenTrack_hJetTrackME_notrkcorr%s_%s_Pt100_Pt300_%s_%s",xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
+			toGet = Form("%sJet_%sTrack_hJetTrackME%s%s_%s_Pt100_Pt300_%s_%s",jetDiv.c_str(),trackDiv.c_str(),trkCorrDiv.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			GenRecoBG[i][j] = (TH2D*)fGenReco->Get(toGet.c_str())->Clone(toGet.c_str());
 			
 			GenGenDRDistr[i][j] = new TH1D(Form("GenGenDR_%d_%d",i,j),"",14,xdrbins);
@@ -158,10 +173,10 @@ void drawTrackDensity(){
 	}
 	
 	for(int j=0; j<nCentBins; j++){
-		string toGet = Form("GenJet_GenTrack_all_jets_corrpT%s_%s_Pt100_Pt300",xCentBins[j].c_str(),xCentBins[j+1].c_str());
+		string toGet = Form("%sJet_%sTrack_all_jets_corrpT%s_%s_Pt100_Pt300",jet.c_str(),track.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str());
 		nJetsGen[j] = (TH1F*)fGenGen->Get(toGet.c_str())->Clone(toGet.c_str());
 		
-		toGet = Form("RecoJet_GenTrack_all_jets_corrpT%s_%s_Pt100_Pt300",xCentBins[j].c_str(),xCentBins[j+1].c_str());
+		toGet = Form("%sJet_%sTrack_all_jets_corrpT%s_%s_Pt100_Pt300",jetDiv.c_str(),trackDiv.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str());
 		nJetsReco[j] = (TH1F*)fGenReco->Get(toGet.c_str())->Clone(toGet.c_str());
 		
 		drGenGenDensity[j] = new THStack(Form("drGenGenDensity_%d",j),"");
@@ -170,8 +185,12 @@ void drawTrackDensity(){
 	
 	for(int i=0; i<trackPtBins; i++){
 		for(int j=0; j<nCentBins; j++){
-			GenGenSignalsSub[i][j] = backgroundSubtract(GenGenSignals[i][j], GenGenBG[i][j], nJetsGen[j]);
-			GenRecoSignalsSub[i][j] = backgroundSubtract(GenRecoSignals[i][j], GenRecoBG[i][j], nJetsReco[j]);
+			GenGenSignalsSub[i][j] = backgroundSubtract(GenGenSignals[i][j], GenGenBG[i][j], nJetsGen[j], doBGsub);
+			GenRecoSignalsSub[i][j] = backgroundSubtract(GenRecoSignals[i][j], GenRecoBG[i][j], nJetsReco[j], doBGsub);
+			if(applyJFFcorrs){
+				if(jet=="Reco") GenGenSignalsSub[i][j]->Add(JFFcorrsToApply[i]);
+				if(jetDiv=="Reco") GenRecoSignalsSub[i][j]->Add(JFFcorrsToApply[i]);				
+			}
 			
 			//cout << "track pt" << i << " cent " << j << " gen counts: "<< GenGenSignalsSub[i][j]->GetEntries() << endl;
 			//cout << "track pt" << i << " cent " << j << " counts: "<< GenRecoSignalsSub[i][j]->GetEntries() << endl;
@@ -184,7 +203,8 @@ void drawTrackDensity(){
 			GenRecoEtaProj[i][j] = GenRecoSignalsSub[i][j]->ProjectionX(Form("GenRecoEtaProj_%d_%d",i,j),lowBin, highBin,"e");
 			GenRecoEtaProj[i][j]->Scale(GenRecoSignalsSub[i][j]->GetYaxis()->GetBinWidth(2));
 			GenRecoEtaProj[i][j]->Scale(2.);
-			GenRecoEtaProj[i][j]->Add(GenGenEtaProj[i][j],-1);
+			//GenRecoEtaProj[i][j]->Add(GenGenEtaProj[i][j],-1);
+			GenRecoEtaProj[i][j]->Divide(GenGenEtaProj[i][j]);
 			
 			if(j==nCentBins-1 && doJFFCorrs){
 				JFFcorrs[i] = (TH2D*)GenRecoSignalsSub[i][j]->Clone(Form("JFFcorrs_pt%d",i));
@@ -216,9 +236,10 @@ void drawTrackDensity(){
 							JFFcorrs[i]->SetBinError(negX,negY,JFFcorrs[i]->GetBinError(ixbin,iybin));						
 						}
 					}
+					
 				}
 				//take average of symmetry
-				JFFcorrs[i]->Scale(1./16.);
+				JFFcorrs[i]->Scale(1./4.);
 			}
 			
 			for(int ixbin=1; ixbin<=GenGenSignalsSub[i][j]->GetNbinsX(); ixbin++){
@@ -252,15 +273,17 @@ void drawTrackDensity(){
 	
 	TCanvas *ceta = new TCanvas("ceta","",1200,1600);
 	TLatex *l2[trackPtBins][nCentBins];
-	ceta->Divide(nCentBins,trackPtBins-1);
+	ceta->Divide(nCentBins,trackPtBins-2);
 	for(int j=0; j<nCentBins; j++){
-		for(int i=1; i<trackPtBins; i++){
+		for(int i=1; i<trackPtBins-1; i++){
 			ceta->cd(i*nCentBins+j+1-4);
 			GenRecoEtaProj[i][j]->GetYaxis()->SetNdivisions(505);
 			GenRecoEtaProj[i][j]->GetYaxis()->SetLabelSize(0.15);
 			GenRecoEtaProj[i][j]->GetXaxis()->SetLabelSize(0.15);
 			GenRecoEtaProj[i][j]->GetXaxis()->SetRangeUser(-0.7,0.7);
 			GenRecoEtaProj[i][j]->Draw();
+			//GenGenEtaProj[i][j]->SetLineColor(2);
+			//GenGenEtaProj[i][j]->Draw("Same");
 			l2[i][j] = new TLatex(-0.5,GenRecoEtaProj[i][j]->GetMaximum()*0.85,Form("%s-%s, %g<pT<%g",xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBinDouble[i],xTrkBinDouble[i+1]));
 			l2[i][j]->SetTextSize(0.15);
 			l2[i][j]->Draw("same");
@@ -268,18 +291,22 @@ void drawTrackDensity(){
 	}
 	
 	TCanvas *cc = new TCanvas("cc","",1200,800);
-	cc->Divide(1,2);
+	cc->Divide(1,3);
 	cc->cd(1);
-	GenGenSignalsSub[4][0]->Draw("surf1");
+	GenRecoSignalsSub[4][0]->Draw("colz");
 	cc->cd(2);
-	GenRecoSignalsSub[4][0]->Draw("surf1");
+	TH2D *tmp = (TH2D*)GenRecoSignalsSub[4][0]->Clone("tmp");
+	tmp->Add(JFFcorrsToApply[4],-1);
+	tmp->Draw("colz");
+	cc->cd(3);
+	JFFcorrsToApply[4]->Draw("colz");
 	
 	TLatex *l1[trackPtBins][nCentBins];
 	TCanvas *cprint = new TCanvas("cprint","",1200,1600);
-	cprint->Divide(nCentBins, trackPtBins-1);
+	cprint->Divide(nCentBins, trackPtBins-2);
 	for(int j=0; j<nCentBins; j++){
-		for(int i=1; i<trackPtBins; i++){
-			cprint->cd(i*nCentBins+j+1-4);
+		for(int i=1; i<trackPtBins-1; i++){
+			cprint->cd(i*nCentBins+(3-j)+1-4);
 			
 			GenRecoDRDistr[i][j]->SetMarkerStyle(25);
 			
@@ -293,9 +320,10 @@ void drawTrackDensity(){
 			
 			//GenGenDRDistr[i][j]->Draw();
 			//GenRecoDRDistr[i][j]->Draw("same");
-			//GenGenDRDistr[i][j]->Divide(GenGenDRDistr[i][j],GenRecoDRDistr[i][j],1,1,"B");
-			//GenGenDRDistr[i][j]->SetMaximum(1.5);
-			//GenGenDRDistr[i][j]->SetMinimum(0.5);
+			GenGenDRDistr[i][j]->Divide(GenGenDRDistr[i][j],GenRecoDRDistr[i][j],1,1,"B");
+			//GenGenDRDistr[i][j]->Divide(GenRecoDRDistr[i][j],GenGenDRDistr[i][j],1,1,"B");
+			GenGenDRDistr[i][j]->SetMaximum(1.5);
+			GenGenDRDistr[i][j]->SetMinimum(0.5);
 			GenGenDRDistr[i][j]->GetYaxis()->SetNdivisions(505);
 			GenGenDRDistr[i][j]->GetYaxis()->SetLabelSize(0.15);
 			GenGenDRDistr[i][j]->GetXaxis()->SetLabelSize(0.15);
@@ -306,6 +334,9 @@ void drawTrackDensity(){
 			l1[i][j]->Draw("same");
 		}
 	}
+	string jfc = "jffCorrApplied";
+	if(!applyJFFcorrs) jfc = "";
+	cprint->SaveAs(Form("%s%s_div_%s%s_bgSub%d_%s_test.pdf",jet.c_str(), track.c_str(), jetDiv.c_str(), trackDiv.c_str(), doBGsub, jfc.c_str()));
 	
 	if(doJFFCorrs){
 		TFile *fout = new TFile("JFFcorrs.root","recreate");
