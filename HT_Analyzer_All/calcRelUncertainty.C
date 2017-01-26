@@ -6,6 +6,7 @@
 #include "TCanvas.h"
 #include "TF1.h"
 #include "TLegend.h"
+#include "TGraphErrors.h"
 #include <iostream>
 	
 using namespace std;
@@ -32,15 +33,21 @@ void takeTH1Abs(TH1D* input){
 	
 }
 	
-void calcRelUncertainty(){
+void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="Reco", string track2="Gen"){
+	
+	string trkCorrString1 = "";
+	string trkCorrString2 = "";
+	if(track1=="Gen") trkCorrString1 = "_notrkcorr";
+	if(track2=="Gen") trkCorrString2 = "_notrkcorr";
 		
-	TFile *fin = new TFile("TotalCorrelations.root");
-	TFile *fSpillovers = new TFile("JFFcorrs_spillover.root");
-	TFile *fResidualJES = new TFile("JFFcorrs_sube0.root");
+	TFile *fin = new TFile(Form("TotalCorrelations_%s%s2%s%s_newJFFs.root",jet1.c_str(),track1.c_str(),jet2.c_str(),track2.c_str()));
+	//TFile *fSpillovers = new TFile("JFFcorrs_subeNon0_newJFFs.root");
+	TFile *fSpillovers = new TFile("Spillover_gausFits.root");
+	TFile *fResidualJES = new TFile("JFFcorrs_sube0_newJFFs.root");
 	
 	TH2D *GenGenSignal[nCentBins][trackPtBins];
 	TH2D *RecoRecoSignal[nCentBins][trackPtBins];
-	TH2D *hSpillovers[nCentBins][trackPtBins];
+	TF1 *hSpillovers[nCentBins][trackPtBins];
 	TH2D *hResidualJES[nCentBins][trackPtBins];
 	
 	TH2D *pairAccept[nCentBins][trackPtBins];
@@ -104,16 +111,18 @@ void calcRelUncertainty(){
 	
 	for(int j=0; j<trackPtBins; j++){
 		for(int i=0; i<nCentBins; i++){
-						
-			GenGenSignal[i][j] = (TH2D*)fin->Get(Form("GenJet_GenTrack_hJetTrackSignalBackground_notrkcorrCent%d_Cent%d_Pt100_Pt300_%s_%s",xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()))->Clone(Form("GenGenSignal_%d_%d",i,j));
 			
-			RecoRecoSignal[i][j] = (TH2D*)fin->Get(Form("RecoJet_GenTrack_hJetTrackSignalBackground_notrkcorrCent%d_Cent%d_Pt100_Pt300_%s_%s",xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()))->Clone(Form("GenGenSignal_%d_%d",i,j));
+			cout << "getting " << Form("%sJet_%sTrack_hJetTrackSignalBackground_notrkcorrCent%d_Cent%d_Pt100_Pt300_%s_%s",jet1.c_str(), track1.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()) << endl;
+						
+			GenGenSignal[i][j] = (TH2D*)fin->Get(Form("%sJet_%sTrack_hJetTrackSignalBackground%sCent%d_Cent%d_Pt100_Pt300_%s_%s",jet1.c_str(), track1.c_str(), trkCorrString1.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()))->Clone(Form("GenGenSignal_%d_%d",i,j));
+			
+			RecoRecoSignal[i][j] = (TH2D*)fin->Get(Form("%sJet_%sTrack_hJetTrackSignalBackground%sCent%d_Cent%d_Pt100_Pt300_%s_%s",jet2.c_str(), track2.c_str(), trkCorrString2.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()))->Clone(Form("RecoRecoSignal_%d_%d",i,j));
 						
 			//take only 1/2 the jff and spillovers for systematics
-			hSpillovers[i][j] = (TH2D*)fSpillovers->Get(Form("JFFcorrs_cent%d_pt%d",i,j))->Clone(Form("spillovers_cent%d_pt%d",i,j));
-			hSpillovers[i][j]->Scale(0.5);
-			hSpillovers[i][j]->Scale(1./ptWidth[j]);
-			if(j>4) hSpillovers[i][j]->Reset();
+			hSpillovers[i][j] = (TF1*)fSpillovers->Get(Form("gausFit_%d_%d",j,i))->Clone(Form("spillovers_cent%d_pt%d",i,j));
+			//hSpillovers[i][j]->Scale(0.5);
+			//hSpillovers[i][j]->Scale(1./ptWidth[j]);
+			//if(j>4) hSpillovers[i][j]->Reset();
 						
 			//Only take 50-100% for residual JES uncertainties - they're independent of centrality
 			hResidualJES[i][j] = (TH2D*)fResidualJES->Get(Form("JFFcorrs_cent3_pt%d",j))->Clone(Form("jffResid_cent%d_pt%d",i,j));
@@ -127,17 +136,42 @@ void calcRelUncertainty(){
 			etaProj[i][j]->Scale(1./RecoRecoSignal[i][j]->GetXaxis()->GetBinWidth(2));
 			etaProj[i][j]->Scale(0.5);
 			
-			int scaleFac = 0.2/etaProj[i][j]->GetBinWidth(2);
+			int scaleFac = 5;//0.2/etaProj[i][j]->GetBinWidth(2);
 			etaProjRebin[i][j] = (TH1D*)etaProj[i][j]->Clone(Form("etaProjRebin_%d_%d",j,i));
 			etaProjRebin[i][j]->Rebin(scaleFac);
 			etaProjRebin[i][j]->Scale(1./(double)scaleFac);
-			double maxDev=0;
-			for(int ibin=1; ibin<etaProjRebin[i][j]->GetNbinsX(); ibin++){
+			TF1 *leftSmall = new TF1("leftSmall","pol0");
+			TF1 *rightSmall = new TF1("rightSmall","pol0");
+			TF1 *leftBig = new TF1("leftBig","pol0");
+			TF1 *rightBig = new TF1("rightBig","pol0");
+			TF1 *leftFull = new TF1("leftFull","pol0");
+			TF1 *rightFull = new TF1("rightFull","pol0");
+			
+			etaProjRebin[i][j]->Fit(leftSmall,"qN0","",-2.5,-2.0);
+			etaProjRebin[i][j]->Fit(rightSmall,"qN0","",1.5,2.0);
+			etaProjRebin[i][j]->Fit(leftBig,"qN0","",-2.5,-2.0);
+			etaProjRebin[i][j]->Fit(rightBig,"qN0","",2.0,2.5);
+			etaProjRebin[i][j]->Fit(leftFull,"qN0","",-2.5,-1.5);
+			etaProjRebin[i][j]->Fit(rightFull,"qN0","",1.5,2.5);
+			
+			double fullAvg = (rightFull->GetParameter(0)+leftFull->GetParameter(0))/2.;
+			double smallAvg = (rightSmall->GetParameter(0)+leftSmall->GetParameter(0))/2.;
+			double bigAvg = (rightBig->GetParameter(0)+leftBig->GetParameter(0))/2.;
+			
+			cout << "bin  " << i << " " << j << endl;
+			cout << "full: "<< fullAvg << endl;
+			cout << "small: "<< smallAvg << endl;
+			cout << "large: "<< bigAvg << endl;
+			
+			double maxDev = TMath::Max(abs(smallAvg), abs(bigAvg));
+			maxDev = TMath::Max(maxDev, fullAvg);
+			
+			/*for(int ibin=1; ibin<etaProjRebin[i][j]->GetNbinsX(); ibin++){
 				if(abs(etaProjRebin[i][j]->GetBinCenter(ibin))>1.5 && abs(etaProjRebin[i][j]->GetBinCenter(ibin))<2.5){
 					if(abs(etaProjRebin[i][j]->GetBinContent(ibin)) > maxDev) maxDev = abs(etaProjRebin[i][j]->GetBinContent(ibin));
 					if(i==3 && j==1) cout << " at location " << etaProjRebin[i][j]->GetBinCenter(ibin) << " content: "<< abs(etaProjRebin[i][j]->GetBinContent(ibin)) << " maxdev: "<< maxDev << endl;
 				}
-			}
+			}*/
 			cout << "bin " << i << " " << j << " maxdev: "<< maxDev << endl;
 			
 			bgSub[i][j] = (TH2D*)RecoRecoSignal[i][j]->Clone(Form("bgSub_pt%d_cent%d",j,i));
@@ -152,20 +186,34 @@ void calcRelUncertainty(){
 			
 			//calculate left-right asymmetry
 			asymm[i][j] = (TH1D*)etaProj[i][j]->Clone(Form("pairAccept_pt%d_cent%d",j,i));
-			for(int ibin=1; ibin<=etaProj[i][j]->GetNbinsX(); ibin++){
+			/*for(int ibin=1; ibin<=etaProj[i][j]->GetNbinsX(); ibin++){
 				int symmBin = etaProj[i][j]->FindBin(-1*etaProj[i][j]->GetBinCenter(ibin));
 				asymm[i][j]->SetBinContent(ibin, etaProj[i][j]->GetBinContent(ibin)/etaProj[i][j]->GetBinContent(symmBin));
 				double err1 = etaProj[i][j]->GetBinError(ibin)/etaProj[i][j]->GetBinContent(ibin);
 				double err2 = etaProj[i][j]->GetBinError(symmBin)/etaProj[i][j]->GetBinContent(symmBin);
 				asymm[i][j]->SetBinError(ibin, asymm[i][j]->GetBinContent(ibin) * sqrt(pow(err1,2)+pow(err2,2)));
-			}
-			TF1 *fit = new TF1("fit","pol1",-3,3);
-			asymm[i][j]->Fit(fit);
+			}*/
+			TF1 *fitLeft = new TF1("fitLeft","pol0",-2.5,-1.5);
+			TF1 *fitRight = new TF1("fitRight","pol0",1.5,2.5);
+			TF1 *fitSmallLeft = new TF1("fitSmallLeft","pol0",-2.5,-2.0);
+			TF1 *fitSmallRight = new TF1("fitSmallRight","pol0",2.0,2.5);
+			asymm[i][j]->Fit(fitLeft,"","",-2.5,-1.5);
+			asymm[i][j]->Fit(fitRight,"","",1.5,2.5);
+			asymm[i][j]->Fit(fitSmallLeft,"","",-2.0,-1.5);
+			asymm[i][j]->Fit(fitSmallRight,"","",2.0,2.5);
+			
+			double totErr = sqrt(pow(fitSmallLeft->GetParameter(0)-fitSmallRight->GetParameter(0),2) + pow(fitLeft->GetParameter(0)-fitRight->GetParameter(0),2) + pow(fitLeft->GetParError(0),2));
+			totErr = TMath::Max(abs(fitSmallLeft->GetParameter(0)-fitSmallRight->GetParameter(0)), abs(fitLeft->GetParameter(0)-fitRight->GetParameter(0)));
+			totErr = TMath::Max(totErr, abs(fitLeft->GetParError(0)));
+			
+			cout << "total bg err: "<< totErr << endl;
+			//double totErr = sqrt(pow(fitLeft->GetParameter(0)-fitRight->GetParameter(0),2) + pow(fitLeft->GetParError(0),2));
 			
 			pairAccept[i][j] = (TH2D*)GenGenSignal[i][j]->Clone(Form("pairAccept_pt%d_cent%d",j,i));
 			for(int ixbin=1; ixbin<=pairAccept[i][j]->GetNbinsX(); ixbin++){
 				for(int iybin=1; iybin<=pairAccept[i][j]->GetNbinsY(); iybin++){
-					pairAccept[i][j]->SetBinContent(ixbin,iybin,1.-fit->Eval(asymm[i][j]->GetBinCenter(ixbin)));
+					//pairAccept[i][j]->SetBinContent(ixbin,iybin,(fit->GetParameter(1)*(asymm[i][j]->GetBinCenter(ixbin))));
+					pairAccept[i][j]->SetBinContent(ixbin,iybin,totErr);
 					pairAccept[i][j]->SetBinError(ixbin,iybin,0.);
 				}
 			}
@@ -177,7 +225,7 @@ void calcRelUncertainty(){
 			trackingRes[i][j] = (TH2D*)GenGenSignal[i][j]->Clone(Form("trackingRes_pt%d_cent%d",j,i));
 			for(int ixbin=1; ixbin<=tracking[i][j]->GetNbinsX(); ixbin++){
 				for(int iybin=1; iybin<=tracking[i][j]->GetNbinsY(); iybin++){
-					tracking[i][j]->SetBinContent(ixbin, iybin, 0.05);
+					tracking[i][j]->SetBinContent(ixbin, iybin, 0.01);
 					tracking[i][j]->SetBinError(ixbin, iybin, 0.);
 					trackingRes[i][j]->SetBinContent(ixbin, iybin, 0.05);
 					trackingRes[i][j]->SetBinError(ixbin, iybin, 0.);
@@ -209,7 +257,7 @@ void calcRelUncertainty(){
 					GenGenDRDistrNorm[i][j]->Fill(dr);
 					GenGenDRDistrNormWeight[i][j]->Fill(dr,content);
 			
-					absoluteErrSpill[i][j]->Fill(dr, content*(hSpillovers[i][j]->GetBinContent(ixbin,iybin)));
+					absoluteErrSpill[i][j]->Fill(dr, content*(hSpillovers[i][j]->Eval(dr)*0.5*GenGenSignal[i][j]->GetYaxis()->GetBinWidth(2)/ptWidth[j]));
 					absoluteErrResidJES[i][j]->Fill(dr, content*(hResidualJES[i][j]->GetBinContent(ixbin,iybin)));
 					absoluteErrPair[i][j]->Fill(dr, content*(pairAccept[i][j]->GetBinContent(ixbin,iybin)));
 					absoluteErrBG[i][j]->Fill(dr, content*(bgSub[i][j]->GetBinContent(ixbin,iybin)));
@@ -217,7 +265,7 @@ void calcRelUncertainty(){
 					absoluteErrTrkRes[i][j]->Fill(dr, content*(trackingRes[i][j]->GetBinContent(ixbin,iybin)));
 					absoluteErrOther[i][j]->Fill(dr, content*(otherJFF[i][j]->GetBinContent(ixbin,iybin)));
 					
-					relErrSpill[i][j]->Fill(dr, (hSpillovers[i][j]->GetBinContent(ixbin,iybin)));
+					relErrSpill[i][j]->Fill(dr, (hSpillovers[i][j]->Eval(dr)*0.5*GenGenSignal[i][j]->GetYaxis()->GetBinWidth(2)/ptWidth[j]));
 					relErrResidJES[i][j]->Fill(dr, (hResidualJES[i][j]->GetBinContent(ixbin,iybin)));
 					relErrPair[i][j]->Fill(dr, (pairAccept[i][j]->GetBinContent(ixbin,iybin)));
 					relErrBG[i][j]->Fill(dr, (bgSub[i][j]->GetBinContent(ixbin,iybin)));
@@ -323,20 +371,22 @@ void calcRelUncertainty(){
 		}
 	}
 	
+	
 	TCanvas *cRelErr = new TCanvas("cRelErr","",1000,800);
 	cRelErr->Divide(nCentBins,trackPtBins-1);
 	TLatex *l2[trackPtBins][nCentBins];
 	TLatex *l3[trackPtBins][nCentBins];
 	TLegend *leg1 = new TLegend(0.1,0.1,0.9,0.9);
-	leg1->AddEntry(relErrSpill[0][1], "BG Fluctuation Bias","l");
+	leg1->AddEntry(relErrSpill[0][1], "Spillover Corrections","l");
 	leg1->AddEntry(relErrResidJES[0][1], "JFF Bias","l");
-	leg1->AddEntry(relErrOther[0][1], "Residual JES","l");
 	TLegend *leg2 = new TLegend(0.1,0.1,0.9,0.9);
-	leg2->AddEntry(relErrPair[0][1], "Pair Acceptance","l");
-	leg2->AddEntry(relErrBG[0][1], "Background Subtr.","l");
+	leg2->AddEntry(relErrOther[0][1], "Residual JES","l");
+	//leg2->AddEntry(relErrPair[0][1], "Pair Acceptance","l");
+	//leg2->AddEntry(relErrBG[0][1], "Background Subtr.","l");
 	TLegend *leg3 = new TLegend(0.1,0.1,0.9,0.9);
 	leg3->AddEntry(relErrTrk[0][1], "Tracking Eff.","l");
-	leg3->AddEntry(relErrTrkRes[0][1], "Residual Tracking Eff.","l");
+	TLegend *leg4 = new TLegend(0.1,0.1,0.9,0.9);
+	leg4->AddEntry(relErrTrkRes[0][1], "Residual Tracking Eff.","l");
 
 	for(int i=0; i<nCentBins; i++){
 		for(int j=0; j<trackPtBins-1; j++){
@@ -345,6 +395,7 @@ void calcRelUncertainty(){
 				if(i==3) leg1->Draw();
 				if(i==2) leg2->Draw();
 				if(i==1) leg3->Draw();
+				if(i==0) leg4->Draw();
 			}
 			else{
 				stackedRelatives[i][j]->GetYaxis()->SetNdivisions(505);
@@ -355,6 +406,7 @@ void calcRelUncertainty(){
 				stackedRelatives[i][j]->GetXaxis()->SetTitleSize(0.15);
 				stackedRelatives[i][j]->SetYTitle("Relative Error");
 				stackedRelatives[i][j]->SetXTitle("Jet-Track #DeltaR");
+				stackedRelatives[i][j]->SetMaximum(0.22);
 				stackedRelatives[i][j]->SetMinimum(0);
 				stackedRelatives[i][j]->Draw("hist");
 				relErrSpill[i][j]->SetLineColor(2);
@@ -362,9 +414,9 @@ void calcRelUncertainty(){
 				relErrResidJES[i][j]->SetLineColor(4);
 				relErrResidJES[i][j]->Draw("hist,same");
 				relErrPair[i][j]->SetLineColor(8);
-				relErrPair[i][j]->Draw("hist,same");
+				//relErrPair[i][j]->Draw("hist,same");
 				relErrBG[i][j]->SetLineColor(kOrange+2);
-				relErrBG[i][j]->Draw("hist,same");
+				//relErrBG[i][j]->Draw("hist,same");
 				relErrTrk[i][j]->SetLineColor(kViolet+2);
 				relErrTrk[i][j]->Draw("hist,same");
 				relErrTrkRes[i][j]->SetLineColor(kCyan+1);
@@ -397,6 +449,7 @@ void calcRelUncertainty(){
 				stackedAbsolutes[i][j]->GetXaxis()->SetTitleSize(0.08);
 				stackedAbsolutes[i][j]->SetYTitle("Absolute Error");
 				stackedAbsolutes[i][j]->SetXTitle("Jet-Track #DeltaR");
+				stackedAbsolutes[i][j]->SetMaximum(stackedAbsolutes[0][j]->GetMaximum());
 				stackedAbsolutes[i][j]->SetMinimum(0);
 				stackedAbsolutes[i][j]->Draw("hist");
 				absoluteErrSpill[i][j]->SetLineColor(2);
@@ -420,7 +473,96 @@ void calcRelUncertainty(){
 		}
 	}
 	
-	TFile *fout = new TFile("relativeErrors_RecoReco2GenGen.root","recreate");
+	TH1D *bgSubVsPt[4];
+	TH1D *pairAcceptVsPt[4];
+	
+	for(int i=0; i<nCentBins; i++){
+		pairAcceptVsPt[i] = new TH1D(Form("pairAcceptVsPt_cent%d",i),"",trackPtBins,xTrkBinDouble);
+		bgSubVsPt[i] = new TH1D(Form("bgSubVsPt_cent%d",i),"",trackPtBins,xTrkBinDouble);
+		for(int j=0; j<trackPtBins; j++){
+			bgSubVsPt[i]->SetBinContent(j+1, 100*bgSub[i][j]->ProjectionX()->GetBinContent(5)/GenGenSignal[i][j]->ProjectionX()->Integral(221,281)); //-0.8 to 0.8
+			bgSubVsPt[i]->SetBinError(j+1, 0.0001);
+			
+			pairAcceptVsPt[i]->SetBinContent(j+1, 100*pairAccept[i][j]->ProjectionX()->GetBinContent(5)/GenGenSignal[i][j]->ProjectionX()->Integral(221,281));
+			pairAcceptVsPt[i]->SetBinError(j+1, 0.0001);
+		}
+	}
+	TLatex *labels[4];
+	TCanvas *sigIndErr = new TCanvas("sigIndErr","",1200,400);
+	sigIndErr->Divide(4,1);
+	for(int i=0; i<nCentBins; i++){
+		sigIndErr->cd(4-i);
+		bgSubVsPt[i]->GetXaxis()->SetRangeUser(0.71,20);
+		bgSubVsPt[i]->SetYTitle("Relative Error (% of Signal)");
+		bgSubVsPt[i]->SetXTitle("Track p_{T}");
+		bgSubVsPt[i]->SetLineColor(relErrBG[i][5]->GetLineColor());
+		bgSubVsPt[i]->SetMaximum(15);
+		bgSubVsPt[i]->SetBinContent(1,0);
+		bgSubVsPt[i]->Draw("hist");
+		pairAcceptVsPt[i]->SetLineColor(relErrPair[i][5]->GetLineColor());
+		pairAcceptVsPt[i]->SetBinContent(1,0);
+		pairAcceptVsPt[i]->Draw("hist,same");
+		labels[i] = new TLatex(3,bgSubVsPt[i]->GetMaximum()*0.85,Form("Cent %d-%d",xCentBins[i],xCentBins[i+1]));
+		labels[i]->SetTextSize(0.06);
+		labels[i]->Draw("same");
+	}
+	
+	TCanvas *cprint = new TCanvas("cprint","",1200,1600);
+	cprint->Divide(nCentBins, trackPtBins);
+	TGraphErrors *BGsub[nCentBins][trackPtBins];
+	TGraphErrors *acceptGraph[nCentBins][trackPtBins];
+	TLatex *l1[nCentBins][trackPtBins];
+	
+	double xBGbins[20] = {-2.5,-2.0,-1.5,-1.,-0.8,-0.6,-0.4,-0.3,-0.2,-0.1,0.1,0.2,0.3,0.4,0.6,0.8,1,1.5,2.,2.5};
+	
+	for(int j=1; j<trackPtBins; j++){
+		for(int i=0; i<nCentBins; i++){
+			cprint->cd(j*nCentBins+(3-i)+1);
+			
+			BGsub[i][j] = new TGraphErrors(1);
+			BGsub[i][j]->SetPoint(1,0,0);
+			BGsub[i][j]->SetPointError(1,3,bgSubVsPt[i]->GetBinContent(j+1)*GenGenSignal[i][j]->ProjectionX()->Integral(221,281)/100.);
+			BGsub[i][j]->SetFillColor(relErrBG[i][5]->GetLineColor());
+			BGsub[i][j]->SetFillStyle(3002);
+						
+			acceptGraph[i][j] = new TGraphErrors(1);
+			acceptGraph[i][j]->SetPoint(1,0,0);
+			acceptGraph[i][j]->SetPointError(1,3,pairAcceptVsPt[i]->GetBinContent(j+1)*GenGenSignal[i][j]->ProjectionX()->Integral(221,281)/100.);
+			acceptGraph[i][j]->SetFillColor(relErrPair[i][5]->GetLineColor());
+			acceptGraph[i][j]->SetFillStyle(3002);
+			
+			etaProj[i][j]->GetYaxis()->SetNdivisions(505);
+			etaProj[i][j]->GetYaxis()->SetLabelSize(0.15);
+			etaProj[i][j]->GetXaxis()->SetLabelSize(0.15);
+			double origBinSize = etaProj[i][j]->GetBinWidth(1);
+			etaProj[i][j] = (TH1D*)etaProj[i][j]->Rebin(19,"",xBGbins);
+			for(int ibin=1; ibin<=etaProj[i][j]->GetNbinsX(); ibin++){
+				etaProj[i][j]->SetBinContent(ibin, etaProj[i][j]->GetBinContent(ibin)/  (etaProj[i][j]->GetBinWidth(ibin)/origBinSize));
+				etaProj[i][j]->SetBinError(ibin, etaProj[i][j]->GetBinError(ibin)/(etaProj[i][j]->GetBinWidth(ibin)/origBinSize));
+			}
+			etaProj[i][j]->GetXaxis()->SetRangeUser(-2.5,2.5);
+			double statFluc = 3*sqrt(pow(acceptGraph[0][j]->GetErrorY(1),2)+pow(BGsub[0][j]->GetErrorY(1),2));
+			etaProj[i][j]->GetYaxis()->SetRangeUser(-1*statFluc,statFluc);
+			etaProj[i][j]->Draw();
+			acceptGraph[i][j]->Draw("same,2");
+			BGsub[i][j]->Draw("same,2");
+			etaProj[i][j]->Draw("same");
+			l1[i][j] = new TLatex(-1.5,-0.8*statFluc,Form("Cent %d-%d, %g<pT<%g",xCentBins[i],xCentBins[i+1],xTrkBinDouble[j],xTrkBinDouble[j+1]));
+			l1[i][j]->SetTextSize(0.15);
+			l1[i][j]->Draw("same");
+		}
+	}
+	
+	cprint->cd(1);
+	TLegend *leg1_1 = new TLegend(0.1,0.4,0.9,0.7);
+	leg1_1->AddEntry(BGsub[1][1],"Background Subtraction","f");
+	leg1_1->Draw();
+	cprint->cd(2);
+	TLegend *leg1_2 = new TLegend(0.1,0.4,0.9,0.7);
+	leg1_2->AddEntry(acceptGraph[1][1],"Mixed Event Asymmetry","f");
+	leg1_2->Draw();
+	
+	TFile *fout = new TFile(Form("relativeErrors_%s%s2%s%s.root",jet1.c_str(),track1.c_str(),jet2.c_str(),track2.c_str()),"recreate");
 	fout->cd();
 	for(int i=0; i<nCentBins; i++){
 		for(int j=0; j<trackPtBins; j++){
@@ -434,6 +576,7 @@ void calcRelUncertainty(){
 			stackedRelatives[i][j]->Write();
 		}
 	}
+	fout->Close();
 	
 	/*TH1D *hh[nCentBins][trackPtBins];
 	TCanvas *debug = new TCanvas("debug","",1000,800);

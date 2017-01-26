@@ -8,6 +8,7 @@
 #include "TF1.h"
 #include "TProfile.h"
 #include "TGraph.h"
+#include "TMath.h"
 
 using namespace std;
 
@@ -19,6 +20,8 @@ void deriveFragCorrs(){
 	const double xPtBins[nPtBins+1] = {30.,40.,45.,50.,55.,60.,65.,70.,80.,85.,90.,95.,100.,110.,120.,140.,170.,220.,280.,370.,600.};
 	
 	const int nIters = 2;
+	
+	const bool ispp = true;
 		
 	//Step1 histograms
 	TH1D *csCands[nPtBins];
@@ -139,18 +142,24 @@ void deriveFragCorrs(){
 		csCandsPost[j]->Sumw2();
 	}
 	
-	TFile *f1 = new TFile("/Users/kjung/Run2Validation/CScandClosure/unzippedSkimClosure.root");
+	TFile *f1 = new TFile("/Users/kjung/Run2Validation/CScandClosure/unzippedSkim_pp_MC.root");
 	TTree *t = (TTree*)f1->Get("unzipMixTree");
 	
-	double jtpt, jteta, refpt, weight;
+	double jtpt, jteta, jtphi, refpt, weight;
+	float rxplane;
 	int nCScand, bin, refparton_flavor;
-	t->SetBranchAddress("corrpt", &jtpt);
+	t->SetBranchAddress("jtpt", &jtpt);
 	t->SetBranchAddress("refpt", &refpt);
 	t->SetBranchAddress("jteta", &jteta);
-	t->SetBranchAddress("nCScand", &nCScand);
+	t->SetBranchAddress("jtphi", &jtphi);
+	if(!ispp) t->SetBranchAddress("nCScand", &nCScand);
+	else t->SetBranchAddress("nPFcand",&nCScand);
+	t->SetBranchAddress("rxPlane",&rxplane);
 	t->SetBranchAddress("hiBin",&bin);
 	t->SetBranchAddress("refparton_flavor",&refparton_flavor);
 	t->SetBranchAddress("weight", &weight);
+	
+	double jetV2s[4] = {1.1, 1.15, 1.2, 1.15};
 	
 	//Step1 - Derive the nCS-dependent corrections
 	cout << "Deriving nCS corrs..." << endl;
@@ -176,6 +185,7 @@ void deriveFragCorrs(){
 				myptbin = ptbin;
 			}
 		}
+		if(ispp) mycbin = 0;
 		
 		csCands[myptbin]->Fill(nCScand,weight);
 		preCorrs[mycbin][myptbin]->Fill(nCScand,jtpt/refpt,weight);
@@ -239,6 +249,7 @@ void deriveFragCorrs(){
 					mycbin = cbin;
 				}
 			}
+			if(ispp) mycbin = 0;
 			
 			for (int ptbin = 0; ptbin < nPtBins; ptbin++){
 				if (jtpt > xPtBins[ptbin] && jtpt <= xPtBins[ptbin+1]){
@@ -286,15 +297,20 @@ void deriveFragCorrs(){
 			
 			//If we're one past nIters, then fill the final closures and be done
 			if(iter==nIters){
-				s3recoClosure[mycbin]->Fill(corrpt,corrpt/refpt,weight);
-				s3refClosure[mycbin]->Fill(refpt,corrpt/refpt,weight);
+				
+				double rxWeight = 0.;//TMath::Abs(jetV2s[mycbin]*TMath::Cos(2*(jtphi-rxplane)));
+				if(!ispp && abs(jtphi-rxplane)>0.7 && abs(jtphi-rxplane)<2.0) rxWeight=1.;
+				else if(ispp) rxWeight = 1.;
+				
+				s3recoClosure[mycbin]->Fill(corrpt,corrpt/refpt,weight*rxWeight);
+				s3refClosure[mycbin]->Fill(refpt,corrpt/refpt,weight*rxWeight);
 				if(abs(refparton_flavor)>=1 && abs(refparton_flavor)<=6){
-					s3QrecoClosure[mycbin]->Fill(corrpt,corrpt/refpt,weight);
-					s3QrefClosure[mycbin]->Fill(refpt,corrpt/refpt,weight);
+					s3QrecoClosure[mycbin]->Fill(corrpt,corrpt/refpt,weight*rxWeight);
+					s3QrefClosure[mycbin]->Fill(refpt,corrpt/refpt,weight*rxWeight);
 				}
 				if(abs(refparton_flavor)==21){
-					s3GrecoClosure[mycbin]->Fill(corrpt,corrpt/refpt,weight);
-					s3GrefClosure[mycbin]->Fill(refpt,corrpt/refpt,weight);
+					s3GrecoClosure[mycbin]->Fill(corrpt,corrpt/refpt,weight*rxWeight);
+					s3GrefClosure[mycbin]->Fill(refpt,corrpt/refpt,weight*rxWeight);
 				}
 			}
 			//Else fill the temporary corrections and reiterate...
@@ -343,7 +359,9 @@ void deriveFragCorrs(){
 		}
 	}
 	
-	TFile *fout = new TFile("fullIterativeJFFClosures_closureTest.root","recreate");
+	TFile *fout;
+	if(!ispp) fout = new TFile("fullIterativeJFFClosures_closureTest_withRX.root","recreate");
+	else fout = new TFile("fullIterativeJFFClosures_closureTest_pp.root","recreate");
 	fout->cd();
 	
 	for(int j=0; j<nPtBins; j++){
@@ -393,7 +411,9 @@ void deriveFragCorrs(){
 	
 	fout->Close();
 	
-	TFile *fout2 = new TFile("nCScorrectionFactors.root","recreate");
+	TFile *fout2;
+	if(!ispp) fout2 = new TFile("nCScorrectionFactors.root","recreate");
+	else fout2 = new TFile("nCScorrectionFactors_pp5TeV.root","recreate");
 	fout2->cd();
 	for(int i=0; i<nCentBins; i++){
 		for(int j=0; j<nPtBins; j++){

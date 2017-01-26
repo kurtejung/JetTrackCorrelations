@@ -24,16 +24,18 @@
 //#include "TrkCorr_July22_Iterative_pp_eta2p4/getTrkCorr.h"
 #include "TrkCorr_Jun7_Iterative_PbPb_etaLT2p4/getTrkCorr.h"
 
+#include "trkCorrTable/xiaoTrkCorr.h"
+
 using namespace std;
 
 #define nCBins 4
 #define nPtBins 1 
-#define nTrkPtBins 6
+#define nTrkPtBins 10
 
-float trkPtCut=0.7;
+float trkPtCut=0.5;
 
 int parti = -999;
-bool is_data = false;
+bool is_data = true;
 
 enum enum_dataset_types {e_Data2011,e_Data_pp,e_HydJet15,e_HydJet30,e_HydJet50, e_HydJet80, e_HydJet120,e_HydJet170,e_HydJet220,e_HydJet280, e_HydJet370,e_Pythia15,e_Pythia30,e_Pythia50, e_Pythia80, e_Pythia120,e_Pythia170,e_Pythia220,e_Pythia280, e_Pythia370, e_n_dataset_types};
 int dataset_type_code = -999;
@@ -58,8 +60,8 @@ TString PtBin_strs[nPtBins+1] = {"Pt100", "Pt300"};
 float CBins[nCBins+1] = {0, 20, 60, 100, 200};
 TString CBin_strs[nCBins+1] = {"Cent0", "Cent10", "Cent30","Cent50", "Cent100"};
 
-float TrkPtBins[nTrkPtBins+1] = {0.7, 1, 2, 3, 4, 8, 999};
-TString TrkPtBin_strs[nTrkPtBins+1] = {"TrkPt0p7", "TrkPt1", "TrkPt2", "TrkPt3", "TrkPt4", "TrkPt8", "TrkPt999" };
+float TrkPtBins[nTrkPtBins+1] = {0.5, 0.7, 1, 2, 3, 4, 8, 12, 16, 20, 999};
+TString TrkPtBin_strs[nTrkPtBins+1] = {"TrkPt0p5", "TrkPt0p7", "TrkPt1", "TrkPt2", "TrkPt3", "TrkPt4", "TrkPt8", "TrkPt12", "TrkPt16", "TrkPt20", "TrkPt999" };
 
 
 const int npt=29; 
@@ -115,7 +117,7 @@ vector <double> dijet_cent;
 //        ALL CUTS ARE HERE!
 //****************************************
 
-const double searchetacut = 2.0;
+const double searchetacut = 1.6;
 const double pTmaxcut = 1000.;
 const double pTmincut = 120.;
 const double leadingjetcut = 120. ;
@@ -123,8 +125,12 @@ const double subleadingjetcut = 50. ;
 const double dphicut = 5.*(TMath::Pi())/6. ; 
 const double trketamaxcut = 2.4;
 
-const bool doBjets = true;
+const bool doBjets = false;
 
+const bool doOnlySube0 = false;
+const bool doOnlySubeNot0 = false;
+const bool doOnlyGluonJet = false;
+const bool doOnlyQuarkJet = false;
 
 //****************************************
 
@@ -145,10 +151,12 @@ bool passTrackCuts(float trkPt, float trkEta, bool highPurity, float trkChi2, in
 
 }
 
-bool passGenTrackCuts(float trkPt, float trkEta, int chg){
+bool passGenTrackCuts(float trkPt, float trkEta, int chg, int sube){
     if(fabs(trkEta)>=trketamaxcut) return false;
     if(trkPt<=trkPtCut) return false;
     if(chg==0) return false;
+    if(doOnlySube0 && sube!=0) return false;
+    if(doOnlySubeNot0 && sube==0) return false;
 
     return true;
 
@@ -164,6 +172,7 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 
         bool doGenJets = false;
         bool doGenTracks = false;
+        bool useOfficialTrkCorr = false;
    
         if(is_data) globalCode = 0;
         else if(doGenJets){
@@ -188,12 +197,18 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 
 	std::vector<std::string> file_names;   file_names.clear();
 
-	if(doCrab) ReadFileList( file_names, Form("job_input_file_list_%d.txt",jobID), true);
-	else ReadFileList( file_names, "PbPb_MC_Pythia6Hydjet_5TeV.txt", true);
+        bool is_pp = false;
 
+        if(doCrab) ReadFileList( file_names, Form("job_input_file_list_%d.txt",jobID), true);
+        else if(is_pp){
+            if(is_data) ReadFileList( file_names, "pp_5TeV_Jan2017skim.txt",true);
+            else ReadFileList( file_names, "pp5TeV_MC_Pythia6_withPFreweight.txt", true);
+        }
+        else{
+            if(!is_data) ReadFileList( file_names, "PbPb_Hydjet_MC_Jan4Skim_newjetCorr.txt", true);
+            else ReadFileList( file_names,"PbPb_5TeV_JanReskim_full.txt", true);
+        }
 	cout<<"got file"<<endl;
-
-	bool is_pp = kFALSE;
 
 	double cent, eta, pt, phi;
 	//, rmin, r_reco, jeteta, jetphi, fake, eff, vz
@@ -243,7 +258,11 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 	if(is_pp) trkCorr = new TrkCorr("TrkCorr_July22_Iterative_pp_eta2p4/");
 	else trkCorr = new TrkCorr("TrkCorr_Jun7_Iterative_PbPb_etaLT2p4/");
 
-
+        xiaoTrkCorr* xtc;
+        if(!is_pp && !useOfficialTrkCorr){
+            if(is_data) xtc = new xiaoTrkCorr("trkCorrTable/inputCorr_v13_data.root");
+            else xtc = new xiaoTrkCorr("trkCorrTable/inputCorr_v13_mc.root");
+        }
 
 	//----------------------------------------------------------------
 	//    Obtain reference PbPb Jet Spectra
@@ -269,7 +288,7 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 	//-----------------------------------------------------------------------
 
         int entryCalls=0;
-	unsigned int meptrig = 40;
+	unsigned int meptrig = 20;
 
 	gRandom->SetSeed(0);
 	const int nCentMixBins=40;
@@ -278,56 +297,31 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 	TH1D * centbins = new TH1D("centbins","centbins. JUST A DUMMY REALLY", nCentMixBins, 0.0, 200.0);
 	TH1D * vzbins = new TH1D("vzbins","vzbins. JUST A DUMMY REALLY", nVzMixBins, -15., 15.);
 
-	//TChain *me_tree = new TChain("mixing_tree");
-        TTree *me_tree = 0;//(TTree*)me1->Get("mixing_tree");
+	TChain *me_tree = new TChain("mixing_tree");
+        //TTree *me_tree = 0;//(TTree*)me1->Get("mixing_tree");
         //TFile *fin;
 
 	int randNum = gRandom->Rndm()*24 + 1;
 	TStopwatch *mixingWatch = new TStopwatch();
 	std::string me_file_name;
-	int nmixingFiles = 2;
-	if(!doCrab){
-		int imix=0;
-		for(int ifile=0; imix<nmixingFiles; ifile++, imix++){
-			//if(ifile >=startfile && ifile < parti) continue;
-			if(ifile>=(int)file_names.size()) ifile=0;
-			cout << "for mixing, adding file " << file_names.at(ifile) << endl;
-                        //TFile *me1 = new TFile(file_names.at(ifile).c_str());
-			TFile *me1 = new TFile("/mnt/hadoop/store/user/kjung/PbPb_Pythia6Hydjet_MC_JetTrackSkim/PbPb_Pythia6Hydjet_5TeV_JetTrackCorrCrabSkim_Sept29/crab_PbPb_Pythia6Hydjet_MC_JetTrackSkim/160930_151601/0000/HydJet15_1.root");
-                        me_tree = (TTree*)me1->Get("mixing_tree");
-                        //me_tree->Add(file_names.at(ifile).c_str());
-			//me_file_name = file_names.at(ifile);
-			//fin = new TFile(me_file_name.c_str());
-		}
-	}
-	else{
-		TFile *me1 = new TFile("/mnt/hadoop/store/user/kjung/PbPb_Pythia6Hydjet_MC_JetTrackSkim/PbPb_Pythia6Hydjet_5TeV_JetTrackCorrCrabSkim_Sept29/crab_PbPb_Pythia6Hydjet_MC_JetTrackSkim/160930_151601/0000/HydJet15_1.root");
-                me_tree = (TTree*)me1->Get("mixing_tree");
-                /*if(is_data){
-			if(!is_pp){
-				me_tree->Add("/mnt/hadoop/store/user/kjung/PbPb_5TeV_MergedData/outputWithPF_1_0.root");
-				me_tree->Add("/mnt/hadoop/store/user/kjung/PbPb_5TeV_MergedData/outputWithPF_1_1.root");
-			}
-			else{
-				me_tree->Add("/mnt/hadoop/store/user/kjung/pp_5TeV_skimJetTrack_Sept2015_looseMerge/pp_5TeV_JetTrackCorrCrabSkim/crab_pp_5TeV_skimJetTrack_Sept2015_looseMerge/160913_200136/0000/Data_pp_1.root");
-				me_tree->Add("/mnt/hadoop/store/user/kjung/pp_5TeV_skimJetTrack_Sept2015_looseMerge/pp_5TeV_JetTrackCorrCrabSkim/crab_pp_5TeV_skimJetTrack_Sept2015_looseMerge/160913_200136/0000/Data_pp_2.root");
-				me_tree->Add("/mnt/hadoop/store/user/kjung/pp_5TeV_skimJetTrack_Sept2015_looseMerge/pp_5TeV_JetTrackCorrCrabSkim/crab_pp_5TeV_skimJetTrack_Sept2015_looseMerge/160913_200136/0000/Data_pp_3.root");
-			}
-		}
-		else{
-			if(!is_pp){
-				me_tree->Add(Form("/mnt/hadoop/store/user/kjung/PbPb_Pythia6Hydjet_MC_JetTrackSkim/PbPb_Pythia6Hydjet_5TeV_JetTrackCorrCrabSkim_Sept29/crab_PbPb_Pythia6Hydjet_MC_JetTrackSkim/160930_151601/0000/HydJet15_%d.root",randNum));
-				me_tree->Add(Form("/mnt/hadoop/store/user/kjung/PbPb_Pythia6Hydjet_MC_JetTrackSkim/PbPb_Pythia6Hydjet_5TeV_JetTrackCorrCrabSkim_Sept29/crab_PbPb_Pythia6Hydjet_MC_JetTrackSkim/160930_151601/0000/HydJet15_%d.root",randNum+1));
-
-			}
-			else{
-				me_tree->Add("/mnt/hadoop/store/user/kjung/pp_Pythia6_MC_5TeV_JetTrackSkim_withFlavor/pp_Pythia6_5TeV_JetTrackCorrCrabSkim_withFlavor/crab_pp_Pythia6_MC_5TeV_JetTrackSkim_withFlavor/160829_152707/0000/Pythia15_1.root");
-			}
-		}*/
-		//me_file_name = file_names.at(startfile);
-		//cout << "using file " << me_file_name << " for mixing now" << endl;
-		//fin = new TFile(me_file_name.c_str());
-	}
+	int nmixingFiles = 1;
+        if(do_mixing){
+            int imix=0;
+            for(int ifile=0; imix<nmixingFiles; ifile++, imix++){
+                //if(ifile >=startfile && ifile < parti) continue;
+                if(ifile>=(int)file_names.size()) ifile=0;
+                //cout << "for mixing, adding file " << file_names.at(ifile) << endl;
+                //TFile *me1 = new TFile(file_names.at(ifile).c_str());
+                TFile *me1;
+                if(!is_data) me1 = new TFile("/mnt/hadoop/store/user/kjung/PbPb_Pythia6Hydjet_MC_JetTrackSkim/PbPb_Pythia6Hydjet_5TeV_JetTrackCorrCrabSkim_Sept29/crab_PbPb_Pythia6Hydjet_MC_JetTrackSkim/160930_151601/0000/HydJet15_1.root");
+                //else me1 = new TFile("/mnt/hadoop/store/user/kjung/PbPb_5TeV_skimJetTrack_Jan2017_looseMerge/PbPb_5TeV_JetTrackCorrCrabSkim_newJFFs/crab_PbPb_5TeV_skimJetTrack_Jan2017_looseMerge/170117_021458/0000/Data2015_311.root");
+                //me_tree = (TTree*)me1->Get("mixing_tree");
+                else if(is_pp) me_tree->Add(Form("/mnt/hadoop/store/user/kjung/pp_5TeV_skimJetTrack_Jan2017_looseMerge_pfCandReweight/pp_5TeV_JetTrackCorrCrabSkim_newJFFs_pfCandReweight/crab_pp_5TeV_skimJetTrack_Jan2017_looseMerge_pfCandReweight/170123_194927/0000/Data_pp_%d.root",ifile+1));
+                else me_tree->Add("/mnt/hadoop/store/user/kjung/PbPb_5TeV_MinBiasSkim/Data2015_1.root");
+                //me_file_name = file_names.at(ifile);
+                //fin = new TFile(me_file_name.c_str());
+            }
+        }
 
 	float me_vz, me_pthat;
 	int me_hiBin;
@@ -337,113 +331,123 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 	vector<float> *me_pt=0, *me_eta=0, *me_phi=0, *me_genpt=0, *me_geneta=0, *me_genphi=0;
 	vector<int> *me_sube=0, *me_chg=0;
 	Int_t me_HBHEFilter, me_collisionEventSelection, me_phfCoincFilter;
+        std::vector<std::vector<std::vector<unsigned int> > > mixing_lists;
+        unsigned int jet_cent, jet_vzbin;
 
-        //me_tree->SetCacheSize(5*1024*1024*1024);
-	me_tree->SetBranchStatus("*",0);
-	//me_tree->SetBranchStatus("calo_jteta", 1);
-	//me_tree->SetBranchStatus("calo_jtphi", 1);
-	//me_tree->SetBranchStatus("calo_jtpt", 1);
-        if(!doGenTracks){
-            me_tree->SetBranchStatus("trkPt", 1);
-            me_tree->SetBranchStatus("trkEta", 1);
-            me_tree->SetBranchStatus("trkPhi", 1);
-            me_tree->SetBranchStatus("highPurity", 1);
-            me_tree->SetBranchStatus("trkChi2", 1);
-            me_tree->SetBranchStatus("trkNdof", 1);
-            me_tree->SetBranchStatus("trkNlayer", 1);
-            me_tree->SetBranchStatus("trkNHit", 1);
-            me_tree->SetBranchStatus("pfHcal", 1);
-            me_tree->SetBranchStatus("pfEcal", 1);
-        }
-	me_tree->SetBranchStatus("vz", 1);  
-	me_tree->SetBranchStatus("hiBin", 1);
-        if(doGenTracks){
-            me_tree->SetBranchStatus("pt", 1);
-            me_tree->SetBranchStatus("eta", 1);
-            me_tree->SetBranchStatus("phi", 1);
-            me_tree->SetBranchStatus("chg", 1);
-            me_tree->SetBranchStatus("sube", 1);
-        }
-	//me_tree->SetBranchStatus("genpt", 1);
-	//me_tree->SetBranchStatus("geneta", 1);
-	//me_tree->SetBranchStatus("genphi", 1);
-	me_tree->SetBranchStatus("pthat",1);
-	me_tree->SetBranchStatus("HBHENoiseFilterResultRun2Loose",1);
-	me_tree->SetBranchStatus("pcollisionEventSelection",1);
-	me_tree->SetBranchStatus("phfCoincFilter3",1);
-
-        if(!doGenTracks){
-            me_tree->SetBranchAddress("trkPt", &me_trkPt);
-            me_tree->SetBranchAddress("trkEta", &me_trkEta);
-            me_tree->SetBranchAddress("trkPhi", &me_trkPhi);
-            me_tree->SetBranchAddress("highPurity", &me_highPurity);
-            me_tree->SetBranchAddress("trkChi2", &me_trkChi2);
-            me_tree->SetBranchAddress("trkNdof", &me_trkNdof);
-            me_tree->SetBranchAddress("trkNlayer", &me_trkNlayer);
-            me_tree->SetBranchAddress("trkNHit", &me_trkNHit);
-            me_tree->SetBranchAddress("pfHcal", &me_pfHcal);
-            me_tree->SetBranchAddress("pfEcal", &me_pfEcal);
-        }
-	me_tree->SetBranchAddress("vz", &me_vz);  
-	me_tree->SetBranchAddress("hiBin", &me_hiBin);
-	//me_tree->SetBranchAddress("calo_jteta", &me_jteta);
-	//me_tree->SetBranchAddress("calo_jtphi", &me_jtphi);
-	//me_tree->SetBranchAddress("calo_jtpt", &me_jtpt);
-	if(!is_pp){
-		me_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&me_HBHEFilter);
-		me_tree->SetBranchAddress("pcollisionEventSelection",&me_collisionEventSelection);
-		me_tree->SetBranchAddress("phfCoincFilter3",&me_phfCoincFilter);
-	}
-	else{
-		me_tree->SetBranchAddress("pPAprimaryVertexFilter",&me_collisionEventSelection);
-		me_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&me_HBHEFilter);
-	}
-	if(!is_data){
-            if(doGenTracks){
-                me_tree->SetBranchAddress("pt", &me_trkPt);
-                me_tree->SetBranchAddress("eta", &me_trkEta);
-                me_tree->SetBranchAddress("phi", &me_trkPhi);
-                me_tree->SetBranchAddress("chg", &me_chg);
-                me_tree->SetBranchAddress("sube", &me_sube);
+        if(do_mixing){
+            //me_tree->SetCacheSize(5*1024*1024*1024);
+            me_tree->SetBranchStatus("*",0);
+            //me_tree->SetBranchStatus("calo_jteta", 1);
+            //me_tree->SetBranchStatus("calo_jtphi", 1);
+            //me_tree->SetBranchStatus("calo_jtpt", 1);
+            if(!doGenTracks){
+                me_tree->SetBranchStatus("trkPt", 1);
+                me_tree->SetBranchStatus("trkEta", 1);
+                me_tree->SetBranchStatus("trkPhi", 1);
+                me_tree->SetBranchStatus("highPurity", 1);
+                me_tree->SetBranchStatus("trkChi2", 1);
+                me_tree->SetBranchStatus("trkNdof", 1);
+                me_tree->SetBranchStatus("trkNlayer", 1);
+                me_tree->SetBranchStatus("trkNHit", 1);
+                me_tree->SetBranchStatus("pfHcal", 1);
+                me_tree->SetBranchStatus("pfEcal", 1);
             }
-		//me_tree->SetBranchAddress("genpt", &me_genpt);
-		//me_tree->SetBranchAddress("geneta", &me_geneta);
-		//me_tree->SetBranchAddress("genphi", &me_genphi);
+            me_tree->SetBranchStatus("vz", 1);  
+            if(!is_pp) me_tree->SetBranchStatus("hiBin", 1);
+            if(doGenTracks){
+                me_tree->SetBranchStatus("pt", 1);
+                me_tree->SetBranchStatus("eta", 1);
+                me_tree->SetBranchStatus("phi", 1);
+                me_tree->SetBranchStatus("chg", 1);
+                me_tree->SetBranchStatus("sube", 1);
+            }
+            //me_tree->SetBranchStatus("genpt", 1);
+            //me_tree->SetBranchStatus("geneta", 1);
+            //me_tree->SetBranchStatus("genphi", 1);
+            if(!is_data) me_tree->SetBranchStatus("pthat",1);
+            if(!is_pp){
+                me_tree->SetBranchStatus("HBHENoiseFilterResultRun2Loose",1);
+                me_tree->SetBranchStatus("pcollisionEventSelection",1);
+                me_tree->SetBranchStatus("phfCoincFilter3",1);
+            }
+            else{
+                me_tree->SetBranchStatus("pPAprimaryVertexFilter",1);
+                me_tree->SetBranchStatus("HBHENoiseFilterResultRun2Loose",1);
+            }
 
-		me_tree->SetBranchAddress("pthat",&me_pthat);
-	}
-	unsigned int jet_cent, jet_vzbin;
-	std::vector<std::vector<std::vector<unsigned int> > > mixing_lists;
-	for(int ivz=0; ivz<nVzMixBins; ivz++){
-		vector<vector<unsigned int> > dummyVect;
-		for(int icent=0; icent<nCentMixBins; icent++){
-			vector<unsigned int> dummyVect2;
-			dummyVect.push_back(dummyVect2);
-		}
-		mixing_lists.push_back(dummyVect);
-	}
+            if(!doGenTracks){
+                me_tree->SetBranchAddress("trkPt", &me_trkPt);
+                me_tree->SetBranchAddress("trkEta", &me_trkEta);
+                me_tree->SetBranchAddress("trkPhi", &me_trkPhi);
+                me_tree->SetBranchAddress("highPurity", &me_highPurity);
+                me_tree->SetBranchAddress("trkChi2", &me_trkChi2);
+                me_tree->SetBranchAddress("trkNdof", &me_trkNdof);
+                me_tree->SetBranchAddress("trkNlayer", &me_trkNlayer);
+                me_tree->SetBranchAddress("trkNHit", &me_trkNHit);
+                me_tree->SetBranchAddress("pfHcal", &me_pfHcal);
+                me_tree->SetBranchAddress("pfEcal", &me_pfEcal);
+            }
+            me_tree->SetBranchAddress("vz", &me_vz);  
+            if(!is_pp) me_tree->SetBranchAddress("hiBin", &me_hiBin);
+            //me_tree->SetBranchAddress("calo_jteta", &me_jteta);
+            //me_tree->SetBranchAddress("calo_jtphi", &me_jtphi);
+            //me_tree->SetBranchAddress("calo_jtpt", &me_jtpt);
+            if(!is_pp){
+                me_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&me_HBHEFilter);
+                me_tree->SetBranchAddress("pcollisionEventSelection",&me_collisionEventSelection);
+                me_tree->SetBranchAddress("phfCoincFilter3",&me_phfCoincFilter);
+            }
+            else{
+                me_tree->SetBranchAddress("pPAprimaryVertexFilter",&me_collisionEventSelection);
+                me_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&me_HBHEFilter);
+            }
+            if(!is_data){
+                if(doGenTracks){
+                    me_tree->SetBranchAddress("pt", &me_trkPt);
+                    me_tree->SetBranchAddress("eta", &me_trkEta);
+                    me_tree->SetBranchAddress("phi", &me_trkPhi);
+                    me_tree->SetBranchAddress("chg", &me_chg);
+                    me_tree->SetBranchAddress("sube", &me_sube);
+                }
+                //me_tree->SetBranchAddress("genpt", &me_genpt);
+                //me_tree->SetBranchAddress("geneta", &me_geneta);
+                //me_tree->SetBranchAddress("genphi", &me_genphi);
 
-	if(do_mixing){
-		cout << "sorting events into vz and centrality categories..." << endl;
-		int totalEntries = me_tree->GetEntries();
-                for(int me_evt=0; me_evt<totalEntries; me_evt++){
-			if(me_evt && me_evt%5000==0) cout << "me_evt: "<< me_evt << " of " << me_tree->GetEntries() << endl;
-			me_tree->GetEntry(me_evt);
-			if(!is_pp && (!me_HBHEFilter || !me_collisionEventSelection || !me_phfCoincFilter)) continue;
-			if(is_pp && !me_collisionEventSelection && !me_HBHEFilter) continue;
-			if(abs(me_vz)>=15) continue;
-			if(!is_data) if(me_pthat<80) continue;
-			
-			unsigned int me_cent = 0;
-			if(!is_pp) me_cent = centbins->FindBin(me_hiBin)-1;
-			unsigned int me_vzbin = vzbins->FindBin(me_vz)-1;
-			//cout << "centrality: "<< me_hiBin << " vz: "<< me_vz << " cent bin: "<< me_cent << " vz bin: " << me_vzbin << endl;
-			//cout << "cent bin range: "<< centbins->GetBinLowEdge(me_cent+1) << " " << centbins->GetBinLowEdge(me_cent+2) << endl;
-			mixing_lists.at(me_vzbin).at(me_cent).push_back(me_evt);
+                me_tree->SetBranchAddress("pthat",&me_pthat);
+            }
+            for(int ivz=0; ivz<nVzMixBins; ivz++){
+                vector<vector<unsigned int> > dummyVect;
+                for(int icent=0; icent<nCentMixBins; icent++){
+                    vector<unsigned int> dummyVect2;
+                    dummyVect.push_back(dummyVect2);
+                }
+                mixing_lists.push_back(dummyVect);
+            }
 
-		}
-		cout << "lists loaded!" << endl;
-	}
+            cout << "sorting events into vz and centrality categories..." << endl;
+            int totalEntries = me_tree->GetEntries();
+            for(int me_evt=0; me_evt<totalEntries; me_evt++){
+                if(me_evt && me_evt%5000==0) cout << "me_evt: "<< me_evt << " of " << me_tree->GetEntries() << endl;
+                me_tree->GetEntry(me_evt);
+                if(!is_pp && (!me_HBHEFilter || !me_collisionEventSelection || !me_phfCoincFilter)) continue;
+                if(is_pp && !me_collisionEventSelection && !me_HBHEFilter) continue;
+                if(abs(me_vz)>=15) continue;
+                if(!is_data) if(me_pthat<80) continue;
+
+                unsigned int me_cent = 0;
+                if(!is_pp) me_cent = centbins->FindBin(me_hiBin)-1;
+                unsigned int me_vzbin = vzbins->FindBin(me_vz)-1;
+                //cout << "centrality: "<< me_hiBin << " vz: "<< me_vz << " cent bin: "<< me_cent << " vz bin: " << me_vzbin << endl;
+                //cout << "cent bin range: "<< centbins->GetBinLowEdge(me_cent+1) << " " << centbins->GetBinLowEdge(me_cent+2) << endl;
+                mixing_lists.at(me_vzbin).at(me_cent).push_back(me_evt);
+
+            }
+            cout << "sizes..." << endl;
+            for(int imix=0; imix<mixing_lists.size(); imix++){
+                cout << "vz bin " << imix << " " << mixing_lists.at(imix).at(0).size() << endl;
+            }
+            cout << "lists loaded!" << endl;
+        }
 
 	mixingWatch->Stop();
 	cout << "Mixing load time: "<< mixingWatch->RealTime() << endl;
@@ -473,7 +477,8 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 		vector<int> *trkNHit=0, *trkNlayer=0;
 		vector<int> *sube=0, *chg=0;
 		vector<float> *gpt=0, *gphi=0, *geta=0, *pPt=0, *pPhi=0, *pEta=0, *geneta=0, *genphi=0, *genpt=0;
-		vector<float> *discr_csvV1=0;
+                vector<float> *discr_csvV1=0;
+                vector<int> *flavor=0;
 
 		Int_t hiBin = -999;
 		Float_t pthat = -999;
@@ -487,15 +492,15 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                     mixing_tree->SetBranchStatus("HBHENoiseFilterResultRun2Loose",1);
                     mixing_tree->SetBranchStatus("pcollisionEventSelection",1);
                     mixing_tree->SetBranchStatus("phfCoincFilter3",1);
-			mixing_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
-			mixing_tree->SetBranchAddress("pcollisionEventSelection",&collisionEventSelection);
-			mixing_tree->SetBranchAddress("phfCoincFilter3",&phfCoincFilter);
+                    mixing_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
+                    mixing_tree->SetBranchAddress("pcollisionEventSelection",&collisionEventSelection);
+                    mixing_tree->SetBranchAddress("phfCoincFilter3",&phfCoincFilter);
                 }
 		else{
                     mixing_tree->SetBranchStatus("pPAprimaryVertexFilter",1);
                     mixing_tree->SetBranchStatus("HBHENoiseFilterResultRun2Loose",1);
-                        mixing_tree->SetBranchAddress("pPAprimaryVertexFilter",&collisionEventSelection);
-			mixing_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
+                    mixing_tree->SetBranchAddress("pPAprimaryVertexFilter",&collisionEventSelection);
+                    mixing_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
 		}
                 mixing_tree->SetBranchStatus("trkPt",1);
                 mixing_tree->SetBranchStatus("trkEta",1);
@@ -512,16 +517,19 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                 }
                 mixing_tree->SetBranchAddress("vz", &vz);
 
-                mixing_tree->SetBranchStatus("hiBin", 1);
-		mixing_tree->SetBranchAddress("hiBin", &hiBin);
-            
-                if(!doGenJets){
+                if(!is_pp){
+                    mixing_tree->SetBranchStatus("hiBin", 1);
+		    mixing_tree->SetBranchAddress("hiBin", &hiBin);
+                }
+
+                if(!doGenJets || doOnlyQuarkJet || doOnlyGluonJet){
                     mixing_tree->SetBranchStatus("calo_jteta",1);
                     mixing_tree->SetBranchStatus("calo_jtphi",1);
                     mixing_tree->SetBranchStatus("calo_jtpt",1);
                     mixing_tree->SetBranchStatus("calo_rawpt", 1);
                     mixing_tree->SetBranchStatus("calo_corrpt", 1);
                     mixing_tree->SetBranchStatus("calo_trackMax", 1);
+                    if(!is_data) mixing_tree->SetBranchStatus("calo_refparton_flavor",1);
 
                     mixing_tree->SetBranchAddress("calo_jteta", &jteta);
                     mixing_tree->SetBranchAddress("calo_jtphi", &jtphi);
@@ -529,8 +537,9 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                     mixing_tree->SetBranchAddress("calo_rawpt", &rawpt);
                     mixing_tree->SetBranchAddress("calo_corrpt", &corrpt);
                     mixing_tree->SetBranchAddress("calo_trackMax", &trackMax);
+                    if(!is_data)mixing_tree->SetBranchAddress("calo_refparton_flavor",&flavor);
                 }
-
+               
                 if(!is_data) mixing_tree->SetBranchStatus("pthat", 1);
                 if(!doGenTracks){
                     mixing_tree->SetBranchStatus("trkDxy", 1);
@@ -586,17 +595,26 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                     mixing_tree->SetBranchAddress("pPhi", &pPhi);
                     mixing_tree->SetBranchAddress("pEta", &pEta);
 
-                    if(doGenJets){
-                        mixing_tree->SetBranchStatus("geneta", 1);
+                    if(doGenJets && !doOnlyQuarkJet && !doOnlyGluonJet){
                         mixing_tree->SetBranchStatus("genphi", 1);
+                        mixing_tree->SetBranchStatus("geneta", 1);
                         mixing_tree->SetBranchStatus("genpt", 1);
 
                         mixing_tree->SetBranchAddress("geneta", &jteta);
                         mixing_tree->SetBranchAddress("genphi", &jtphi);
-                        cout << "gen pt initialized " << endl;
                         mixing_tree->SetBranchAddress("genpt", &jtpt);
-                        cout << "corrpt initialized" << endl;
                         mixing_tree->SetBranchAddress("genpt",&corrpt);
+                    }
+                    else if(doGenJets){
+                        //mixing_tree->SetBranchStatus("calo_jteta", 1);
+                        //mixing_tree->SetBranchStatus("calo_jtphi", 1);
+                        mixing_tree->SetBranchStatus("calo_refpt", 1);
+
+                        cout << "genjet initialization " << endl;
+                        //mixing_tree->SetBranchAddress("calo_jteta", &geneta);
+                        //mixing_tree->SetBranchAddress("calo_jtphi", &genphi);
+                        mixing_tree->SetBranchAddress("calo_refpt", &genpt);
+                    
                     }
                 }
 
@@ -604,7 +622,6 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 		///==========================   Event Loop starts ===================================
 
 		n_evt = mixing_tree->GetEntries();
-
 		int genjet_count = 0;
 		int genjet_fill_count = 0;
 
@@ -620,7 +637,7 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 		evtStopwatch.Start(1);
 		
 		int data_mc_type_code=globalCode;
-	
+
 		for(int evi = 0; evi < n_evt; evi++) {
 
                         fgStopwatch.Start(0);
@@ -628,6 +645,7 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 
 			if (evi%100==0) std::cout << " I am running on file " << fi+1 << " of " << ((int) file_names.size()) << ", evi: " << evi << " of " << n_evt << std::endl;
 
+                        if(is_pp) hiBin=0;
 			my_hists[data_mc_type_code]->NEvents->Fill(hiBin/2.0);
 			my_hists[data_mc_type_code]->Centrality->Fill(hiBin);
 			my_hists[data_mc_type_code]->Vz->Fill(vz);
@@ -650,33 +668,33 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 			double pthatweight=1.;
 			double pthatbins[10] = {15,30,50,80,120,170,220,280,370,9999};
 			double xsecs[10] = {5.335E-01, 3.378E-02, 3.778E-03, 4.412E-04, 6.147E-05, 1.018E-05, 2.477E-06, 6.160E-07, 1.088E-07, 0};
-			double pthatEntries[9] = {0, 444180, 485654, 484440, 479923, 448828, 258987, 234835, 50644};
-			if(!is_data){
+			double pthatEntries[9] = {0, 444180, 485654, 484515, 479933, 448829, 258987, 234835, 50644};
+			double ppPthatEntries[9] = {0,0,272902,377559,467823,447683,259111,234347,50942};
+                        if(!is_data){
 				int ibin=0;
 				while(pthat>pthatbins[ibin+1]) ibin++;
-				pthatweight = (xsecs[ibin]-xsecs[ibin+1])/pthatEntries[ibin];
-			}
-			if(!is_data && !is_pp) wvz*=pthatweight;
+				if(!is_pp) pthatweight = (xsecs[ibin]-xsecs[ibin+1])/pthatEntries[ibin];
+			        else pthatweight = (xsecs[ibin]-xsecs[ibin+1])/ppPthatEntries[ibin];
+                        }
+			if(!is_data) wvz*=pthatweight;
 
                         //wvz = 1.; //temporary fix
 
 			int ibin2 = 0;  int ibin3=0;
 
-			if(!is_pp && (!HBHEFilter || !collisionEventSelection || !phfCoincFilter)) continue;
+                        if(!is_pp && (!HBHEFilter || !collisionEventSelection || !phfCoincFilter)) continue;
 			if(is_pp && !collisionEventSelection && !HBHEFilter) continue;
 			if(fabs(vz) > 15.) continue;      
 			if(!is_data) if(pthat<80) continue;
 
 			jet_cent = centbins->FindBin(hiBin)-1;
-			jet_vzbin = vzbins->FindBin(vz)-1;
+			if(is_pp) jet_cent=0;
+                        jet_vzbin = vzbins->FindBin(vz)-1;
                         if(do_mixing){
 				if(mixing_lists.at(jet_vzbin).at(jet_cent).size()<2) continue;
 			}
 
-			//if(!is_data) if(pthat < 120 || pthat > 170) continue;
-
 			my_hists[data_mc_type_code]->NEvents_after_noise->Fill(hiBin/2.0);
-			//      cout<<"here 0"<<endl;
 
 			//---------------------------------------------------------------------------------------
 			///////// -------- FIND DIJETS (will fill hists along with inclusive) ------//////////
@@ -704,9 +722,8 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 			// Have dijet information.  Time to start filling bins.
 			//----------------------------------------------------------------------------
 
-
 			for (int ibin=0;ibin<nCBins; ibin ++){
-				if (!is_pp&&(hiBin<CBins[ibin] || hiBin >=CBins[ibin+1])){ continue; }
+				if(!is_pp) if((hiBin<CBins[ibin] || hiBin >=CBins[ibin+1])){ continue; }
 
 				if(highest_idx > -1 && second_highest_idx > -1){ 
 					my_hists[data_mc_type_code]->NEvents_dijets->Fill(hiBin/2.0);
@@ -730,72 +747,90 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                                         }
 					foundjet = kFALSE;
 					is_inclusive = kFALSE;
-					if( fabs(jteta->at(j4i)) > searchetacut ) continue;
-                                        if(!doGenJets){
+                                        if(!is_data){
+                                            if(doOnlyQuarkJet && (fabs(flavor->at(j4i))<1 || fabs(flavor->at(j4i))>6)) continue;
+                                            if(doOnlyGluonJet && fabs(flavor->at(j4i))!=21) continue;
+                                        }
+                                        double matchedPt=0, matchedEta=0, matchedPhi=0;
+                                        if(doGenJets && (doOnlyQuarkJet || doOnlyGluonJet)){
+                                            matchedPt = genpt->at(j4i);
+                                            matchedEta= jteta->at(j4i);
+                                            matchedPhi= jtphi->at(j4i);
+                                            if(matchedPt < 0) continue;
+                                        }
+                                        if( fabs(jteta->at(j4i)) > searchetacut ) continue;
+                                        if(!doGenJets || doOnlyQuarkJet || doOnlyGluonJet){
                                             if(( corrpt->at(j4i) > pTmincut )&&(trackMax->at(j4i)/corrpt->at(j4i) > 0.01)){
                                                 is_inclusive = kTRUE;  foundjet = kTRUE;
                                             } 
                                         }
-                                        if(doGenJets && corrpt->at(j4i) > pTmincut ){ is_inclusive=kTRUE; foundjet = kTRUE; }
+                                        if(doGenJets && !doOnlyQuarkJet && !doOnlyGluonJet && corrpt->at(j4i) > pTmincut ){ is_inclusive=kTRUE; foundjet = kTRUE; }
                                         if(!foundjet) continue;
-
-					ibin2 = 0;  ibin3=0;
-
-					for(int pti = 0; pti < nPtBins; pti++) {
-						if (corrpt->at(j4i) >=PtBins[pti] && corrpt->at(j4i) < PtBins[pti+1])  ibin2 = pti ;
-					}
-
 
 					//Determine gen-jet direction once, for use later in sube0 only residual jff-jec scans.
 
-					jet_dir_eta = jteta->at(j4i);
-					jet_dir_phi = jtphi->at(j4i);
+                                        double jet_pt, jet_eta, jet_phi;
+                                        if(doGenJets && (doOnlyQuarkJet || doOnlyGluonJet)){
+                                            jet_pt = matchedPt;
+                                            jet_eta = matchedEta;
+                                            jet_phi = matchedPhi;
+                                        }
+                                        else{
+                                            jet_pt = corrpt->at(j4i);
+                                            jet_eta = jteta->at(j4i);
+                                            jet_phi = jtphi->at(j4i);
+                                        }
 
+                                        ibin2 = 0;  ibin3=0;
+
+                                        for(int pti = 0; pti < nPtBins; pti++) {
+                                            if (jet_pt >=PtBins[pti] && jet_pt < PtBins[pti+1])  ibin2 = pti ;
+                                        }
 
 					if(is_inclusive == kTRUE){
-						my_hists[data_mc_type_code]->all_jets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen); 
-						my_hists[data_mc_type_code]->all_jets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen); 
-						my_hists[data_mc_type_code]->all_jets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+						my_hists[data_mc_type_code]->all_jets_corrpT[ibin][ibin2]->Fill(jet_pt, wvz*wcen); 
+						my_hists[data_mc_type_code]->all_jets_phi[ibin][ibin2]->Fill(jet_phi, wvz*wcen); 
+						my_hists[data_mc_type_code]->all_jets_eta[ibin][ibin2]->Fill(jet_eta, wvz*wcen);
 						
 						if(foundBjet){
-							my_hists[data_mc_type_code]->all_bjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
-							my_hists[data_mc_type_code]->all_bjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
-							my_hists[data_mc_type_code]->all_bjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+							my_hists[data_mc_type_code]->all_bjets_corrpT[ibin][ibin2]->Fill(jet_pt, wvz*wcen);
+							my_hists[data_mc_type_code]->all_bjets_phi[ibin][ibin2]->Fill(jet_phi, wvz*wcen);
+							my_hists[data_mc_type_code]->all_bjets_eta[ibin][ibin2]->Fill(jet_eta, wvz*wcen);
 						}     
 					}
 
 					if(is_inclusive == kTRUE &&j4i!=highest_idx){
-						my_hists[data_mc_type_code]->only_nonleadingjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen); 
-						my_hists[data_mc_type_code]->only_nonleadingjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen); 
-						my_hists[data_mc_type_code]->only_nonleadingjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+						my_hists[data_mc_type_code]->only_nonleadingjets_corrpT[ibin][ibin2]->Fill(jet_pt, wvz*wcen); 
+						my_hists[data_mc_type_code]->only_nonleadingjets_phi[ibin][ibin2]->Fill(jet_phi, wvz*wcen); 
+						my_hists[data_mc_type_code]->only_nonleadingjets_eta[ibin][ibin2]->Fill(jet_eta, wvz*wcen);
 						if(foundBjet){
-							my_hists[data_mc_type_code]->only_nonleadingbjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen); 
-							my_hists[data_mc_type_code]->only_nonleadingbjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen); 
-							my_hists[data_mc_type_code]->only_nonleadingbjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+							my_hists[data_mc_type_code]->only_nonleadingbjets_corrpT[ibin][ibin2]->Fill(jet_pt, wvz*wcen); 
+							my_hists[data_mc_type_code]->only_nonleadingbjets_phi[ibin][ibin2]->Fill(jet_phi, wvz*wcen); 
+							my_hists[data_mc_type_code]->only_nonleadingbjets_eta[ibin][ibin2]->Fill(jet_eta, wvz*wcen);
 						}
 					}
 
 					if(j4i==highest_idx){
-						my_hists[data_mc_type_code]->only_leadingjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
-						my_hists[data_mc_type_code]->only_leadingjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
-						my_hists[data_mc_type_code]->only_leadingjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+						my_hists[data_mc_type_code]->only_leadingjets_corrpT[ibin][ibin2]->Fill(jet_pt, wvz*wcen);
+						my_hists[data_mc_type_code]->only_leadingjets_phi[ibin][ibin2]->Fill(jet_phi, wvz*wcen);
+						my_hists[data_mc_type_code]->only_leadingjets_eta[ibin][ibin2]->Fill(jet_eta, wvz*wcen);
 						if(foundBjet){
-							my_hists[data_mc_type_code]->only_leadingbjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
-							my_hists[data_mc_type_code]->only_leadingbjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
-							my_hists[data_mc_type_code]->only_leadingbjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+							my_hists[data_mc_type_code]->only_leadingbjets_corrpT[ibin][ibin2]->Fill(jet_pt, wvz*wcen);
+							my_hists[data_mc_type_code]->only_leadingbjets_phi[ibin][ibin2]->Fill(jet_phi, wvz*wcen);
+							my_hists[data_mc_type_code]->only_leadingbjets_eta[ibin][ibin2]->Fill(jet_eta, wvz*wcen);
 						}
 
 					}
 
 					if(j4i==second_highest_idx){
 
-						my_hists[data_mc_type_code]->only_subleadingjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
-						my_hists[data_mc_type_code]->only_subleadingjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
-						my_hists[data_mc_type_code]->only_subleadingjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+						my_hists[data_mc_type_code]->only_subleadingjets_corrpT[ibin][ibin2]->Fill(jet_pt, wvz*wcen);
+						my_hists[data_mc_type_code]->only_subleadingjets_phi[ibin][ibin2]->Fill(jet_phi, wvz*wcen);
+						my_hists[data_mc_type_code]->only_subleadingjets_eta[ibin][ibin2]->Fill(jet_eta, wvz*wcen);
 						if(foundBjet){
-							my_hists[data_mc_type_code]->only_subleadingbjets_corrpT[ibin][ibin2]->Fill(corrpt->at(j4i), wvz*wcen);
-							my_hists[data_mc_type_code]->only_subleadingbjets_phi[ibin][ibin2]->Fill(jtphi->at(j4i), wvz*wcen);
-							my_hists[data_mc_type_code]->only_subleadingbjets_eta[ibin][ibin2]->Fill(jteta->at(j4i), wvz*wcen);
+							my_hists[data_mc_type_code]->only_subleadingbjets_corrpT[ibin][ibin2]->Fill(jet_pt, wvz*wcen);
+							my_hists[data_mc_type_code]->only_subleadingbjets_phi[ibin][ibin2]->Fill(jet_phi, wvz*wcen);
+							my_hists[data_mc_type_code]->only_subleadingbjets_eta[ibin][ibin2]->Fill(jet_eta, wvz*wcen);
 						}
 
 					}
@@ -812,7 +847,7 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                                                 if(!passTrackCuts(trkPt->at(tracks), trkEta->at(tracks), highPurity->at(tracks), trkChi2->at(tracks), trkNdof->at(tracks), trkNlayer->at(tracks), trkNHit->at(tracks), pfHcal->at(tracks), pfEcal->at(tracks))) continue;
                                             }
                                             else{
-                                                if(!passGenTrackCuts(trkPt->at(tracks), trkEta->at(tracks), chg->at(tracks))) continue;
+                                                if(!passGenTrackCuts(trkPt->at(tracks), trkEta->at(tracks), chg->at(tracks), sube->at(tracks))) continue;
                                             }
 						for(int trkpti = 0; trkpti < nTrkPtBins; trkpti++) {
 							if (trkPt->at(tracks) >=TrkPtBins[trkpti] && trkPt->at(tracks) < TrkPtBins[trkpti+1])  ibin3 = trkpti;
@@ -833,7 +868,10 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 						  if(rmin*rmin>R) rmin=TMath::Power(R,0.5);
 						  }*/
 
-						double trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 0, rmin);
+						double trkCorrection;
+                                                if(useOfficialTrkCorr) trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, hiBin, rmin);
+                                                else if(!is_pp) trkCorrection = xtc->getTrkCorr(pt, eta, phi, hiBin);
+                                                else trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 1, rmin);
 
 						if(!is_pp){
 							secondary = 0.;
@@ -869,14 +907,15 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 						if(is_inclusive == kTRUE){
 
 
-							deta = jteta->at(j4i) - trkEta->at(tracks);
-							dphi = jtphi->at(j4i) - trkPhi->at(tracks);
+							deta = jet_eta - trkEta->at(tracks);
+							dphi = jet_phi - trkPhi->at(tracks);
 
 							while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
 							while(dphi<(-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 
 							my_hists[data_mc_type_code]->hJetTrackSignalBackground[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
-							my_hists[data_mc_type_code]->hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+							my_hists[data_mc_type_code]->hJetTrackSignalBackground_pTweighted[ibin][ibin2][ibin3]->Fill(deta,dphi, pt*trkweight*wvz*wcen);
+                                                        my_hists[data_mc_type_code]->hJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 							if(foundBjet){
 								my_hists[data_mc_type_code]->hbJetTrackSignalBackground[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
 								my_hists[data_mc_type_code]->hbJetTrackSignalBackground_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
@@ -892,7 +931,8 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 							while(dphi< (-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 
 							my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_lead*wvz*wcen);
-							my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+							my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading_pTweighted[ibin][ibin2][ibin3]->Fill(deta,dphi, pt*trkweight_lead*wvz*wcen);
+                                                        my_hists[data_mc_type_code]->hJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 							if(foundBjet){
 								my_hists[data_mc_type_code]->hbJetTrackSignalBackgroundLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_lead*wvz*wcen);
 								my_hists[data_mc_type_code]->hbJetTrackSignalBackgroundLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
@@ -908,7 +948,8 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 							while(dphi<(-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 
 							my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_sub*wvz*wcen);
-							my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+							my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading_pTweighted[ibin][ibin2][ibin3]->Fill(deta,dphi, pt*trkweight_sub*wvz*wcen);
+                                                        my_hists[data_mc_type_code]->hJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 							if(foundBjet){
 								my_hists[data_mc_type_code]->hbJetTrackSignalBackgroundSubLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_sub*wvz*wcen);
 								my_hists[data_mc_type_code]->hbJetTrackSignalBackgroundSubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
@@ -927,7 +968,6 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 						jet_cent = 0;
 						if(!is_pp){ jet_cent = centbins->FindBin(hiBin)-1;}
 						jet_vzbin = vzbins->FindBin(vz)-1;
-
 
                                                 //cout << "mixing with cent: "<< jet_cent << " vz: " << jet_vzbin << endl;
                                                 //cout << "size of mix evt: "<< mixing_lists.at(jet_vzbin).at(jet_cent).size() << endl;
@@ -963,6 +1003,7 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 							//cout << " got it" << endl;
                                                         dummy++; mevi++;
 							mixStopwatch_p2.Stop();
+
                                                         mixStopwatch_p3.Start(0);
 							unsigned int me_cent=0;
 							if(!is_pp){ me_cent = centbins->FindBin(me_hiBin)-1;}
@@ -979,7 +1020,7 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                                                                 if(!passTrackCuts(me_trkPt->at(tracks), me_trkEta->at(tracks), me_highPurity->at(tracks), me_trkChi2->at(tracks), me_trkNdof->at(tracks), me_trkNlayer->at(tracks), me_trkNHit->at(tracks), me_pfHcal->at(tracks), me_pfEcal->at(tracks))) continue;
                                                             }
                                                             else{
-                                                                if(!passGenTrackCuts(me_trkPt->at(tracks), me_trkEta->at(tracks), me_chg->at(tracks))) continue;
+                                                                if(!passGenTrackCuts(me_trkPt->at(tracks), me_trkEta->at(tracks), me_chg->at(tracks), me_sube->at(tracks))) continue;
                                                             }
 
 								for(int trkpti = 0; trkpti < nTrkPtBins; trkpti++) {
@@ -1004,7 +1045,10 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 									  if(rmin*rmin>R) rmin=TMath::Power(R,0.5);
 									  }*/
 
-								double trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 0, rmin);
+								double trkCorrection;
+                                                                if(useOfficialTrkCorr) trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, me_hiBin, rmin);
+                                                                else if(!is_pp) trkCorrection = xtc->getTrkCorr(pt,eta,phi,me_hiBin);
+                                                                else trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 1, rmin);
 
 								if(!is_pp){
 									secondary = 0.;
@@ -1038,14 +1082,15 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 								
 								if(is_inclusive){
 									
-									deta = jteta->at(j4i) - me_trkEta->at(tracks);
-									dphi = jtphi->at(j4i) - me_trkPhi->at(tracks);
+									deta = jet_eta - me_trkEta->at(tracks);
+									dphi = jet_phi - me_trkPhi->at(tracks);
 									
 									while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
 									while(dphi<(-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 									
 									my_hists[data_mc_type_code]->hJetTrackME[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
-									my_hists[data_mc_type_code]->hJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+									my_hists[data_mc_type_code]->hJetTrackME_pTweighted[ibin][ibin2][ibin3]->Fill(deta,dphi, pt*trkweight*wvz*wcen);
+                                                                        my_hists[data_mc_type_code]->hJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 									if(foundBjet){
 										my_hists[data_mc_type_code]->hbJetTrackME[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
 										my_hists[data_mc_type_code]->hbJetTrackME_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
@@ -1061,7 +1106,8 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 									while(dphi< (-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 									
 									my_hists[data_mc_type_code]->hJetTrackMELeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_lead*wvz*wcen);
-									my_hists[data_mc_type_code]->hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+									my_hists[data_mc_type_code]->hJetTrackMELeading_pTweighted[ibin][ibin2][ibin3]->Fill(deta,dphi, pt*trkweight_lead*wvz*wcen);
+                                                                        my_hists[data_mc_type_code]->hJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 									if(foundBjet){
 										my_hists[data_mc_type_code]->hbJetTrackMELeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_lead*wvz*wcen);
 										my_hists[data_mc_type_code]->hbJetTrackMELeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
@@ -1075,7 +1121,8 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 									while(dphi<(-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 
 									my_hists[data_mc_type_code]->hJetTrackMESubLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_sub*wvz*wcen);
-									my_hists[data_mc_type_code]->hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+									my_hists[data_mc_type_code]->hJetTrackMESubLeading_pTweighted[ibin][ibin2][ibin3]->Fill(deta,dphi, pt*trkweight_sub*wvz*wcen);
+                                                                        my_hists[data_mc_type_code]->hJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 									if(foundBjet){
 										my_hists[data_mc_type_code]->hbJetTrackMESubLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight_sub*wvz*wcen);
 										my_hists[data_mc_type_code]->hbJetTrackMESubLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
@@ -1084,13 +1131,14 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 
 
 								if(is_inclusive && j4i!=highest_idx){
-									deta = jteta->at(j4i) - me_trkEta->at(tracks);
-									dphi = jtphi->at(j4i) - me_trkPhi->at(tracks);
+									deta = jet_eta - me_trkEta->at(tracks);
+									dphi = jet_phi - me_trkPhi->at(tracks);
 									while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
 									while(dphi<(-0.5*TMath::Pi())){dphi+= 2*TMath::Pi();}
 
 									my_hists[data_mc_type_code]->hJetTrackMENonLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
-									my_hists[data_mc_type_code]->hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
+									my_hists[data_mc_type_code]->hJetTrackMENonLeading_pTweighted[ibin][ibin2][ibin3]->Fill(deta,dphi, pt*trkweight*wvz*wcen);
+                                                                        my_hists[data_mc_type_code]->hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
 									if(foundBjet){
 										my_hists[data_mc_type_code]->hJetTrackMENonLeading[ibin][ibin2][ibin3]->Fill(deta,dphi, trkweight*wvz*wcen);
 										my_hists[data_mc_type_code]->hJetTrackMENonLeading_notrkcorr[ibin][ibin2][ibin3]->Fill(deta,dphi, wvz*wcen);
@@ -1138,7 +1186,12 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
       
       cout<<"Ready to write"<<endl;
       
-      TString out_name = (TString) (dataset_type_strs[globalCode+1] + "_PbPb.root");
+      TString out_name;
+      if(!is_data){
+          if(!is_pp) out_name = (TString) (dataset_type_strs[globalCode+1] + "_PbPb.root");
+          else out_name = (TString)"Pythia_pp.root";
+      }
+      else out_name = (TString) (dataset_type_strs[globalCode+1] + "_PbPb.root");
       TFile *out_file = new TFile(out_name, "RECREATE");
       out_file->cd();
       
