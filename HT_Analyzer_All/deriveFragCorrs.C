@@ -21,7 +21,7 @@ void deriveFragCorrs(){
 	
 	const int nIters = 2;
 	
-	const bool ispp = true;
+	const bool ispp = false;
 		
 	//Step1 histograms
 	TH1D *csCands[nPtBins];
@@ -46,6 +46,13 @@ void deriveFragCorrs(){
 	TH2D *s1QrefClosure[nCentBins];
 	TH2D *s1GrefClosure[nCentBins];
 	
+	TH2D *s1etaClosure[nCentBins];
+	TH2D *s1QetaClosure[nCentBins];
+	TH2D *s1GetaClosure[nCentBins];
+	TH2D *s1phiClosure[nCentBins];
+	TH2D *s1QphiClosure[nCentBins];
+	TH2D *s1GphiClosure[nCentBins];
+	
 	//Iterative step histograms
 	TH2D *s2recoClosure[nCentBins][nIters];
 	TH2D *s2QrecoClosure[nCentBins][nIters];
@@ -67,6 +74,13 @@ void deriveFragCorrs(){
 	TH2D *s3refClosure[nCentBins];
 	TH2D *s3QrefClosure[nCentBins];
 	TH2D *s3GrefClosure[nCentBins];
+	
+	TH2D *s3etaClosure[nCentBins];
+	TH2D *s3QetaClosure[nCentBins];
+	TH2D *s3GetaClosure[nCentBins];
+	TH2D *s3phiClosure[nCentBins];
+	TH2D *s3QphiClosure[nCentBins];
+	TH2D *s3GphiClosure[nCentBins];
 	
 	for(int i=0; i<nCentBins; i++){
 		
@@ -106,6 +120,19 @@ void deriveFragCorrs(){
 		s1GrefClosure[i] = new TH2D(Form("s1GrefClosure_cent%d",i),"",240,40,1000,200,0.,2.);
 		s1GrefClosure[i]->Sumw2();
 		
+		s1etaClosure[i] = new TH2D(Form("s1etaClosure_cent%d",i),"",240,-2,2,200,0.,2.);
+		s1etaClosure[i]->Sumw2();
+		s1phiClosure[i] = new TH2D(Form("s1phiClosure_cent%d",i),"",240,-3.2,3.2,200,0.,2.);
+		s1phiClosure[i]->Sumw2();
+		s1QetaClosure[i] = new TH2D(Form("s1QetaClosure_cent%d",i),"",240,-2,2,200,0.,2.);
+		s1QetaClosure[i]->Sumw2();
+		s1QphiClosure[i] = new TH2D(Form("s1QphiClosure_cent%d",i),"",240,-3.2,3.2,200,0.,2.);
+		s1QphiClosure[i]->Sumw2();
+		s1GetaClosure[i] = new TH2D(Form("s1GetaClosure_cent%d",i),"",240,-2,2,200,0.,2.);
+		s1GetaClosure[i]->Sumw2();
+		s1GphiClosure[i] = new TH2D(Form("s1GphiClosure_cent%d",i),"",240,-3.2,3.2,200,0.,2.);
+		s1GphiClosure[i]->Sumw2();
+		
 		for(int k=0; k<nIters; k++){
 			s2recoClosure[i][k] = new TH2D(Form("s2recoClosure_cent%d_iter%d",i,k),"",240,40,1000,200,0.,2.);
 			s2recoClosure[i][k]->Sumw2();
@@ -122,18 +149,31 @@ void deriveFragCorrs(){
 						
 		}
 		
-		s3recoClosure[i] = new TH2D(Form("s3recoClosure_cent%d",i),"",115,60,500,200,0.,2.);
+		s3recoClosure[i] = new TH2D(Form("s3recoClosure_cent%d",i),"",240,60,500,200,0.,2.);
 		s3recoClosure[i]->Sumw2();
-		s3refClosure[i] = new TH2D(Form("s3refClosure_cent%d",i),"",115,60,500,200,0.,2.);
+		s3refClosure[i] = new TH2D(Form("s3refClosure_cent%d",i),"",240,60,500,200,0.,2.);
 		s3refClosure[i]->Sumw2();
-		s3QrecoClosure[i] = new TH2D(Form("s3QrecoClosure_cent%d",i),"",115,60,500,200,0.,2.);
+		s3QrecoClosure[i] = new TH2D(Form("s3QrecoClosure_cent%d",i),"",240,60,500,200,0.,2.);
 		s3QrecoClosure[i]->Sumw2();
-		s3QrefClosure[i] = new TH2D(Form("s3QrefClosure_cent%d",i),"",115,60,500,200,0.,2.);
+		s3QrefClosure[i] = new TH2D(Form("s3QrefClosure_cent%d",i),"",240,60,500,200,0.,2.);
 		s3QrefClosure[i]->Sumw2();
-		s3GrecoClosure[i] = new TH2D(Form("s3GrecoClosure_cent%d",i),"",115,60,500,200,0.,2.);
+		s3GrecoClosure[i] = new TH2D(Form("s3GrecoClosure_cent%d",i),"",240,60,500,200,0.,2.);
 		s3GrecoClosure[i]->Sumw2();
-		s3GrefClosure[i] = new TH2D(Form("s3GrefClosure_cent%d",i),"",115,60,500,200,0.,2.);
+		s3GrefClosure[i] = new TH2D(Form("s3GrefClosure_cent%d",i),"",240,60,500,200,0.,2.);
 		s3GrefClosure[i]->Sumw2();
+		
+		s3etaClosure[i] = new TH2D(Form("s3etaClosure_cent%d",i),"",240,-2,2,200,0.,2.);
+		s3etaClosure[i]->Sumw2();
+		s3phiClosure[i] = new TH2D(Form("s3phiClosure_cent%d",i),"",240,-3.2,3.2,200,0.,2.);
+		s3phiClosure[i]->Sumw2();
+		s3QetaClosure[i] = new TH2D(Form("s3QetaClosure_cent%d",i),"",240,-2,-2,200,0.,2.);
+		s3QetaClosure[i]->Sumw2();
+		s3QphiClosure[i] = new TH2D(Form("s3QphiClosure_cent%d",i),"",240,-3.2,3.2,200,0.,2.);
+		s3QphiClosure[i]->Sumw2();
+		s3GetaClosure[i] = new TH2D(Form("s3GetaClosure_cent%d",i),"",240,-2,-2,200,0.,2.);
+		s3GetaClosure[i]->Sumw2();
+		s3GphiClosure[i] = new TH2D(Form("s3GphiClosure_cent%d",i),"",240,-3.2,3.2,200,0.,2.);
+		s3GphiClosure[i]->Sumw2();
 	}
 	for(int j=0; j<nPtBins; j++){
 		csCands[j] = new TH1D(Form("csCands_pt%d",j),"",40,0,40);
@@ -142,7 +182,9 @@ void deriveFragCorrs(){
 		csCandsPost[j]->Sumw2();
 	}
 	
-	TFile *f1 = new TFile("/Users/kjung/Run2Validation/CScandClosure/unzippedSkim_pp_MC.root");
+	TFile *f1;
+	if(ispp) f1 = new TFile("/Users/kjung/Run2Validation/CScandClosure/unzippedSkim_pp_MC.root");
+	else f1 = new TFile("/Users/kjung/Run2Validation/CScandClosure/unzippedSkimClosure_withRX.root");
 	TTree *t = (TTree*)f1->Get("unzipMixTree");
 	
 	double jtpt, jteta, jtphi, refpt, weight;
@@ -191,14 +233,20 @@ void deriveFragCorrs(){
 		preCorrs[mycbin][myptbin]->Fill(nCScand,jtpt/refpt,weight);
 		s1recoClosure[mycbin]->Fill(jtpt,jtpt/refpt,weight);
 		s1refClosure[mycbin]->Fill(refpt,jtpt/refpt,weight);
+		if(refpt>120) s1etaClosure[mycbin]->Fill(jteta,jtpt/refpt,weight);
+		if(refpt>120) s1phiClosure[mycbin]->Fill(jtphi,jtpt/refpt,weight);
 		if(abs(refparton_flavor)>=1 && abs(refparton_flavor)<=6){
 			s1QrecoClosure[mycbin]->Fill(jtpt,jtpt/refpt,weight);
 			s1QrefClosure[mycbin]->Fill(refpt,jtpt/refpt,weight);
+			if(refpt>120) s1QetaClosure[mycbin]->Fill(jteta,jtpt/refpt,weight);
+			if(refpt>120) s1QphiClosure[mycbin]->Fill(jtphi,jtpt/refpt,weight);
 			preQCorrs[mycbin][myptbin]->Fill(nCScand,jtpt/refpt,weight);
 		}
 		if(abs(refparton_flavor)==21){
 			s1GrecoClosure[mycbin]->Fill(jtpt,jtpt/refpt,weight);
 			s1GrefClosure[mycbin]->Fill(refpt,jtpt/refpt,weight);
+			if(refpt>120) s1GetaClosure[mycbin]->Fill(jteta,jtpt/refpt,weight);
+			if(refpt>120) s1GphiClosure[mycbin]->Fill(jtphi,jtpt/refpt,weight);
 			preGCorrs[mycbin][myptbin]->Fill(nCScand,jtpt/refpt,weight);
 		}
 	}
@@ -298,19 +346,25 @@ void deriveFragCorrs(){
 			//If we're one past nIters, then fill the final closures and be done
 			if(iter==nIters){
 				
-				double rxWeight = 0.;//TMath::Abs(jetV2s[mycbin]*TMath::Cos(2*(jtphi-rxplane)));
-				if(!ispp && abs(jtphi-rxplane)>0.7 && abs(jtphi-rxplane)<2.0) rxWeight=1.;
-				else if(ispp) rxWeight = 1.;
+				double rxWeight = 1.;//TMath::Abs(jetV2s[mycbin]*TMath::Cos(2*(jtphi-rxplane)));
+				//if(!ispp && abs(jtphi-rxplane)<0.7 && abs(jtphi-rxplane)<2.0) rxWeight=1.;
+				//else if(ispp) rxWeight = 1.;
 				
 				s3recoClosure[mycbin]->Fill(corrpt,corrpt/refpt,weight*rxWeight);
 				s3refClosure[mycbin]->Fill(refpt,corrpt/refpt,weight*rxWeight);
+				if(refpt>120) s3etaClosure[mycbin]->Fill(jteta,corrpt/refpt,weight*rxWeight);
+				if(refpt>120) s3phiClosure[mycbin]->Fill(jtphi,corrpt/refpt,weight*rxWeight);
 				if(abs(refparton_flavor)>=1 && abs(refparton_flavor)<=6){
 					s3QrecoClosure[mycbin]->Fill(corrpt,corrpt/refpt,weight*rxWeight);
 					s3QrefClosure[mycbin]->Fill(refpt,corrpt/refpt,weight*rxWeight);
+					if(refpt>120) s3QetaClosure[mycbin]->Fill(jteta,corrpt/refpt,weight*rxWeight);
+					if(refpt>120) s3QphiClosure[mycbin]->Fill(jtphi,corrpt/refpt,weight*rxWeight);
 				}
 				if(abs(refparton_flavor)==21){
 					s3GrecoClosure[mycbin]->Fill(corrpt,corrpt/refpt,weight*rxWeight);
 					s3GrefClosure[mycbin]->Fill(refpt,corrpt/refpt,weight*rxWeight);
+					if(refpt>120) s3GetaClosure[mycbin]->Fill(jteta,corrpt/refpt,weight*rxWeight);
+					if(refpt>120) s3GphiClosure[mycbin]->Fill(jtphi,corrpt/refpt,weight*rxWeight);
 				}
 			}
 			//Else fill the temporary corrections and reiterate...
@@ -360,7 +414,7 @@ void deriveFragCorrs(){
 	}
 	
 	TFile *fout;
-	if(!ispp) fout = new TFile("fullIterativeJFFClosures_closureTest_withRX.root","recreate");
+	if(!ispp) fout = new TFile("fullIterativeJFFClosures_closureTest_withEtaPhi.root","recreate");
 	else fout = new TFile("fullIterativeJFFClosures_closureTest_pp.root","recreate");
 	fout->cd();
 	
@@ -385,6 +439,14 @@ void deriveFragCorrs(){
 		s1refClosure[i]->Write();
 		s1QrefClosure[i]->Write();
 		s1GrefClosure[i]->Write();
+		
+		s1etaClosure[i]->Write();
+		s1QetaClosure[i]->Write();
+		s1GetaClosure[i]->Write();
+		s1phiClosure[i]->Write();
+		s1QphiClosure[i]->Write();
+		s1GphiClosure[i]->Write();
+		
 		constFit[i]->Write();
 		slopeFit[i]->Write();
 		ncsConstFitVals[i]->Write();
@@ -407,12 +469,19 @@ void deriveFragCorrs(){
 		s3refClosure[i]->Write();
 		s3QrefClosure[i]->Write();
 		s3GrefClosure[i]->Write();
+		
+		s3etaClosure[i]->Write();
+		s3QetaClosure[i]->Write();
+		s3GetaClosure[i]->Write();
+		s3phiClosure[i]->Write();
+		s3QphiClosure[i]->Write();
+		s3GphiClosure[i]->Write();
 	}
 	
 	fout->Close();
 	
 	TFile *fout2;
-	if(!ispp) fout2 = new TFile("nCScorrectionFactors.root","recreate");
+	if(!ispp) fout2 = new TFile("nCScorrectionFactors_rxtot.root","recreate");
 	else fout2 = new TFile("nCScorrectionFactors_pp5TeV.root","recreate");
 	fout2->cd();
 	for(int i=0; i<nCentBins; i++){

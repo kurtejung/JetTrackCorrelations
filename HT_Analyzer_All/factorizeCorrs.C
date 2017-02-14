@@ -36,9 +36,9 @@ void factorizeCorrs(){
 	const double xTrkBinDouble[11] = {0.5,0.7,1.,2.,3.,4.,8.,12.,16.,20.,30.};
 	const string xCentBins[5] = {"Cent0", "Cent10", "Cent30","Cent50", "Cent100"};
 	
-	TFile *fsum = new TFile("JFFcorrs_PHPbPb_newJFFJEC_ptWeighted_withFits.root");
+	TFile *fsum = new TFile("JFFcorrs_PythHydjet_pTweighted_sube0_newJFFJEC_withFits.root");
 	
-	TFile *fq = new TFile("JFFcorrs_Pythiapp_newJFFJEC_ptWeighted_withFits.root");
+	TFile *fq = new TFile("JFFcorrs_PythiaOnly_pTweighted_sube0_newJFFJEC_withFits.root");
 	TFile *fg = new TFile("JFFcorrs_Pythiapp_oldJFFJEC_withFits.root");
 	
 	//TFile *fout;

@@ -130,10 +130,10 @@ void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="R
 			hResidualJES[i][j]->Scale(1./ptWidth[j]);
 						
 			//Calculate maximum background deviation...
-			int lowbin = RecoRecoSignal[i][j]->GetYaxis()->FindBin(-1);
-			int highbin = RecoRecoSignal[i][j]->GetYaxis()->FindBin(1);
-			etaProj[i][j] = RecoRecoSignal[i][j]->ProjectionX(Form("GenGenSignal_%d_%d_pfx",j,i), lowbin, highbin, "e");
-			etaProj[i][j]->Scale(1./RecoRecoSignal[i][j]->GetXaxis()->GetBinWidth(2));
+			int lowbin = GenGenSignal[i][j]->GetYaxis()->FindBin(-1);
+			int highbin = GenGenSignal[i][j]->GetYaxis()->FindBin(1);
+			etaProj[i][j] = GenGenSignal[i][j]->ProjectionX(Form("GenGenSignal_%d_%d_pfx",j,i), lowbin, highbin, "e");
+			etaProj[i][j]->Scale(1./GenGenSignal[i][j]->GetXaxis()->GetBinWidth(2));
 			etaProj[i][j]->Scale(0.5);
 			
 			int scaleFac = 5;//0.2/etaProj[i][j]->GetBinWidth(2);
@@ -193,6 +193,8 @@ void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="R
 				double err2 = etaProj[i][j]->GetBinError(symmBin)/etaProj[i][j]->GetBinContent(symmBin);
 				asymm[i][j]->SetBinError(ibin, asymm[i][j]->GetBinContent(ibin) * sqrt(pow(err1,2)+pow(err2,2)));
 			}*/
+			//etaProj[i][j]->Scale(2.);
+			
 			TF1 *fitLeft = new TF1("fitLeft","pol0",-2.5,-1.5);
 			TF1 *fitRight = new TF1("fitRight","pol0",1.5,2.5);
 			TF1 *fitSmallLeft = new TF1("fitSmallLeft","pol0",-2.5,-2.0);
