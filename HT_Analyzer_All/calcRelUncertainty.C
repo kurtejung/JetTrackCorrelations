@@ -23,7 +23,7 @@ const double ptWidth[trackPtBins] = { 0.2, 0.3, 1., 1., 1., 4., 4., 4., 4., 80.}
 	
 const double xTrkBinDouble[trackPtBins+1] = {0.5,0.7,1.,2.,3.,4.,8.,12.,16.,20.,999.};
 const string xTrkBins[trackPtBins+1] = {"TrkPt0p5","TrkPt0p7", "TrkPt1", "TrkPt2", "TrkPt3", "TrkPt4", "TrkPt8", "TrkPt12", "TrkPt16", "TrkPt20", "TrkPt999" };
-const int xCentBins[nCentBins+1] = {0,10,30,50,100};
+const int xCentBins[nCentBins+2] = {0,10,30,50,70,100};
 const float mean_pts[trackPtBins] = {0.5,0.844,1.35,2.35,3.37,5.07,9.72,13.8,17.9,22.};
 
 void takeTH1Abs(TH1D* input){
@@ -33,21 +33,26 @@ void takeTH1Abs(TH1D* input){
 	
 }
 	
-void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="Reco", string track2="Gen"){
+void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="Reco", string track2="Reco"){
+	
+	bool isData = true;
 	
 	string trkCorrString1 = "";
 	string trkCorrString2 = "";
-	if(track1=="Gen") trkCorrString1 = "_notrkcorr";
-	if(track2=="Gen") trkCorrString2 = "_notrkcorr";
+	if(track1=="Gen" && !isData) trkCorrString1 = "_notrkcorr";
+	if(track2=="Gen" && !isData) trkCorrString2 = "_notrkcorr";
 		
-	TFile *fin = new TFile(Form("TotalCorrelations_%s%s2%s%s_newJFFs.root",jet1.c_str(),track1.c_str(),jet2.c_str(),track2.c_str()));
+	TFile *fin;
+	if(!isData) fin = new TFile(Form("TotalCorrelations_%s%s2%s%s_cymbalTune_fullCymbalCorrs_finalJFFs.root",jet1.c_str(),track1.c_str(),jet2.c_str(),track2.c_str()));
+	else fin = new TFile("TotalCorrelations_PbPbData_fullCymbalCorrs_finalJFFs.root");
 	//TFile *fSpillovers = new TFile("JFFcorrs_subeNon0_newJFFs.root");
-	TFile *fSpillovers = new TFile("Spillover_gausFits.root");
-	TFile *fResidualJES = new TFile("JFFcorrs_sube0_newJFFs.root");
+	TFile *fSpillovers = new TFile("JFFcorrs_PythHydjet_subeNon0_finalJFFJEC_CymbalTune_withFits.root");
+	TFile *fResidualJES = new TFile("JFFcorrs_PythHydjet_sube0_finalJFFJEC_CymbalTune_withFits.root");
 	
 	TH2D *GenGenSignal[nCentBins][trackPtBins];
 	TH2D *RecoRecoSignal[nCentBins][trackPtBins];
 	TF1 *hSpillovers[nCentBins][trackPtBins];
+	TH1D *hSpilloverEtaProj[nCentBins][trackPtBins];
 	TH2D *hResidualJES[nCentBins][trackPtBins];
 	
 	TH2D *pairAccept[nCentBins][trackPtBins];
@@ -112,26 +117,37 @@ void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="R
 	for(int j=0; j<trackPtBins; j++){
 		for(int i=0; i<nCentBins; i++){
 			
-			cout << "getting " << Form("%sJet_%sTrack_hJetTrackSignalBackground_notrkcorrCent%d_Cent%d_Pt100_Pt300_%s_%s",jet1.c_str(), track1.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()) << endl;
+			if(!isData) cout << "getting " << Form("%sJet_%sTrack_hJetTrackSignalBackground%sCent%d_Cent%d_Pt100_Pt1000_%s_%s",jet1.c_str(), track1.c_str(), trkCorrString1.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()) << endl;
+			else cout << "getting " << Form("Data_hJetTrackSignalBackground%sCent%d_Cent%d_Pt100_Pt1000_%s_%s", trkCorrString1.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()) << endl;
 						
-			GenGenSignal[i][j] = (TH2D*)fin->Get(Form("%sJet_%sTrack_hJetTrackSignalBackground%sCent%d_Cent%d_Pt100_Pt300_%s_%s",jet1.c_str(), track1.c_str(), trkCorrString1.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()))->Clone(Form("GenGenSignal_%d_%d",i,j));
+			if(!isData){
+				GenGenSignal[i][j] = (TH2D*)fin->Get(Form("%sJet_%sTrack_hJetTrackSignalBackground%sCent%d_Cent%d_Pt100_Pt1000_%s_%s",jet1.c_str(), track1.c_str(), trkCorrString1.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()))->Clone(Form("GenGenSignal_%d_%d",i,j));
 			
-			RecoRecoSignal[i][j] = (TH2D*)fin->Get(Form("%sJet_%sTrack_hJetTrackSignalBackground%sCent%d_Cent%d_Pt100_Pt300_%s_%s",jet2.c_str(), track2.c_str(), trkCorrString2.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()))->Clone(Form("RecoRecoSignal_%d_%d",i,j));
+				RecoRecoSignal[i][j] = (TH2D*)fin->Get(Form("%sJet_%sTrack_hJetTrackSignalBackground%sCent%d_Cent%d_Pt100_Pt1000_%s_%s",jet2.c_str(), track2.c_str(), trkCorrString2.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()))->Clone(Form("RecoRecoSignal_%d_%d",i,j));
+			}
+			else{
+				GenGenSignal[i][j] = (TH2D*)fin->Get(Form("Data_hJetTrackSignalBackground%sCent%d_Cent%d_Pt100_Pt1000_%s_%s", trkCorrString1.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()))->Clone(Form("GenGenSignal_%d_%d",i,j));
+			
+				RecoRecoSignal[i][j] = (TH2D*)fin->Get(Form("Data_hJetTrackSignalBackground%sCent%d_Cent%d_Pt100_Pt1000_%s_%s", trkCorrString2.c_str(), xCentBins[i],xCentBins[i+1],xTrkBins[j].c_str(),xTrkBins[j+1].c_str()))->Clone(Form("RecoRecoSignal_%d_%d",i,j));
+			}
 						
+			cout << "getting spillovers" << endl;
 			//take only 1/2 the jff and spillovers for systematics
-			hSpillovers[i][j] = (TF1*)fSpillovers->Get(Form("gausFit_%d_%d",j,i))->Clone(Form("spillovers_cent%d_pt%d",i,j));
+			hSpillovers[i][j] = (TF1*)fSpillovers->Get(Form("fitcorrEtaProj_%d_%d",j,i))->Clone(Form("spillovers_cent%d_pt%d",i,j));
+			hSpilloverEtaProj[i][j] = (TH1D*)fSpillovers->Get(Form("correctionEtaProj%d_%d",j,i))->Clone(Form("spilloversEtaProj_cent%d_pt%d",i,j));
 			//hSpillovers[i][j]->Scale(0.5);
 			//hSpillovers[i][j]->Scale(1./ptWidth[j]);
 			//if(j>4) hSpillovers[i][j]->Reset();
 						
+			cout << "getting jffs" << endl;
 			//Only take 50-100% for residual JES uncertainties - they're independent of centrality
 			hResidualJES[i][j] = (TH2D*)fResidualJES->Get(Form("JFFcorrs_cent3_pt%d",j))->Clone(Form("jffResid_cent%d_pt%d",i,j));
-			hResidualJES[i][j]->Scale(0.5);
+			hResidualJES[i][j]->Scale(0.07);
 			hResidualJES[i][j]->Scale(1./ptWidth[j]);
 						
 			//Calculate maximum background deviation...
-			int lowbin = GenGenSignal[i][j]->GetYaxis()->FindBin(-1);
-			int highbin = GenGenSignal[i][j]->GetYaxis()->FindBin(1);
+			int lowbin = GenGenSignal[i][j]->GetYaxis()->FindBin(1.5);
+			int highbin = GenGenSignal[i][j]->GetYaxis()->FindBin(2.5);
 			etaProj[i][j] = GenGenSignal[i][j]->ProjectionX(Form("GenGenSignal_%d_%d_pfx",j,i), lowbin, highbin, "e");
 			etaProj[i][j]->Scale(1./GenGenSignal[i][j]->GetXaxis()->GetBinWidth(2));
 			etaProj[i][j]->Scale(0.5);
@@ -207,6 +223,7 @@ void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="R
 			double totErr = sqrt(pow(fitSmallLeft->GetParameter(0)-fitSmallRight->GetParameter(0),2) + pow(fitLeft->GetParameter(0)-fitRight->GetParameter(0),2) + pow(fitLeft->GetParError(0),2));
 			totErr = TMath::Max(abs(fitSmallLeft->GetParameter(0)-fitSmallRight->GetParameter(0)), abs(fitLeft->GetParameter(0)-fitRight->GetParameter(0)));
 			totErr = TMath::Max(totErr, abs(fitLeft->GetParError(0)));
+			totErr = TMath::Max(totErr, abs(fitRight->GetParError(0)));
 			
 			cout << "total bg err: "<< totErr << endl;
 			//double totErr = sqrt(pow(fitLeft->GetParameter(0)-fitRight->GetParameter(0),2) + pow(fitLeft->GetParError(0),2));
@@ -259,7 +276,7 @@ void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="R
 					GenGenDRDistrNorm[i][j]->Fill(dr);
 					GenGenDRDistrNormWeight[i][j]->Fill(dr,content);
 			
-					absoluteErrSpill[i][j]->Fill(dr, content*(hSpillovers[i][j]->Eval(dr)*0.5*GenGenSignal[i][j]->GetYaxis()->GetBinWidth(2)/ptWidth[j]));
+					absoluteErrSpill[i][j]->Fill(dr, content*(hSpillovers[i][j]->Eval(dr)*0.18*GenGenSignal[i][j]->GetYaxis()->GetBinWidth(2)*hSpilloverEtaProj[i][j]->GetBinWidth(1)/ptWidth[j]));
 					absoluteErrResidJES[i][j]->Fill(dr, content*(hResidualJES[i][j]->GetBinContent(ixbin,iybin)));
 					absoluteErrPair[i][j]->Fill(dr, content*(pairAccept[i][j]->GetBinContent(ixbin,iybin)));
 					absoluteErrBG[i][j]->Fill(dr, content*(bgSub[i][j]->GetBinContent(ixbin,iybin)));
@@ -267,7 +284,7 @@ void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="R
 					absoluteErrTrkRes[i][j]->Fill(dr, content*(trackingRes[i][j]->GetBinContent(ixbin,iybin)));
 					absoluteErrOther[i][j]->Fill(dr, content*(otherJFF[i][j]->GetBinContent(ixbin,iybin)));
 					
-					relErrSpill[i][j]->Fill(dr, (hSpillovers[i][j]->Eval(dr)*0.5*GenGenSignal[i][j]->GetYaxis()->GetBinWidth(2)/ptWidth[j]));
+					relErrSpill[i][j]->Fill(dr, (hSpillovers[i][j]->Eval(dr)*0.18*GenGenSignal[i][j]->GetYaxis()->GetBinWidth(2)*hSpilloverEtaProj[i][j]->GetBinWidth(1)/ptWidth[j]));
 					relErrResidJES[i][j]->Fill(dr, (hResidualJES[i][j]->GetBinContent(ixbin,iybin)));
 					relErrPair[i][j]->Fill(dr, (pairAccept[i][j]->GetBinContent(ixbin,iybin)));
 					relErrBG[i][j]->Fill(dr, (bgSub[i][j]->GetBinContent(ixbin,iybin)));
@@ -477,16 +494,31 @@ void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="R
 	
 	TH1D *bgSubVsPt[4];
 	TH1D *pairAcceptVsPt[4];
+	TH1D *spilloversVsPt[4];
+	TH1D *jffsVsPt[4];
 	
 	for(int i=0; i<nCentBins; i++){
 		pairAcceptVsPt[i] = new TH1D(Form("pairAcceptVsPt_cent%d",i),"",trackPtBins,xTrkBinDouble);
 		bgSubVsPt[i] = new TH1D(Form("bgSubVsPt_cent%d",i),"",trackPtBins,xTrkBinDouble);
+		spilloversVsPt[i] = new TH1D(Form("spilloversVsPt_cent%d",i),"",trackPtBins,xTrkBinDouble);
+		jffsVsPt[i] = new TH1D(Form("jffsVsPt_cent%d",i),"",trackPtBins,xTrkBinDouble);
 		for(int j=0; j<trackPtBins; j++){
-			bgSubVsPt[i]->SetBinContent(j+1, 100*bgSub[i][j]->ProjectionX()->GetBinContent(5)/GenGenSignal[i][j]->ProjectionX()->Integral(221,281)); //-0.8 to 0.8
+			bgSubVsPt[i]->SetBinContent(j+1, 100*bgSub[i][j]->ProjectionX()->GetBinContent(5)/GenGenSignal[i][j]->ProjectionX()->Integral(201,301)); //-1 to 1
 			bgSubVsPt[i]->SetBinError(j+1, 0.0001);
 			
-			pairAcceptVsPt[i]->SetBinContent(j+1, 100*pairAccept[i][j]->ProjectionX()->GetBinContent(5)/GenGenSignal[i][j]->ProjectionX()->Integral(221,281));
+			pairAcceptVsPt[i]->SetBinContent(j+1, 100*pairAccept[i][j]->ProjectionX()->GetBinContent(5)/GenGenSignal[i][j]->ProjectionX()->Integral(201,301));
 			pairAcceptVsPt[i]->SetBinError(j+1, 0.0001);
+			
+			int lobin = hSpilloverEtaProj[i][j]->FindBin(-1);
+			int hiBin = hSpilloverEtaProj[i][j]->FindBin(1);
+			spilloversVsPt[i]->SetBinContent(j+1, 100.*0.18*hSpilloverEtaProj[i][j]->Integral(lobin, hiBin)/GenGenSignal[i][j]->ProjectionX()->Integral(201,301));
+			spilloversVsPt[i]->SetBinError(j+1, 0.0001);
+			
+			//hSpillovers[i][j]->Eval(dr)*0.18*GenGenSignal[i][j]->GetYaxis()->GetBinWidth(2)*hSpilloverEtaProj[i][j]->GetBinWidth(1)/ptWidth[j]));
+			
+			jffsVsPt[i]->SetBinContent(j+1, 100.*abs(hResidualJES[i][j]->ProjectionX()->Integral(201,301))*ptWidth[j]/GenGenSignal[i][j]->ProjectionX()->Integral(201,301));
+			//cout <<"setting pt bin " << j << " to " << 100*abs(hResidualJES[i][j]->ProjectionX()->Integral(201,301))*ptWidth[j]/GenGenSignal[i][j]->ProjectionX()->Integral(201,301) << endl;
+			jffsVsPt[i]->SetBinError(j+1, 0.0001);
 		}
 	}
 	TLatex *labels[4];
@@ -504,6 +536,13 @@ void calcRelUncertainty(string jet1="Reco", string track1="Reco", string jet2="R
 		pairAcceptVsPt[i]->SetLineColor(relErrPair[i][5]->GetLineColor());
 		pairAcceptVsPt[i]->SetBinContent(1,0);
 		pairAcceptVsPt[i]->Draw("hist,same");
+		spilloversVsPt[i]->SetLineColor(2);
+		spilloversVsPt[i]->SetBinContent(1,0);
+		spilloversVsPt[i]->Draw("hist,same");
+		jffsVsPt[i]->SetLineColor(4);
+		jffsVsPt[i]->SetBinContent(1,0);
+		jffsVsPt[i]->Draw("hist,same");
+		
 		labels[i] = new TLatex(3,bgSubVsPt[i]->GetMaximum()*0.85,Form("Cent %d-%d",xCentBins[i],xCentBins[i+1]));
 		labels[i]->SetTextSize(0.06);
 		labels[i]->Draw("same");
