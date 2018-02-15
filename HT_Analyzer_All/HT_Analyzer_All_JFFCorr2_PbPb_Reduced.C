@@ -130,13 +130,15 @@ const double subleadingjetcut = 50. ;
 const double dphicut = 5.*(TMath::Pi())/6. ; 
 const double trketamaxcut = 2.4;
 
-const bool doBjets = false;
+const bool doTrueB = false;
+const bool doTaggedB = true;
 
 const bool doOnlySube0 = false;
 const bool doOnlySubeNot0 = false;
 const bool doOnlyGluonJet = false;
 const bool doOnlyQuarkJet = false;
 const bool doOnlyUnmatchedJets = false;
+const bool useGenJetAxis = false;
 
 const bool doSpillInJets = false;
 const bool doSpillOutJets = false;
@@ -169,12 +171,13 @@ bool passTrackCuts(bool ispp, bool useTightCuts, float trkPt, float trkEta, bool
 
 }
 
-bool passGenTrackCuts(float trkPt, float trkEta, int chg, int sube){
+bool passGenTrackCuts(float trkPt, float trkEta, int chg, int sube, bool isMixing=0){
     if(fabs(trkEta)>=trketamaxcut) return false;
     if(trkPt<=trkPtCut) return false;
     if(chg==0) return false;
-    if(doOnlySube0 && sube!=0) return false;
-    if(doOnlySubeNot0 && sube==0) return false;
+    //if(isMixing && sube!=0) return true;
+    else if(doOnlySube0 && sube!=0) return false;
+    else if(doOnlySubeNot0 && sube==0) return false;
 
     return true;
 
@@ -192,11 +195,11 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
     TH1D *hAfter = new TH1D("hAfter","",50,-2.5,2.5); hAfter->Sumw2();
 
     //*********************************************
-        bool doGenJets = true;
+        bool doGenJets = false;
         bool doGenTracks = true;
         bool useOfficialTrkCorr = true;
  
-        bool do_mixing = false;
+        bool do_mixing = true;
         bool is_pp = true;
         bool is_data = false;
         //switch between Xiao's loose (b-jet) and tight (inclusive-jet) cuts
@@ -346,8 +349,8 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 	unsigned int meptrig = 25;
 
 	gRandom->SetSeed(0);
-	const int nCentMixBins=40;
-	const int nVzMixBins=60;
+	const int nCentMixBins= is_pp ? 1 : 40;
+	const int nVzMixBins=30;
 
 	TH1D * centbins = new TH1D("centbins","centbins. JUST A DUMMY REALLY", nCentMixBins, 0.0, 200.0);
 	TH1D * vzbins = new TH1D("vzbins","vzbins. JUST A DUMMY REALLY", nVzMixBins, -15., 15.);
@@ -591,8 +594,8 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                     mixing_tree->SetBranchAddress("pprimaryVertexFilter",&collisionEventSelection);
                     mixing_tree->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
 		}
-                mixing_tree->SetBranchStatus("evtPlane_HF2",1);
-                mixing_tree->SetBranchAddress("evtPlane_HF2",&evtPlane);
+                if(!is_pp) mixing_tree->SetBranchStatus("evtPlane_HF2",1);
+                if(!is_pp) mixing_tree->SetBranchAddress("evtPlane_HF2",&evtPlane);
                 mixing_tree->SetBranchStatus("trkPt",1);
                 mixing_tree->SetBranchStatus("trkEta",1);
                 mixing_tree->SetBranchStatus("trkPhi",1);
@@ -614,23 +617,25 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                 }
 
                 if(!doGenJets){
-                    mixing_tree->SetBranchStatus("calo_jteta",1);
-                    mixing_tree->SetBranchStatus("calo_jtphi",1);
-                    mixing_tree->SetBranchStatus("calo_jtpt",1);
-                    mixing_tree->SetBranchStatus("calo_rawpt", 1);
-                    mixing_tree->SetBranchStatus("calo_corrpt", 1); //this also needs to be off for JFFJEC disabled running
-                    mixing_tree->SetBranchStatus("calo_trackMax", 1);
-                    if(!is_data) mixing_tree->SetBranchStatus("calo_refparton_flavor",1);
+                    mixing_tree->SetBranchStatus("pf_jteta",1);
+                    mixing_tree->SetBranchStatus("pf_jtphi",1);
+                    mixing_tree->SetBranchStatus("pf_jtpt",1);
+                    mixing_tree->SetBranchStatus("pf_rawpt", 1);
+                    mixing_tree->SetBranchStatus("pf_corrpt", 1); //this also needs to be off for JFFJEC disabled running
+                    mixing_tree->SetBranchStatus("pf_trackMax", 1);
+                    if(!is_data) mixing_tree->SetBranchStatus("pf_refparton_flavor",1);
+                    if(!is_data) mixing_tree->SetBranchStatus("pf_refparton_flavorForB",1);
 
-                    mixing_tree->SetBranchAddress("calo_jteta", &jteta);
-                    mixing_tree->SetBranchAddress("calo_jtphi", &jtphi);
-                    mixing_tree->SetBranchAddress("calo_jtpt", &jtpt);
+                    mixing_tree->SetBranchAddress("pf_jteta", &jteta);
+                    mixing_tree->SetBranchAddress("pf_jtphi", &jtphi);
+                    mixing_tree->SetBranchAddress("pf_jtpt", &jtpt);
                     //cout << "WARNING!!! JFF-JECs DISABLED!!! "<< endl;
                     //mixing_tree->SetBranchAddress("calo_jtpt", &corrpt);
-                    mixing_tree->SetBranchAddress("calo_rawpt", &rawpt);
-                    mixing_tree->SetBranchAddress("calo_corrpt", &corrpt);
-                    mixing_tree->SetBranchAddress("calo_trackMax", &trackMax);
-                    if(!is_data)mixing_tree->SetBranchAddress("calo_refparton_flavor",&flavor);
+                    mixing_tree->SetBranchAddress("pf_rawpt", &rawpt);
+                    mixing_tree->SetBranchAddress("pf_corrpt", &corrpt);
+                    mixing_tree->SetBranchAddress("pf_trackMax", &trackMax);
+                    if(!is_data)mixing_tree->SetBranchAddress("pf_refparton_flavor",&flavor);
+                    if(!is_data)mixing_tree->SetBranchAddress("pf_refparton_flavorForB",&flavorForB);
                 }
                
                 if(!is_data) mixing_tree->SetBranchStatus("pthat", 1);
@@ -665,8 +670,8 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                     mixing_tree->SetBranchAddress("trkMVALoose",&trkMVALoose);
                     mixing_tree->SetBranchAddress("trkMVATight",&trkMVATight);
                 }
-                mixing_tree->SetBranchStatus("calo_discr_csvV1",1);
-                mixing_tree->SetBranchAddress("calo_discr_csvV1",&discr_csvV1);
+                mixing_tree->SetBranchStatus("pf_discr_csvV1",1);
+                mixing_tree->SetBranchAddress("pf_discr_csvV1",&discr_csvV1);
                 if(!is_data){
                     if(doGenTracks){
                         mixing_tree->SetBranchStatus("pt",1);
@@ -688,7 +693,7 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                     mixing_tree->SetBranchAddress("pPhi", &pPhi);
                     mixing_tree->SetBranchAddress("pEta", &pEta);
 
-                    if(doGenJets && !doOnlyQuarkJet && !doOnlyGluonJet && !doOnlyUnmatchedJets){
+                    if(doGenJets && !doOnlyQuarkJet && !doOnlyGluonJet && !doOnlyUnmatchedJets && !doTrueB && !doTaggedB){
                         mixing_tree->SetBranchStatus("genphi", 1);
                         mixing_tree->SetBranchStatus("geneta", 1);
                         mixing_tree->SetBranchStatus("genpt", 1);
@@ -702,21 +707,27 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                         mixing_tree->SetBranchStatus("geneta", 1);
                         mixing_tree->SetBranchStatus("genphi", 1);
                         mixing_tree->SetBranchStatus("genpt", 1);
-                        mixing_tree->SetBranchStatus("calo_jteta", 1);
-                        mixing_tree->SetBranchStatus("calo_jtphi", 1);
-                        mixing_tree->SetBranchStatus("calo_corrpt", 1);
-                        mixing_tree->SetBranchStatus("calo_refparton_flavorForB",1);
-                        mixing_tree->SetBranchStatus("calo_refparton_flavor",1);
+                        mixing_tree->SetBranchStatus("pf_jteta", 1);
+                        mixing_tree->SetBranchStatus("pf_jtphi", 1);
+                        mixing_tree->SetBranchStatus("pf_corrpt", 1);
+                        mixing_tree->SetBranchStatus("pf_refparton_flavorForB",1);
+                        mixing_tree->SetBranchStatus("pf_refparton_flavor",1);
 
                         cout << "genjet initialization " << endl;
                         mixing_tree->SetBranchAddress("geneta", &geneta);
                         mixing_tree->SetBranchAddress("genphi", &genphi);
                         mixing_tree->SetBranchAddress("genpt", &genpt);
-                        mixing_tree->SetBranchAddress("calo_corrpt", &corrpt);
-                        mixing_tree->SetBranchAddress("calo_jteta",&recoeta);
-                        mixing_tree->SetBranchAddress("calo_jtphi",&recophi);
-                        mixing_tree->SetBranchAddress("calo_refparton_flavorForB",&flavorForB);
-                        mixing_tree->SetBranchAddress("calo_refparton_flavor",&flavor);   
+                        mixing_tree->SetBranchAddress("pf_corrpt", &corrpt);
+                        mixing_tree->SetBranchAddress("pf_jteta",&recoeta);
+                        mixing_tree->SetBranchAddress("pf_jtphi",&recophi);
+                        mixing_tree->SetBranchAddress("pf_refparton_flavorForB",&flavorForB);
+                        mixing_tree->SetBranchAddress("pf_refparton_flavor",&flavor);   
+                    }
+                    else if(useGenJetAxis){
+                        mixing_tree->SetBranchStatus("geneta", 1);
+                        mixing_tree->SetBranchStatus("genphi", 1);
+                        mixing_tree->SetBranchAddress("geneta", &geneta);
+                        mixing_tree->SetBranchAddress("genphi", &genphi);
                     }
                 }
 
@@ -855,30 +866,29 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 				   }
 				 */
                                 int nTotJets = corrpt->size();
-                                if((doOnlyQuarkJet || doOnlyGluonJet || doOnlyUnmatchedJets) && doGenJets) nTotJets = genpt->size();
+                                if((doOnlyQuarkJet || doOnlyGluonJet || doOnlyUnmatchedJets || doTrueB || doTaggedB) && doGenJets) nTotJets = genpt->size();
                                 for(int j4i = 0; j4i < nTotJets; j4i++) {
 
-					bool foundBjet = false;
-					if(!doGenJets){
-                                            if(doBjets && discr_csvV1->at(j4i) >= 0.9) foundBjet=true;
-                                        }
-                                        else{
-                                            if(doBjets && fabs(flavorForB->at(j4i))==5) foundBjet=true;
-                                        }
-                                        //cout << "discr " << discr_csvV1->at(j4i) << endl;
+                                        bool foundBjet = false;
 					foundjet = kFALSE;
 					is_inclusive = kFALSE;
                                         if(!is_data && !doGenJets){
                                             if(doOnlyQuarkJet && (fabs(flavor->at(j4i))<1 || fabs(flavor->at(j4i))>6)) continue;
                                             if(doOnlyGluonJet && fabs(flavor->at(j4i))!=21) continue;
                                             if(doOnlyUnmatchedJets && (fabs(flavor->at(j4i))==21 || (fabs(flavor->at(j4i))>=1 && fabs(flavor->at(j4i))<=6))) continue;
+                                            if(doTrueB && doTaggedB && fabs(flavorForB->at(j4i))==5 && discr_csvV1->at(j4i)>=0.9) foundBjet = true;
+                                            else if(doTrueB && !doTaggedB && fabs(flavorForB->at(j4i))==5) foundBjet = true;
+                                            else if(doTaggedB && !doTrueB && discr_csvV1->at(j4i)>=0.9) foundBjet = true;
                                         }
                                         double matchedPt=0, matchedEta=0, matchedPhi=0;
-                                        if(doGenJets && (doOnlyQuarkJet || doOnlyGluonJet || doOnlyUnmatchedJets)){
-                                            double matcheddR=999;
+                                        if(doGenJets && (doOnlyQuarkJet || doOnlyGluonJet || doOnlyUnmatchedJets || doTrueB || doTaggedB)){
+                                            if(genpt->at(j4i) <=leadingjetcut) continue;
+                                            if(fabs(geneta->at(j4i)) > searchetacut) continue;
+                                            double matcheddR=0.4;
                                             int imatch=-1;
                                             for(unsigned int ireco=0; ireco<recoeta->size(); ireco++){
-                                               double dr = findDR(recoeta->at(ireco), recophi->at(ireco), geneta->at(j4i), genphi->at(j4i));
+                                                if(corrpt->at(ireco)<50) continue;
+                                                double dr = findDR(recoeta->at(ireco), recophi->at(ireco), geneta->at(j4i), genphi->at(j4i));
                                                 if(dr<matcheddR){
                                                     matcheddR=dr;
                                                     imatch = ireco;
@@ -888,14 +898,15 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                                             if(doOnlyQuarkJet && (fabs(flavor->at(imatch))<1 || fabs(flavor->at(imatch))>6)) continue;
                                             if(doOnlyGluonJet && fabs(flavor->at(imatch))!=21) continue;
                                             if(doOnlyUnmatchedJets && (fabs(flavor->at(imatch))==21 || (fabs(flavor->at(imatch))>=1 && fabs(flavor->at(imatch))<=6))) continue;
+                                            if(doTrueB && doTaggedB && fabs(flavorForB->at(imatch))==5 && discr_csvV1->at(imatch)>=0.9) foundBjet = true;
+                                            else if(doTrueB && !doTaggedB && fabs(flavorForB->at(imatch))==5) foundBjet = true;
+                                            else if(doTaggedB && !doTrueB && discr_csvV1->at(imatch)>=0.9) foundBjet = true;
                                             matchedPt = genpt->at(j4i);
                                             matchedEta= geneta->at(j4i);
                                             matchedPhi= genphi->at(j4i);
-                                            if(matchedPt <=leadingjetcut) continue;
-                                            if(fabs(matchedEta) > searchetacut) continue;
                                             is_inclusive=kTRUE; foundjet = kTRUE;
                                         }
-                                        if((!doOnlyQuarkJet && !doOnlyGluonJet && !doOnlyUnmatchedJets) || !doGenJets){
+                                        if((!doTrueB && !doTaggedB && !doOnlyQuarkJet && !doOnlyGluonJet && !doOnlyUnmatchedJets) || !doGenJets){
                                             if(!doSpillOutJets && corrpt->at(j4i)<=leadingjetcut) continue ;
                                             if(doSpillOutJets){
                                                 if(corrpt->at(j4i)>leadingjetcut || jtpt->at(j4i)<leadingjetcut) continue;
@@ -926,10 +937,28 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 					//Determine gen-jet direction once, for use later in sube0 only residual jff-jec scans.
 
                                         double jet_pt, jet_eta, jet_phi;
-                                        if(doGenJets && (doOnlyQuarkJet || doOnlyGluonJet || doOnlyUnmatchedJets)){
+                                        if(doGenJets && (doOnlyQuarkJet || doOnlyGluonJet || doOnlyUnmatchedJets || doTrueB || doTaggedB)){
                                             jet_pt = matchedPt;
                                             jet_eta = matchedEta;
                                             jet_phi = matchedPhi;
+                                        }
+                                        else if(!doGenJets && useGenJetAxis){
+                                            double matcheddR=999;
+                                            int imatch=-1;
+                                            double dr = 999;
+                                            for(unsigned int igen=0; igen<geneta->size(); igen++){
+                                                dr = findDR(jteta->at(j4i), jtphi->at(j4i), geneta->at(igen), genphi->at(igen));
+                                                if(dr<matcheddR){
+                                                    matcheddR=dr;
+                                                    imatch = igen;
+                                                }
+                                            }
+                                            if(dr < 0.4 && imatch>=0){
+                                                jet_pt = corrpt->at(j4i);
+                                                jet_eta = geneta->at(imatch);
+                                                jet_phi = genphi->at(imatch);
+                                            }
+                                            else continue;
                                         }
                                         else{
                                             jet_pt = corrpt->at(j4i);
@@ -1194,7 +1223,8 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                                                                 if(!passTrackCuts(is_pp, doTightCuts, me_trkPt->at(tracks), me_trkEta->at(tracks), me_highPurity->at(tracks), me_trkChi2->at(tracks), me_trkNdof->at(tracks), me_trkNlayer->at(tracks), me_trkNHit->at(tracks), me_pfHcal->at(tracks), me_pfEcal->at(tracks), me_trkDxy->at(tracks)/me_trkDxyError->at(tracks), me_trkDz->at(tracks)/me_trkDzError->at(tracks))) continue;
                                                             }
                                                             else{
-                                                                if(!passGenTrackCuts(me_trkPt->at(tracks), me_trkEta->at(tracks), me_chg->at(tracks), me_sube->at(tracks))) continue;
+                                                                //always mix with all particles - sube0 mixing is dangerous for forward jets!
+                                                                if(!passGenTrackCuts(me_trkPt->at(tracks), me_trkEta->at(tracks), me_chg->at(tracks), me_sube->at(tracks), 1)) continue;
                                                             }
                                                             nptrks++;
 								for(int trkpti = 0; trkpti < nTrkPtBins; trkpti++) {
