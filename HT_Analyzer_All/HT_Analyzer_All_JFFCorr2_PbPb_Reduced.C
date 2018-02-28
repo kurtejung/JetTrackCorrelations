@@ -27,6 +27,7 @@
 
 #include "trkCorrTable/xiaoTrkCorr.h"
 #include "trkCorrTable/xiaoTrkCorr_fineBin.h"
+#include "trkCorrTable/xiaoTrkCorr_pp.h"
 
 using namespace std;
 
@@ -196,20 +197,20 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 
     //*********************************************
         bool doGenJets = false;
-        bool doGenTracks = true;
-        bool useOfficialTrkCorr = true;
+        bool doGenTracks = false;
+        bool useOfficialTrkCorr = false;
  
         bool do_mixing = true;
         bool is_pp = true;
         bool is_data = false;
         //switch between Xiao's loose (b-jet) and tight (inclusive-jet) cuts
-        bool doTightCuts = true;
+        bool doTightCuts = false; //warning - need to be off for b-jet tracking corrs to work!
         bool doCymbalTrkCorrs = true;
     //*********************************************
 
         if(is_data){ doGenJets = false; doGenTracks = false; }
 
-        if(is_pp) useOfficialTrkCorr = true;
+        //if(is_pp) useOfficialTrkCorr = true;
         if(useOfficialTrkCorr) doTightCuts = true;
 
         if(is_data) globalCode = 0;
@@ -310,6 +311,7 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 
         xiaoTrkCorr* xtc;
         xiaoTrkCorr_fineBin *xtcFB;
+        xiaoTrkCorr_pp *xtcpp;
         if(!useOfficialTrkCorr){
             if(doTightCuts){
                 if(is_data) xtc = new xiaoTrkCorr("trkCorrTable/inputCorr_v14_data.root");
@@ -319,6 +321,7 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
             else{
                 if(is_data) xtc = new xiaoTrkCorr("trkCorrTable/inputCorr_noVertex_data.root");
                 else xtc = new xiaoTrkCorr("trkCorrTable/inputCorr_noVertex.root");
+                xtcpp = new xiaoTrkCorr_pp("trkCorrTable/corrTable_5TeV_pp_noDCA_18Feb.root");
             }
         }
 
@@ -1031,7 +1034,10 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
 					int signtrk=0;
                                         for(int tracks =0; tracks < (int) trkPt->size(); tracks++){
                                             if(!doGenTracks){
+                                                bool tempTightCuts = true;
+                                                if(foundBjet && doTightCuts){ tempTightCuts  = false; doTightCuts = false; }
                                                 if(!passTrackCuts(is_pp, doTightCuts, trkPt->at(tracks), trkEta->at(tracks), highPurity->at(tracks), trkChi2->at(tracks), trkNdof->at(tracks), trkNlayer->at(tracks), trkNHit->at(tracks), pfHcal->at(tracks), pfEcal->at(tracks), trkDxy1->at(tracks)/trkDxyError1->at(tracks), trkDz1->at(tracks)/trkDzError1->at(tracks))) continue;
+                                                if(!tempTightCuts) doTightCuts = true; //switch it back on if necessary
                                             }
                                             else{
                         //                        if(trkPt->at(tracks)<1.0) hBefore->Fill(trkEta->at(tracks);
@@ -1067,7 +1073,10 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                                                     if(!doCymbalTrkCorrs) trkCorrection = xtc->getTrkCorr(pt, eta, phi, hiBin);
                                                     else trkCorrection = xtcFB->getTrkCorr(pt, eta, phi, hiBin);
                                                 }
-                                                else trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 1, rmin);
+                                                else{
+                                                    if(doTightCuts) trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 1, rmin);
+                                                    else trkCorrection = xtcpp->getTrkCorr(pt,eta,phi,1,rmin);
+                                                }
 
 						if(!is_pp){
 							secondary = 0.;
@@ -1220,7 +1229,10 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                                                         for(int tracks =0; tracks < (int) me_trkPt->size(); tracks++){
                                                             //if(foundBjet && me_trkPt->at(tracks)>4) cout << "found 4 GeV track in mix evt: " << me_trkPt->at(tracks) << " " << me_trkEta->at(tracks) << " " << me_trkPhi->at(tracks) << endl;
                                                             if(!doGenTracks){    
+                                                                bool tempTightCuts = true;
+                                                                if(foundBjet && doTightCuts){ tempTightCuts  = false; doTightCuts = false; }
                                                                 if(!passTrackCuts(is_pp, doTightCuts, me_trkPt->at(tracks), me_trkEta->at(tracks), me_highPurity->at(tracks), me_trkChi2->at(tracks), me_trkNdof->at(tracks), me_trkNlayer->at(tracks), me_trkNHit->at(tracks), me_pfHcal->at(tracks), me_pfEcal->at(tracks), me_trkDxy->at(tracks)/me_trkDxyError->at(tracks), me_trkDz->at(tracks)/me_trkDzError->at(tracks))) continue;
+                                                                if(!tempTightCuts) doTightCuts = true; //switch it back on if necessary
                                                             }
                                                             else{
                                                                 //always mix with all particles - sube0 mixing is dangerous for forward jets!
@@ -1257,8 +1269,10 @@ void HT_Analyzer_All_JFFCorr2_PbPb_Reduced(bool doCrab = 0, int jobID=0, int glo
                                                                     if(!doCymbalTrkCorrs) trkCorrection = xtc->getTrkCorr(pt,eta,phi,me_hiBin);
                                                                     else trkCorrection = xtcFB->getTrkCorr(pt,eta,phi,me_hiBin);
                                                                 }
-                                                                else trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 1, rmin);
-
+                                                                else{
+                                                                    if(doTightCuts) trkCorrection = trkCorr->getTrkCorr(pt, eta, phi, 1, rmin);
+                                                                    else trkCorrection = xtcpp->getTrkCorr(pt,eta,phi,1,rmin);
+                                                                }
                                                                 //cout << "trkcorr = " << trkCorrection << endl;
 								if(!is_pp){
 									secondary = 0.;

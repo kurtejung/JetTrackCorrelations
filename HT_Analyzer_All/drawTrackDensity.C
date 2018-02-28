@@ -180,7 +180,7 @@ TH2D* backgroundSubtract(TH2D *signal, TH2D *background, TH1F *nJets, bool doBGs
 }
 
 //Mix event 2 = full mixing correction, 1 = sideband correction, 0 = no correction
-void drawTrackDensity(string jet="Reco", string track="Reco", string jetDiv="Reco", string trackDiv="Reco", bool doBGsub=false, int doMixEvt=2, int scaleJets=1){
+void drawTrackDensity(string jet="Gen", string track="Gen", string jetDiv="Gen", string trackDiv="Gen", bool doBGsub=false, int doMixEvt=2, int scaleJets=1){
 	
 	bool doJFFCorrs = false;
 	bool doSpillover = false;
@@ -188,14 +188,14 @@ void drawTrackDensity(string jet="Reco", string track="Reco", string jetDiv="Rec
 	bool applySpillovers = false;
 	bool writeOutCorrelations = false;
 	bool drawUncertainties = false;
-	bool writeDRHistosForPlotting = true;
+	bool writeDRHistosForPlotting = false;
 	bool doptWeight = false;
 	
 	bool doMixEvtShapeCorr = false;
 	if(doMixEvtShapeCorr) doBGsub = false; //need to derive wing shape corrections in proportion to BG
 	
-	bool isData1 = true;
-	bool isData2 = true;
+	bool isData1 = false;
+	bool isData2 = false;
 	
 	bool isBjets1 = false;
 	bool isBjets2 = false;
@@ -249,8 +249,8 @@ void drawTrackDensity(string jet="Reco", string track="Reco", string jetDiv="Rec
 	//TFile *fSpillovers = new TFile("JFFcorrs_subeNon0_TestOldJFFs_withFits.root");
 	
 	//gengen = black, genreco = red
-	TFile *fGenGen = new TFile(Form("root_output/PbPb_5TeVMC_%s%sSube0_GluonJets_fixMatch_fineBinTrkCorrs_withTrkCorrEtaSymmV2_finalJFF_noMix.root",jet.c_str(),track.c_str()));
-	TFile *fGenReco = new TFile(Form("root_output/PbPb_5TeVMC_%s%sSube0_QuarkJets_fixMatch_fineBinTrkCorrs_withTrkCorrEtaSymmV2_finalJFF_noMix.root",jetDiv.c_str(),trackDiv.c_str()));
+	TFile *fGenGen = new TFile(Form("root_output/PbPb_5TeVMC_%s%s_QuarkJet_sube0_corrHistos_merged_withMix_summed.root",jet.c_str(),track.c_str()));
+	TFile *fGenReco = new TFile(Form("root_output/PbPb_5TeVMC_%s%s_GluonJet_sube0_corrHistos_merged_withMix_summed.root",jetDiv.c_str(),trackDiv.c_str()));
 	TFile *fGenGenSube0 = new TFile(Form("root_output/PbPb_5TeVMC_withMix_%s%s_sube0_CymbalTune_inclJetBinning.root",jet.c_str(),track.c_str()));
 	TFile *fGenGenSubeNon0 = new TFile(Form("root_output/PbPb_5TeVMC_%s%sSube0_fineBinTrkCorrs_withTrkCorrEtaSymmV2_finalJFF_noMix.root",jet.c_str(),track.c_str()));
 	TFile *fGenRecoSube0 = new TFile(Form("root_output/PbPb_5TeVMC_%s%sSube0_fineBinTrkCorrs_withTrkCorrEtaSymmV2_finalJFF_noMix.root",jetDiv.c_str(),trackDiv.c_str()));
@@ -408,31 +408,31 @@ void drawTrackDensity(string jet="Reco", string track="Reco", string jetDiv="Rec
 			if(isData1) toGet = Form("Data_h%sJetTrackSignalBackground%s%s%s_%s_Pt100_Pt1000_%s_%s",bjetString1.c_str(),ptWeightString.c_str(), trkCorr.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			else toGet = Form("%sJet_%sTrack_h%sJetTrackSignalBackground%s%s%s_%s_Pt100_Pt1000_%s_%s",jet.c_str(),track.c_str(),bjetString1.c_str(),ptWeightString.c_str(), trkCorr.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			cout << "getting " << toGet << endl;
-			GenGenSignals[i][j] = (TH2D*)PbPbData->Get(toGet.c_str())->Clone(toGet.c_str());
+			GenGenSignals[i][j] = (TH2D*)fGenGen->Get(toGet.c_str())->Clone(toGet.c_str());
 			
 			if(isData1) toGet = Form("Data_h%sJetTrackSignalBackground_pTweighted%s%s_%s_Pt100_Pt1000_%s_%s",bjetString1.c_str(), trkCorr.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			else toGet = Form("%sJet_%sTrack_h%sJetTrackSignalBackground%s%s%s_%s_Pt100_Pt1000_%s_%s",jet.c_str(),track.c_str(),bjetString1.c_str(),ptWeightString.c_str(), trkCorr.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			cout << "getting " << toGet << endl;
-			GenGenSignalsPtWeight[i][j] = (TH2D*)PbPbData->Get(toGet.c_str())->Clone(toGet.c_str());
+			GenGenSignalsPtWeight[i][j] = (TH2D*)fGenGen->Get(toGet.c_str())->Clone(toGet.c_str());
 			
 			if(isData2 /*&& (i==0 || j>2)*/) toGet = Form("Data_h%sJetTrackSignalBackground%s%s%s_%s_Pt100_Pt1000_%s_%s",bjetString2.c_str(),ptWeightString.c_str(), trkCorrDiv.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			//else if(isData2) toGet = Form("Raw_Yield_%s_%s_Pt100_Pt1000_%s_%s",xCentBins[j].c_str(),xCentBins[j+1].c_str(),halliexTrkBins[i].c_str(),halliexTrkBins[i+1].c_str());
 			else toGet = Form("%sJet_%sTrack_h%sJetTrackSignalBackground%s%s%s_%s_Pt100_Pt1000_%s_%s",jetDiv.c_str(),trackDiv.c_str(),bjetString2.c_str(),ptWeightString.c_str(),trkCorrDiv.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			cout << "getting " << toGet << endl;
-			/*if(i==0 || j>2)*/ GenRecoSignals[i][j] = (TH2D*)PbPbData->Get(toGet.c_str())->Clone(toGet.c_str());
+			/*if(i==0 || j>2)*/ GenRecoSignals[i][j] = (TH2D*)fGenReco->Get(toGet.c_str())->Clone(toGet.c_str());
 			//else GenRecoSignals[i][j] = (TH2D*)hallieMix->Get(toGet.c_str())->Clone(toGet.c_str());
 			
 			if(isData1) toGet = Form("Data_h%sJetTrackME%s%s_%s_Pt100_Pt1000_%s_%s",bjetString1.c_str(),trkCorr.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			else toGet = Form("%sJet_%sTrack_h%sJetTrackME%s%s_%s_Pt100_Pt1000_%s_%s",jet.c_str(),track.c_str(),bjetString1.c_str(),trkCorr.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			//else toGet = Form("Data_h%sJetTrackME%s%s_%s_Pt100_Pt300_%s_%s",bjetString1.c_str(),trkCorr.c_str(),xOldCentBins[j].c_str(),xOldCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			cout << "getting " << toGet << endl;
-			GenGenBG[i][j] = (TH2D*)PbPbData->Get(toGet.c_str())->Clone(toGet.c_str());
+			GenGenBG[i][j] = (TH2D*)fGenGen->Get(toGet.c_str())->Clone(toGet.c_str());
 			
 			if(isData2 /*&& (i==0 || j>2)*/) toGet = Form("Data_h%sJetTrackME%s%s_%s_Pt100_Pt1000_%s_%s",bjetString2.c_str(),trkCorrDiv.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			//else if(isData2) toGet = Form("Mixed_Event_%s_%s_Pt100_Pt1000_%s_%s",xCentBins[j].c_str(),xCentBins[j+1].c_str(),halliexTrkBins[i].c_str(),halliexTrkBins[i+1].c_str());
 			else toGet = Form("%sJet_%sTrack_h%sJetTrackME%s%s_%s_Pt100_Pt1000_%s_%s",jetDiv.c_str(),trackDiv.c_str(),bjetString2.c_str(),trkCorrDiv.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str(),xTrkBins[i].c_str(),xTrkBins[i+1].c_str());
 			cout << "getting " << toGet << endl;
-			/*if(i==0 || j>2)*/ GenRecoBG[i][j] = (TH2D*)PbPbData->Get(toGet.c_str())->Clone(toGet.c_str());
+			/*if(i==0 || j>2)*/ GenRecoBG[i][j] = (TH2D*)fGenReco->Get(toGet.c_str())->Clone(toGet.c_str());
 			//else GenRecoBG[i][j] = (TH2D*)hallieMix->Get(toGet.c_str())->Clone(toGet.c_str());
 			
 			GenGenDRDistr[i][j] = new TH1D(Form("GenGenDR_%d_%d",i,j),"",19,xdrbins);
@@ -456,12 +456,12 @@ void drawTrackDensity(string jet="Reco", string track="Reco", string jetDiv="Rec
 		if(isData1) toGet = Form("Data_all_%sjets_corrpT%s_%s_Pt100_Pt1000",bjetString1.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str());
 		else toGet = Form("%sJet_%sTrack_all_%sjets_corrpT%s_%s_Pt100_Pt1000",jet.c_str(),track.c_str(),bjetString1.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str());
 		cout << "getting " << toGet << endl;
-		nJetsGen[j] = (TH1F*)PbPbData->Get(toGet.c_str())->Clone(toGet.c_str());
+		nJetsGen[j] = (TH1F*)fGenGen->Get(toGet.c_str())->Clone(toGet.c_str());
 		
 		if(isData2) toGet = Form("Data_all_%sjets_corrpT%s_%s_Pt100_Pt1000",bjetString2.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str());
 		else toGet = Form("%sJet_%sTrack_all_%sjets_corrpT%s_%s_Pt100_Pt1000",jetDiv.c_str(),trackDiv.c_str(),bjetString2.c_str(),xCentBins[j].c_str(),xCentBins[j+1].c_str());
 		cout << "getting " << toGet << endl;
-		nJetsReco[j] = (TH1F*)PbPbData->Get(toGet.c_str())->Clone(toGet.c_str());
+		nJetsReco[j] = (TH1F*)fGenReco->Get(toGet.c_str())->Clone(toGet.c_str());
 		
 		drGenGenDensity[j] = new THStack(Form("drGenGenDensity_%d",j),"");
 		drGenRecoDensity[j] = new THStack(Form("drGenRecoDensity_%d",j),"");
